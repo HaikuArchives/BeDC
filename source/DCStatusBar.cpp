@@ -36,34 +36,34 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCStatusBar.h"
 
 DCStatusBar::DCStatusBar(BRect frame, int32 height, int32 style)
-	:	BView(BRect (frame.left, frame.bottom - height, frame.right, frame.bottom),
-			"statusbar",B_FOLLOW_LEFT_RIGHT | B_FOLLOW_BOTTOM,B_WILL_DRAW),
-		fStyle(style)
+	: BView(BRect(frame.left, frame.bottom - height, frame.right, frame.bottom),
+			"statusbar", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_BOTTOM,B_WILL_DRAW), fStyle(style)
 {
 	SetViewColor(216, 216, 216);
 }
 
-void DCStatusBar::Draw(BRect frame)
+void 
+DCStatusBar::Draw(BRect frame)
 {
-	if(fStyle==STATUS_VISION_STYLE)
+	if (fStyle == STATUS_VISION_STYLE)
 	{
-		SetDrawingMode (B_OP_COPY);
-  		SetHighColor (131, 131, 131, 255);
-  		StrokeLine (BPoint (frame.left, Bounds().top),BPoint (frame.right, Bounds().top));
-  		SetHighColor (255, 255, 255, 255);
-  		StrokeLine (BPoint (frame.left, Bounds().top + 1),BPoint (frame.right, Bounds().top + 1));
+		SetDrawingMode(B_OP_COPY);
+  		SetHighColor(131, 131, 131, 255);
+  		StrokeLine(BPoint(frame.left, Bounds().top), BPoint(frame.right, Bounds().top));
+  		SetHighColor(255, 255, 255, 255);
+  		StrokeLine(BPoint(frame.left, Bounds().top + 1), BPoint(frame.right, Bounds().top + 1));
 	}
-	else if(fStyle==STATUS_WINDOZE_STYLE)
+	else if (fStyle == STATUS_WINDOZE_STYLE)
 	{
-		SetDrawingMode (B_OP_COPY);
-  		SetHighColor (255, 255, 255, 255);
-  		StrokeLine (BPoint (frame.left, Bounds().top),BPoint (frame.right, Bounds().top));
-  		SetHighColor (131, 131, 131, 255);
-  		StrokeLine (BPoint (frame.left, Bounds().top + 1),BPoint (frame.right, Bounds().top + 1));
+		SetDrawingMode(B_OP_COPY);
+  		SetHighColor(255, 255, 255, 255);
+  		StrokeLine(BPoint(frame.left, Bounds().top), BPoint(frame.right, Bounds().top));
+  		SetHighColor(131, 131, 131, 255);
+  		StrokeLine(BPoint(frame.left, Bounds().top + 1), BPoint(frame.right, Bounds().top + 1));
 	}
 	
-	SetDrawingMode (B_OP_OVER);
-	SetHighColor (0, 0, 0, 255);
+	SetDrawingMode(B_OP_OVER);
+	SetHighColor(0, 0, 0, 255);
 	
-	DrawString("Status Bar (Under construction :)",BPoint(Bounds().left+2,Bounds().bottom-2));
+	DrawString("Status Bar (Under construction :)", BPoint(Bounds().left + 2, Bounds().bottom - 2));
 }

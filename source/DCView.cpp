@@ -308,7 +308,7 @@ DCView::SendInfoToServer(bool update)
 			fConn->SetSpeed(GetConnectionText(i));
 		if (fSettings->GetBool(DCS_PREFS_ACTIVE, b) == B_OK)
 			fConn->SetType(b ? DCConnection::ACTIVE : DCConnection::PASSIVE);
-		fConn->SetSharedSize(65011712 * 1024);	// fake shared size of 62GB
+		fConn->SetSharedSize((uint64)65011712 * 1024);	// fake shared size of 62GB
 	}
 	
 	if (fConn->IsConnected())
@@ -454,6 +454,7 @@ DCView::PrintText(BString str, bool newLine)
 	if (newLine)
 		str += "\n";	// Add a new line
 	fText->Insert(fText->TextLength(), str.String(), str.Length(), &ta);
+	fText->Invalidate();
 }
 
 void

@@ -275,11 +275,7 @@ DCWindow::InitGUI()
 	);
 	fScrollHubs->SetViewColor(216, 216, 216);
 	
-	// TEST
-//	fParentView->AddChild(
-//		new DCView(dc_app->GetSettings(), BMessenger(this), BRect(167, 2, 
-//				   fParentView->Frame().right - 2, fParentView->Bounds().Height() - 20))
-//	);
-	fParentView->AddChild(fStatusBar = new DCStatusBar(fParentView->Bounds(),16,STATUS_WINDOZE_STYLE));
-
+	fParentView->AddChild(
+		fStatusBar = new DCStatusBar(fParentView->Bounds(), 18, STATUS_VISION_STYLE)
+	);
 }

@@ -169,7 +169,7 @@ DCMS(const char * str)
 {
 	BString ret(str);
 	int srcSize = strlen(str) + 1;
-	char * convBuffer = new char[srcSize];
+	char * convBuffer = new char[srcSize + 1];
 	
 	memset(convBuffer, 0, srcSize);
 	if (convert_from_utf8(B_MS_WINDOWS_CONVERSION, str, (int32 *)&srcSize, convBuffer, (int32 *)&srcSize, 0) == B_OK)

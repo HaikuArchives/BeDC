@@ -57,7 +57,7 @@ enum
 };
 
 DCConnection::DCConnection(BMessenger target, const BString & host, int port)
-	: BLooper("dcconnection", B_NORMAL_PRIORITY)
+	: BLooper("dc_connection", B_NORMAL_PRIORITY)
 {
 	fThreadID = -1;
 	fConnected = false;
@@ -112,11 +112,7 @@ DCConnection::Disconnect()
 	}
 	if (fSocket >= 0)
 	{
-#ifdef NETSERVER_BUILD
-		closesocket(fSocket);
-#else
-		close(fSocket);
-#endif
+		CLOSE_SOCKET(fSocket);
 		fSocket = -1;
 	}
 	// Clean up our list
@@ -468,7 +464,7 @@ DCConnection::Sender()
 int
 DCConnection::Reader(BString & ret)
 {
-	const int32 BUFFER_SIZE = 1024;
+	const int32 BUFFER_SIZE = 512;
 	char recvBuffer[BUFFER_SIZE + 1];
 	BString converted = "";
 	int r = 0;
@@ -754,7 +750,7 @@ void
 DCConnection::SendVersion(const BString & version)
 {
 	BString v("$Version ");
-	v.Append((version == "") ? "1,0091" : version);
+	v.Append((version == "") ? "2,1191" : version);
 	v += "|";
 	SendRawData(v);	
 }

@@ -190,12 +190,13 @@ DCHTTPConnection::ReceiveHandler(void * data)
 		}
 		
 		recvBuffer[amountRead] = 0;		// NULL-terminate
-		socketBuffer.Append(recvBuffer);
+		socketBuffer.Append(DCUTF8(recvBuffer));
 		int32 i;
 		while ((i = socketBuffer.FindFirst("\r\n")) != B_ERROR)
 		{
 			BString insert;
 			socketBuffer.MoveInto(insert, 0, i);
+			printf("Inserting HTTP: [ %s ]\n", insert.String());
 			socketBuffer.RemoveFirst("\r\n");
 			http->fLines.push_back(insert);
 		}

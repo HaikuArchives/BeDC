@@ -47,11 +47,11 @@ enum
 class DCStatusBar : public BView
 {
 public:
-					DCStatusBar(BRect frame, int32 height, int32 style);
-	virtual void	Draw(BRect frame);
+						DCStatusBar(BRect frame, int32 height, int32 style);
+	virtual void		Draw(BRect frame);
 	
 private:
-	int32 			fStyle;	// Style
+	int32 				fStyle;
 };
 
 
