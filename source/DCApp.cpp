@@ -125,6 +125,7 @@ DCApp::MessageReceived(BMessage * msg)
 		case DC_MSG_HUB_CONNECT:
 		{
 			EnsureWindowAllocated();
+			msg->what = DC_MSG_APP_OPEN_NEW_HUB;
 			BMessenger(fWindow).SendMessage(msg);	// hehehe :)
 			break;
 		}
@@ -136,7 +137,10 @@ DCApp::MessageReceived(BMessage * msg)
 				fSettings->SetRect(DCS_WINDOW_RECT, rect);
 			fWindow = NULL;
 			if (fHubWindow == NULL)	// no hub window either?
+			{
+				printf("Hub window is null\n");
 				PostMessage(B_QUIT_REQUESTED);
+			}
 			break;
 		}
 		
@@ -211,4 +215,30 @@ DCApp::MergeDifferences(DCSettings * msg)
 		msg->SetPoint(DCS_PREFS_POS, point);
 	delete fSettings;	// old settings
 	fSettings = msg;	// keep the new ones :)
+}
+
+// Colors are not configurable yet
+rgb_color
+DCApp::GetColor(int c)
+{
+	switch (c)
+	{
+		case DC_COLOR_SYSTEM:
+		{
+			rgb_color r = { 0, 0, 127, 255 };
+			return r;
+		}
+			
+		case DC_COLOR_TEXT:
+		{
+			rgb_color r = { 0, 0, 0, 255 };
+			return r;
+		}
+		
+		default:
+		{	// Shut the compiler up (warning)
+			rgb_color r = { 0, 0, 0, 255 };
+			return r;
+		}
+	}
 }

@@ -84,8 +84,18 @@ const char * DC_STR_ENGLISH[STR_NUM] =
 	"IP",
 	"Port",
 	
+	// "Name" is reused
+	"Speed",
+	"Description",
+	"E-Mail",
+	"Shared",
+	"Chat:",
+	
 	"OK",
-	"Cancel"
+	"Cancel",
+	
+	"System: ",
+	"Connecting to "
 };
 
 // If you want different key shortcuts then the defaults for english,

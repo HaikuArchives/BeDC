@@ -64,6 +64,14 @@ enum
 	DC_MSG_APP_SHOW_PREFS = 'aOpF'
 };
 
+
+// Colors
+enum
+{
+	DC_COLOR_SYSTEM = 0,
+	DC_COLOR_TEXT
+};
+
 class DCApp : public BApplication
 {
 public:
@@ -76,6 +84,8 @@ public:
 	
 	DCSettings *			GetSettings() { return fSettings; }
 	DCDownloadQueue *		GetQueue() { return fQueue; }
+	
+	rgb_color				GetColor(int c);
 	
 protected:
 	DCDownloadQueue * 		fQueue	/*theQueue*/;

@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCWindow.h"
 #include "DCStrings.h"
 #include "DCApp.h"
+#include "DCView.h"
 
 #include <View.h>
 #include <Message.h>
@@ -42,6 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <MenuItem.h>
 #include <ListView.h>
 #include <ScrollView.h>
+#include <ListItem.h>
 
 enum
 {
@@ -62,6 +64,12 @@ DCWindow::DCWindow(BRect pos)
 
 DCWindow::~DCWindow()
 {
+	// Empty out our view list
+	while (fViewList.CountItems() > 0)
+	{
+		Container * item = fViewList.RemoveItemAt(0);
+		delete item;
+	}
 }
 
 void
@@ -69,6 +77,16 @@ DCWindow::MessageReceived(BMessage * msg)
 {
 	switch (msg->what)
 	{
+		case DC_MSG_APP_OPEN_NEW_HUB:
+		{
+			BString n, a, d;
+			if (msg->FindString("name", &n) == B_OK &&
+				msg->FindString("addr", &a) == B_OK &&
+				msg->FindString("desc", &d) == B_OK)
+				OpenNewConnection(n, a, d);
+			break;
+		}
+		
 		case DCW_ABOUT:
 			break;
 			
@@ -81,12 +99,107 @@ DCWindow::MessageReceived(BMessage * msg)
 			break;
 		
 		case DCW_HUB_CHANGED:
+		{
+			if (fHubs->CurrentSelection() >= 0)
+			{
+				HideAll();
+				ShowItem(fHubs->ItemAt(fHubs->CurrentSelection()));
+			}
 			break;
+		}
 			
 		default:
 			BWindow::MessageReceived(msg);
 			break;
 	}
+}
+
+void
+DCWindow::OpenNewConnection(const BString & name, const BString & addr, const BString & desc)
+{
+	Container * con = NULL;
+	
+	if ((con = FindItem(name)) != NULL)	// Don't accept duplicate connections
+	{
+		// Duplicate? show it, and activate the widnow
+		if (con->fView->IsHidden())
+		{
+			HideAll();
+			con->fView->Show();
+			fHubs->Select(fHubs->IndexOf(con->fListItem));
+		}
+		Activate(true);
+		return;
+	}
+
+	con = new Container;
+	con->fServerName = name;
+	con->fServerAddr = addr;
+	con->fServerDesc = desc;
+	con->fView = new DCView(dc_app->GetSettings(), BMessenger(this), BRect(167, 2, 
+				   			fParentView->Frame().right - 2, fParentView->Bounds().Height() - 20));
+	con->fListItem = new BStringItem(name.String());
+	// Our view starts out hidden
+	con->fView->Hide();	
+	fParentView->AddChild(con->fView);
+	// Insert into list
+	fViewList.AddItem(con);
+	// Insert into the list view
+	fHubs->AddItem(con->fListItem, fHubs->CountItems());
+	// Hide all of our current windows
+	HideAll();
+	// Show our new connection only
+	ShowItem(con->fListItem);
+	con->fView->Connect(addr);
+	
+	Activate(true);
+}
+
+// Returns NULL if it can't find the item
+DCWindow::Container *
+DCWindow::FindItem(BListItem * item)
+{
+	for (int32 i = 0; i < fViewList.CountItems(); i++)
+	{
+		Container * it = fViewList.ItemAt(i);
+		if (it->fListItem == item)
+			return it;
+	}
+	return NULL;
+}
+
+// Returns NULL if item is not found
+DCWindow::Container *
+DCWindow::FindItem(const BString & name)
+{
+	for (int32 i = 0; i < fViewList.CountItems(); i++)
+	{
+		Container * it = fViewList.ItemAt(i);
+		if (it->fServerName == name)
+			return it;
+	}
+	return NULL;
+}
+
+void
+DCWindow::HideAll()
+{
+	// Go through each item, and if it's not hidden, hide it
+	for (int32 i = 0; i < fViewList.CountItems(); i++)
+	{
+		Container * item = fViewList.ItemAt(i);
+		if (!item->fView->IsHidden())
+			item->fView->Hide();
+	}
+}
+
+void
+DCWindow::ShowItem(BListItem * item)
+{
+	// Find our item
+	Container * it = FindItem(item);
+	if (it && it->fView->IsHidden() == true) // Must be hidden... otherwise we don't need to show it
+		it->fView->Show();
 }
 
 bool
@@ -150,4 +263,10 @@ DCWindow::InitGUI()
 									  false, true, B_FANCY_BORDER)
 	);
 	fScrollHubs->SetViewColor(216, 216, 216);
+	
+	// TEST
+//	fParentView->AddChild(
+//		new DCView(dc_app->GetSettings(), BMessenger(this), BRect(167, 2, 
+//				   fParentView->Frame().right - 2, fParentView->Bounds().Height() - 20))
+//	);
 }

@@ -55,6 +55,15 @@ DCConnection::DCConnection(BMessenger target, const BString & host, int port)
 	fSocket = -1;
 	fTarget = target;
 	fNick = "";
+	fType = ACTIVE;
+	fSharedSize = 0;
+	
+	fSpeed = "";
+	fEmail = "";
+	fNick = "";
+	fDesc = "";
+	fHost = "";
+	fPort = 0;
 	
 	Run();	// start the looper
 	

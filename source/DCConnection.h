@@ -106,6 +106,11 @@ enum
 class DCConnection : public BLooper
 {
 public:
+	enum
+	{
+		ACTIVE = 0,
+		PASSIVE
+	};
 						// If a host is specified, it will automatically begin connecting
 						DCConnection(BMessenger target, const BString & host = "", int port = 411);
 	virtual				~DCConnection();
@@ -119,12 +124,14 @@ public:
 	void				SetEmail(const BString & email) { fEmail = email; }
 	void				SetSpeed(const BString & speed) { fSpeed = speed; }
 	void				SetSharedSize(uint32 size) { fSharedSize = size; }
+	void				SetType(int type) { fType = type; }
 	
 	BString				GetNick() const { return fNick; }
 	BString				GetDescription() const { return fDesc; }
 	BString				GetEmail() const { return fEmail; }
 	BString				GetSpeed() const { return fSpeed; }
 	uint32				GetSharedSize() const { return fSharedSize; }
+	int					GetType() const { return fType; }
 	
 	void				SendRawData(const BString & data);
 	void				SendData(const BString & data);	// converts to Windows encoding
@@ -156,6 +163,7 @@ private:
 	BString				fEmail;
 	BString				fSpeed;
 	uint32				fSharedSize;
+	int					fType;
 	
 	int					fSocket;
 	BMessenger			fTarget;

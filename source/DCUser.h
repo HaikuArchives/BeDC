@@ -41,12 +41,13 @@ class BRow;
 class BColumnListView;
 
 // The list view to which this user belongs to, the columns should be like this:
-//	Name, Speed, Desc, Email
+//	Name, Speed, Desc, Email, Shared
 class DCUser
 {
 public:
 							DCUser(const BString & name = "", const BString & desc = "",
-								   const BString & email = "", const BString & speed = "");
+								   const BString & email = "", const BString & speed = "",
+								   uint32 shared = 0);
 							~DCUser() {}
 
 	// Create a row for use with BCLV
@@ -57,11 +58,14 @@ public:
 	BString					GetDesc() const { return fDesc; }
 	BString					GetEmail() const { return fEmail; }
 	BString					GetSpeed() const { return fSpeed; }
+	uint32					GetShared() const { return fShared; }
+	BString					GetSharedString() const;
 	
 	void					SetName(const BString & s) { fName = s; }
 	void					SetDesc(const BString & s) { fDesc = s; }
 	void					SetEmail(const BString & s) { fEmail = s; }
 	void					SetSpeed(const BString & s) { fSpeed = s; }
+	void					SetShared(uint32 size) { fShared = size; }
 	
 private:
 	BRow * 					fRow;
@@ -71,6 +75,7 @@ private:
 	BString					fDesc;
 	BString					fEmail;
 	BString					fSpeed;
+	uint32					fShared;
 };
 
 #endif

@@ -36,12 +36,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ColumnListView.h"
 #include "ColumnTypes.h"
 
-DCUser::DCUser(const BString & name, const BString & desc, const BString & email, const BString & speed)
+#include <stdio.h>
+
+DCUser::DCUser(const BString & name, const BString & desc, const BString & email, const BString & speed,
+			   uint32 shared)
 {
 	fName = name; 
 	fDesc = desc; 
 	fEmail = email; 
 	fSpeed = speed;
+	fShared = shared;
+	
 	fRow = NULL;
 	fList = NULL;
 }
@@ -62,6 +67,44 @@ DCUser::CreateRow(BColumnListView * list)
 		fRow->SetField(new BStringField(fSpeed.String()), 1);
 		fRow->SetField(new BStringField(fDesc.String()), 2);
 		fRow->SetField(new BStringField(fEmail.String()), 3);
+		fRow->SetField(new BStringField(GetSharedString().String()), 4);
 	}
 	return fRow;
+}
+
+BString
+DCUser::GetSharedString() const
+{
+	double size = (double)fShared;
+	char fmt[20];
+	
+	BString str;
+	BString append = " bytes";
+	
+	if (size >= 1024.0)	// more than a kB shared
+	{
+		size /= 1024.0;
+		append = " kB";
+		if (size >= 1024.0)	// more than a MB now shared
+		{
+			size /= 1024.0;
+			append = " MB";
+			if (size >= 1024.0)	// more than a GB shared
+			{
+				size /= 1024.0;
+				append = " GB";
+			}
+		}
+	
+		sprintf(fmt, "%.2f", size);
+		str = fmt;
+		str += append;
+		return str;
+	}
+	else
+	{
+		str << fShared;
+		str += " bytes";
+		return str;
+	}
 }

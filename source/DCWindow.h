@@ -35,14 +35,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _DC_WINDOW_H_
 #define _DC_WINDOW_H_
 
+#include "ObjectList.h"
 
 #include <Window.h>
+#include <String.h>
 
 class BView;
 class BMenuBar;
 class BMenu;
 class BListView;
 class BScrollView;
+class BStringItem;
+
+class DCView;
 
 enum
 {
@@ -69,7 +74,25 @@ private:
 	BScrollView *		fScrollHubs;
 	BListView *			fHubs;
 	
+	struct Container
+	{
+		BString 		fServerName;
+		BString 		fServerAddr;
+		BString 		fServerDesc;
+		DCView *		fView;
+		BStringItem *	fListItem;
+	};
+	typedef BObjectList<Container> ViewList;
+	
+	ViewList			fViewList;
+	
 	void				InitGUI();
+	void				OpenNewConnection(const BString & name, const BString & addr,
+										  const BString & desc);
+	void				HideAll();
+	void				ShowItem(BListItem * item);
+	Container *			FindItem(BListItem * item);
+	Container *			FindItem(const BString & name);	// find item by server name
 };
 
 #endif	// _DC_WINDOW_H_

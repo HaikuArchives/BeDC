@@ -37,11 +37,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _DC_VIEW_H
 #define _DC_VIEW_H_
 
+#include "ObjectList.h"
+
 #include <View.h>
 #include <Messenger.h>
+#include <String.h>
 
 class DCSettings;
 class DCConnection;
+class DCUser;
 
 class BTextView;
 class BTextControl;
@@ -50,6 +54,8 @@ class BScrollView;
 
 class DCView : public BView
 {
+	typedef BObjectList<DCUser> UserList;
+	
 public:
 							DCView(DCSettings * settings, BMessenger target, BRect pos);
 	virtual					~DCView();
@@ -58,15 +64,29 @@ public:
 	virtual void			MessageReceived(BMessage * msg);
 	virtual bool			QuitRequested();
 	
+	// Get a pointer to the updated settings
 	void					UpdateSettings(DCSettings * set);
+	void					Connect(const BString & host, int port = 411);
+	void					Disconnect();
+	
+	static BString			GetConnectionText(int val);
 	
 private:
 	BMessenger				fTarget;
 	DCSettings *			fSettings;
+	DCConnection *			fConn;
 	
 	BTextView *				fText;
 	BScrollView *			fScrollText;
 	BColumnListView *		fUsers;
+	BTextControl *			fInput;
+	
+	UserList				fUserList;
+	
+	void					InitGUI();
+	void					LogSystem(const BString & msg);
+	
+	void					SendInfoToServer(bool update = false);
 };
 
 
