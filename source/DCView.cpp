@@ -447,6 +447,7 @@ DCView::PrintError()
 void
 DCView::PrintText(BString str, bool newLine)
 {
+	printf("%s\n",str.String());
 	text_run_array ta;
 	ta.count = 1;
 	ta.runs[0].offset = 0;

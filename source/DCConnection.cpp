@@ -63,13 +63,17 @@ DCConnection::DCConnection(BMessenger target, const BString & host, int port)
 	fConnected = false;
 	fSocket = -1;
 	fTarget = target;
-	fNick = "";
+	fNick = ""; //??
 	fType = ACTIVE;
-	fSharedSize = 0;
+	fSharedSize = 10*1024*1024;
 	
-	fSpeed = "";
+	// Hardcoded at the moment
+	// We need some of this during the connection, so it's to late to
+	// to get it from the view when the view the the message that we're
+	// connected
+	fSpeed = "ISDN";
 	fEmail = "";
-	fNick = "";
+	fNick = "Ghostride"; //?? Why are fNick two places?
 	fDesc = "";
 	fHost = "";
 	fPort = 0;
@@ -404,7 +408,8 @@ DCConnection::ReceiveHandler(void * d)
 				me->fTarget.SendMessage(&msg);
 			}
 			else	// This is just chat text w/out a name
-			// Do we ever get that? /me thinks we shouldn't
+			// Do we ever get that? /me thinks we don't
+			// Never seen it as I remember
 			// All the chat text I've seen has been private or has had a nick
 			// Also, none of the protocol specs I've seen has had it iirc 
 			//  --Ghostride
@@ -623,6 +628,8 @@ DCConnection::LockReceived(BString str)
 	keycommand += "$Key ";
 	keycommand += key;
 	keycommand += "|";
+	// The hub barfs if we split a command between send()'s
+	// Bad design or implementation og the hub/protocol, nothing we can do about it
 	send(fSocket,keycommand.String(),5+key.Length()+1,0);
 	SetNonBlocking(true);
 	
@@ -644,16 +651,14 @@ DCConnection::SendMessage(uint32 cmd, const char * name, const BString & str)
 void
 DCConnection::ValidateNick()
 {
-	printf("Validating Nick\n");
+	printf("Validating Nick (%s)\n",fNick.String());
 	BString str = "$ValidateNick ";
-	//str += fNick;
-	// Bug: Doesn't get nick from settings....
-	// Tries to send "$ValidateNick |"
-	str += "Ghostride";
+	str += fNick;
 	str += "|";
 	SendData(str);
 }
 
+// Changed back to this one, couldn't get VitVipers version to work...
 BString
 DCConnection::GenerateKey(BString & lck)
 {
@@ -682,7 +687,6 @@ DCConnection::GenerateKey(BString & lck)
 			key.Append(v, 1);
 		}
 	}
-	printf("Key: %s\n",key.String());
 	return key;
 }
 
