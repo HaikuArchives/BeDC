@@ -49,7 +49,7 @@ enum
 
 
 DCHTTPConnection::DCHTTPConnection(BMessenger target)
-	: BLooper("DCHTTPConnection", B_LOW_PRIORITY)
+	: BLooper("DCHTTPConnection", B_DISPLAY_PRIORITY)
 {
 	fServer = "";
 	fFile = "";
@@ -71,7 +71,6 @@ DCHTTPConnection::Disconnect()
 {
 	if (fThreadID >= 0)
 	{
-		status_t junk;
 		kill_thread(fThreadID);
 		fThreadID = -1;
 	}
@@ -84,7 +83,6 @@ DCHTTPConnection::Disconnect()
 #endif
 		fSocket = -1;
 	}
-	fLines.clear();
 }
 
 void
@@ -117,7 +115,7 @@ DCHTTPConnection::InternalConnect()
 		{
 			if (connect(fSocket, (sockaddr *)&sockAddr, sizeof(sockAddr)) >= 0)
 			{
-				fThreadID = spawn_thread(ReceiveHandler, "http_receiver", B_LOW_PRIORITY, this);
+				fThreadID = spawn_thread(ReceiveHandler, "http_receiver", B_DISPLAY_PRIORITY, this);
 				if (fThreadID >= 0)
 				{
 					resume_thread(fThreadID);
@@ -150,7 +148,6 @@ DCHTTPConnection::ReceiveHandler(void * data)
 	char recvBuffer[DC_HTTP_RECV_BUFFER + 1];
 	int amountRead = 0;
 	
-	sleep(1);
 	while (1)
 	{
 		memset(recvBuffer, 0, DC_HTTP_RECV_BUFFER + 1);
@@ -192,22 +189,20 @@ DCHTTPConnection::ReceiveHandler(void * data)
 		}
 		
 		recvBuffer[amountRead] = 0;		// NULL-terminate
-		printf("Got some data... %s\n", recvBuffer);
 		char * iter = strtok(recvBuffer, "\n");
-		BString insert;
 		if (iter)
 		{
 			while (iter)
 			{
-				insert = iter;
-				http->fLines.insert(http->fLines.end(), insert);
+				BString insert(iter);
+				insert.RemoveLast("\r");
+				http->fLines.push_back(insert);
 				iter = strtok(NULL, "\n");
 			}
 		}
 		else
 		{
-			insert = recvBuffer;
-			http->fLines.insert(http->fLines.end(), insert);
+			http->fLines.push_back(BString(recvBuffer));
 		}
 	}
 }
@@ -242,7 +237,8 @@ DCHTTPConnection::MessageReceived(BMessage * msg)
 		}
 		
 		default:
-			BLooper::MessageReceived(msg);			
+			BLooper::MessageReceived(msg);
+			break;		
 	}
 }
 
@@ -265,8 +261,10 @@ DCHTTPConnection::ParseIntoHubList()
 	uint32 users;
 	BString item;
 	
+	printf("ParseIntoHubList(): %d\n", (int)fLines.size());
 	for (i = fLines.begin(); i != fLines.end(); i++)
 	{
+		printf("Parsing item [%s]...\n", (*i).String());
 		int32 offset, offset2;
 		BString tmpUsers;
 		
@@ -301,7 +299,7 @@ DCHTTPConnection::ParseIntoHubList()
 		item.CopyInto(tmpUsers, offset, offset2 - offset);
 		users = atoi(tmpUsers.String());
 		
-		printf("\tName: %s\n\tServer: %s\n\tDescription: %s\n\t# of users: %d\n", 
+		printf("\tName: %s\n\tServer: %s\n\tDescription: %s\n\t# of users: %ld\n", 
 				name.String(), server.String(), desc.String(), users);
 				
 		// Insert into hub list

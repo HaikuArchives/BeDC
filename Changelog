@@ -1,4 +1,8 @@
-*01-alpha4
+*0.1-alpha5
+	- Got the latest ColumnListView source from Vision CVS, which fixes
+	  several NASTY, system-locking, bugs in the list view
+	- Totally reworked some code, including implementing the hub window.
+*0.1-alpha4
 	-Started on huffman en/decoding
 	-Started on client-client comm
 	-Now using makefile

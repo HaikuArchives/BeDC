@@ -67,20 +67,20 @@ All rights reserved.
 
 #include <Debug.h>
 
-template<class T> 
-class BObjectList;
+template<class T> class BObjectList;
 
 template<class T>
-struct UnaryPredicate 
-{
-	// virtual could be avoided here if FindBinaryInsertionIndex,
-	// etc. were member template functions
-	virtual int operator()(const T *) const	{ return 0; }
+struct UnaryPredicate {
+
+	virtual int operator()(const T *) const
+		// virtual could be avoided here if FindBinaryInsertionIndex,
+		// etc. were member template functions
+		{ return 0; }
 
 private:
 	static int _unary_predicate_glue(const void *item, void *context);
 	
-	friend class BObjectList<T>;
+friend class BObjectList<T>;
 };
 
 template<class T>
@@ -91,141 +91,143 @@ UnaryPredicate<T>::_unary_predicate_glue(const void *item, void *context)
 }
 
 
-class _PointerList_ : public BList 
-{
+class _PointerList_ : public BList {
 public:
-						_PointerList_(const _PointerList_ &list);
-						_PointerList_(int32 itemsPerBlock = 20, bool owning = false);
-						~_PointerList_();
+	_PointerList_(const _PointerList_ &list);
+	_PointerList_(int32 itemsPerBlock = 20, bool owning = false);
+	~_PointerList_();
 	
 	typedef void *(* GenericEachFunction)(void *, void *);
 	typedef int (* GenericCompareFunction)(const void *, const void *);
-	typedef int (* GenericCompareFunctionWithState)(const void *, const void *,	void *);
+	typedef int (* GenericCompareFunctionWithState)(const void *, const void *,
+		void *);
 	typedef int (* UnaryPredicateGlue)(const void *, void *);
 
-	void *				EachElement(GenericEachFunction, void *);
-	void 				SortItems(GenericCompareFunction);
-	void 				SortItems(GenericCompareFunctionWithState, void *state);
-	void 				HSortItems(GenericCompareFunction);
-	void 				HSortItems(GenericCompareFunctionWithState, void *state);
+	void *EachElement(GenericEachFunction, void *);
+	void SortItems(GenericCompareFunction);
+	void SortItems(GenericCompareFunctionWithState, void *state);
+	void HSortItems(GenericCompareFunction);
+	void HSortItems(GenericCompareFunctionWithState, void *state);
 	
-	void *				BinarySearch(const void *, GenericCompareFunction) const;
-	void *				BinarySearch(const void *, GenericCompareFunctionWithState, void *state) const;
+	void *BinarySearch(const void *, GenericCompareFunction) const;
+	void *BinarySearch(const void *, GenericCompareFunctionWithState, void *state) const;
 
-	int32 				BinarySearchIndex(const void *, GenericCompareFunction) const;
-	int32 				BinarySearchIndex(const void *, GenericCompareFunctionWithState, void *state) const;
-	int32 				BinarySearchIndexByPredicate(const void *, UnaryPredicateGlue) const;
+	int32 BinarySearchIndex(const void *, GenericCompareFunction) const;
+	int32 BinarySearchIndex(const void *, GenericCompareFunctionWithState, void *state) const;
+	int32 BinarySearchIndexByPredicate(const void *, UnaryPredicateGlue) const;
 
-	bool 				Owning() const;
-	bool 				ReplaceItem(int32, void *);
+	bool Owning() const;
+	bool ReplaceItem(int32, void *);
 
 protected:
-	bool 				fOwning;
+	bool owning;
 
 };
 
 template<class T>
-class BObjectList : private _PointerList_ 
-{
+class BObjectList : private _PointerList_ {
 public:
+
 	// iteration and sorting
 	typedef T *(* EachFunction)(T *, void *);
 	typedef const T *(* ConstEachFunction)(const T *, void *);
 	typedef int (* CompareFunction)(const T *, const T *);
 	typedef int (* CompareFunctionWithState)(const T *, const T *, void *state);
 
-						BObjectList(int32 itemsPerBlock = 20, bool owning = false);
-						// clones list; if list is owning, makes copies of all
-						// the items
-						BObjectList(const BObjectList &list);
+	BObjectList(int32 itemsPerBlock = 20, bool owning = false);
+	BObjectList(const BObjectList &list);
+		// clones list; if list is owning, makes copies of all
+		// the items
 
-	virtual 			~BObjectList();
+	virtual ~BObjectList();
 
-	// clones list; if list is owning, makes copies of all
-	// the items
-	BObjectList &		operator=(const BObjectList &list);
+	BObjectList &operator=(const BObjectList &list);
+		// clones list; if list is owning, makes copies of all
+		// the items
 	
 	// adding and removing
 	// ToDo:
 	// change Add calls to return const item 
-	bool 				AddItem(T *);
-	bool 				AddItem(T *, int32);
-	bool 				AddList(BObjectList *);
-	bool 				AddList(BObjectList *, int32);
+	bool AddItem(T *);
+	bool AddItem(T *, int32);
+	bool AddList(BObjectList *);
+	bool AddList(BObjectList *, int32);
 	
-	bool 				RemoveItem(T *, bool deleteIfOwning = true);
-	// if owning, deletes the removed item
-	// returns the removed item
-	T *					RemoveItemAt(int32);
+	bool RemoveItem(T *, bool deleteIfOwning = true);
+		// if owning, deletes the removed item
+	T *RemoveItemAt(int32);
+		// returns the removed item
 	
-	void 				MakeEmpty();
+	void MakeEmpty();
 
 	// item access
-	T *					ItemAt(int32) const;
+	T *ItemAt(int32) const;
 
-	// if list is owning, deletes the item at <index> first
-	bool 				ReplaceItem(int32 index, T *);
-	// same as ReplaceItem, except does not delete old item at <index>,
-	// returns it instead
-	T *					SwapWithItem(int32 index, T *newItem);
+	bool ReplaceItem(int32 index, T *);
+		// if list is owning, deletes the item at <index> first
+	T *SwapWithItem(int32 index, T *newItem);
+		// same as ReplaceItem, except does not delete old item at <index>,
+		// returns it instead
 	
-	T *					FirstItem() const;
-	T *					LastItem() const;
+	T *FirstItem() const;
+	T *LastItem() const;
 	
 	// misc. getters
-	int32 				IndexOf(const T *) const;
-	bool 				HasItem(const T *) const;
-	bool 				IsEmpty() const;
-	int32 				CountItems() const;
+	int32 IndexOf(const T *) const;
+	bool HasItem(const T *) const;
+	bool IsEmpty() const;
+	int32 CountItems() const;
 
-	T *					EachElement(EachFunction, void *);
-	const T *			EachElement(ConstEachFunction, void *) const;
+	T *EachElement(EachFunction, void *);
+	const T *EachElement(ConstEachFunction, void *) const;
 
-	void 				SortItems(CompareFunction);
-	void 				SortItems(CompareFunctionWithState, void *state);
-	void 				HSortItems(CompareFunction);
-	void 				HSortItems(CompareFunctionWithState, void *state);
+	void SortItems(CompareFunction);
+	void SortItems(CompareFunctionWithState, void *state);
+	void HSortItems(CompareFunction);
+	void HSortItems(CompareFunctionWithState, void *state);
 
 	// linear search, returns first item that matches predicate
-	const T *			FindIf(const UnaryPredicate<T> &) const;
-	T *					FindIf(const UnaryPredicate<T> &);
+	const T *FindIf(const UnaryPredicate<T> &) const;
+	T *FindIf(const UnaryPredicate<T> &);
 	
 	// list must be sorted with CompareFunction for these to work
-	const T *			BinarySearch(const T &, CompareFunction) const;
-	const T *			BinarySearch(const T &, CompareFunctionWithState, void * state) const;
+	const T *BinarySearch(const T &, CompareFunction) const;
+	const T *BinarySearch(const T &, CompareFunctionWithState, void *state) const;
 
 	// Binary insertion - list must be sorted with CompareFunction for
 	// these to work
 	
 	// simple insert
-	void 				BinaryInsert(T *, CompareFunction);
-	void 				BinaryInsert(T *, CompareFunctionWithState, void * state);
-	void 				BinaryInsert(T *, const UnaryPredicate<T> &);
+	void BinaryInsert(T *, CompareFunction);
+	void BinaryInsert(T *, CompareFunctionWithState, void *state);
+	void BinaryInsert(T *, const UnaryPredicate<T> &);
 	
 	// unique insert, returns false if item already in list
-	bool 				BinaryInsertUnique(T *, CompareFunction);
-	bool 				BinaryInsertUnique(T *, CompareFunctionWithState, void * state);
-	bool 				BinaryInsertUnique(T *, const UnaryPredicate<T> &);
+	bool BinaryInsertUnique(T *, CompareFunction);
+	bool BinaryInsertUnique(T *, CompareFunctionWithState, void *state);
+	bool BinaryInsertUnique(T *, const UnaryPredicate<T> &);
 
 	// insert a copy of the item, returns new inserted item
-	T *					BinaryInsertCopy(const T &copyThis, CompareFunction);
-	T *					BinaryInsertCopy(const T &copyThis, CompareFunctionWithState, void * state);
+	T *BinaryInsertCopy(const T &copyThis, CompareFunction);
+	T *BinaryInsertCopy(const T &copyThis, CompareFunctionWithState, void *state);
 	
 	// insert a copy of the item if not in list already
 	// returns new inserted item or existing item in case of a conflict
-	T *					BinaryInsertCopyUnique(const T &copyThis, CompareFunction);
-	T *					BinaryInsertCopyUnique(const T &copyThis, CompareFunctionWithState, void * state);
+	T *BinaryInsertCopyUnique(const T &copyThis, CompareFunction);
+	T *BinaryInsertCopyUnique(const T &copyThis, CompareFunctionWithState, void *state);
 
-	// returns either the index into which a new item should be inserted
-	// or index of an existing item that matches the predicate
-	int32 				FindBinaryInsertionIndex(const UnaryPredicate<T> &, bool *alreadyInList = 0) const;
+
+	int32 FindBinaryInsertionIndex(const UnaryPredicate<T> &, bool *alreadyInList = 0) const;
+		// returns either the index into which a new item should be inserted
+		// or index of an existing item that matches the predicate
 
 	// deprecated API, will go away
-	BList *				AsBList() { return this; }
-	const BList *		AsBList() const	{ return this; }
-	
+	BList *AsBList()
+		{ return this; }
+	const BList *AsBList() const
+		{ return this; }
 private:
-	void 				SetItem(int32, T *);
+	void SetItem(int32, T *);
 };
 	
 template<class Item, class Result, class Param1>
@@ -365,7 +367,7 @@ EachListItem(BObjectList<Item> *list, void (*func)(Item *,Param1, Param2,
 inline bool
 _PointerList_::Owning() const
 {
-	return fOwning;
+	return owning;
 }
 
 template<class T> 
@@ -378,8 +380,8 @@ template<class T>
 BObjectList<T>::BObjectList(const BObjectList<T> &list)
 	:	_PointerList_(list)
 {
-	fOwning = list.fOwning;
-	if (fOwning) {
+	owning = list.owning;
+	if (owning) {
 		// make our own copies in an owning list
 		int32 count = list.CountItems();
 		for	(int32 index = 0; index < count; index++) {
@@ -404,9 +406,9 @@ template<class T>
 BObjectList<T> &
 BObjectList<T>::operator=(const BObjectList<T> &list)
 {
-	fOwning = list.fOwning;
+	owning = list.owning;
 	BObjectList<T> &result = (BObjectList<T> &)_PointerList_::operator=(list);
-	if (fOwning) {
+	if (owning) {
 		// make our own copies in an owning list
 		int32 count = list.CountItems();
 		for	(int32 index = 0; index < count; index++) {
@@ -479,7 +481,7 @@ template<class T>
 bool 
 BObjectList<T>::ReplaceItem(int32 index, T *item)
 {
-	if (fOwning)
+	if (owning)
 		delete ItemAt(index);
 	return _PointerList_::ReplaceItem(index, (void *)item);
 }
@@ -546,7 +548,7 @@ template<class T>
 void 
 BObjectList<T>::MakeEmpty()
 {
-	if (fOwning) {
+	if (owning) {
 		int32 count = CountItems();
 		for (int32 index = 0; index < count; index++)
 			delete ItemAt(index);

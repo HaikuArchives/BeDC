@@ -39,7 +39,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // english strings to your language, and send it my way :)
 const char * DC_STR_ENGLISH[STR_NUM] =
 {
-	"Hubs"
+	"Hubs",
+	"Connect",
+	"Refresh",
+	"Name",
+	"Address",
+	"Description",
+	"Users",
+	"Idle",
+	"Connected, retreiving server list",
+	"Error connecting",
+	"Error sending request",
+	"Error receiving data",
+	"Number of servers: "
 };
 
 const char ** DC_STR_USE = 0;	// Set to the current language in use

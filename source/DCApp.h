@@ -37,26 +37,48 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _DC_APP_H_
 #define _DC_APP_H_
 
-extern class DCApp *dc_app;
+#include "ObjectList.h"
 
 class DCWindow;
 class DCSettings;
 class DCDownloadQueue;
+class DCHubWindow;
+
 class BString;
+
+typedef BObjectList<DCWindow *> DCWindowList;
  
+enum
+{
+	// Send this message to the app and it will show
+	// the hub window, or bring it to focus if it is
+	// already visible
+	DC_MSG_APP_SHOW_HUB_LIST = 'dcHL'
+};
+
 class DCApp : public BApplication
 {
-	public:
-		DCApp();
-		~DCApp();
-		virtual bool QuitRequested(void);
-		DCSettings *GetSettings() {return theSettings;};
-		DCDownloadQueue *GetQueue() {return theQueue;};
+public:
+							DCApp();
+	virtual					~DCApp();
+						
+	virtual bool 			QuitRequested();
+	virtual void			MessageReceived(BMessage * msg);
+	virtual void			ReadyToRun();
+	
+	DCSettings *			GetSettings() { return fSettings; }
+	DCDownloadQueue *		GetQueue() { return fQueue; }
+	
 protected:
-		DCWindow *theWindow;
-		DCDownloadQueue *theQueue;
-		DCSettings *theSettings;
+	DCDownloadQueue * 		fQueue	/*theQueue*/;
+	DCSettings *			fSettings /*theSettings*/;
+	DCWindowList *			fWindowList;
+	DCHubWindow *			fHubWindow;
+	
+	void					ShowHubWindow();
 };
+
+extern DCApp * dc_app;
 
 
 #endif /* !_DC_APP_H_ */

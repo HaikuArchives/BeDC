@@ -12,6 +12,14 @@ the "How to find DC Hubs.txt" file, and download the hub list with your web brow
 License:
 The license is in the included LICENSE file
 
+Source note:
+ColumnListView.h, ColumnListView.cpp, ColorTools.h, ColorTools.cpp, 
+ColumnTypes.h, and ColumnTypes.cpp are from the Vision CVS available at
+http://sourceforge.net/projects/vision . If only this had been noted 
+before, I would have been saved 3 system crashes :)
+
+- VitViper
+
 Availability:
 BeDC is only available on BeShare at the moment (shared by Ghostride), but as get more stable and useful,
 it will be posted at BeBits

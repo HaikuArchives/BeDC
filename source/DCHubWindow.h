@@ -39,7 +39,24 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Window.h>
 #include <Messenger.h>
 
+#include "DCHTTPConnection.h"
+
 class BView;
+class BColumnListView;
+class BButton;
+class BStringView;
+
+enum
+{
+	// Sent by the hub window when it has been closed
+	DC_MSG_HUB_CLOSED = 'dcHC',
+	// Sent after a click on Connect is handled
+	//	Fields:
+	//		'server'	String
+	//		'addr'		String
+	//		'desc'		String
+	DC_MSG_HUB_CONNECT = 'dcHT'
+};
 
 class DCHubWindow : public BWindow
 {
@@ -49,12 +66,28 @@ public:
 	virtual 			~DCHubWindow();
 	
 	virtual void		MessageReceived(BMessage * msg);
+	virtual bool		QuitRequested();
 	
 	void				SetMessageTarget(BMessenger target) { fTarget = target; }
 	
 private:
 	BView *				fView;
+	BColumnListView *	fHubView;
+	BView * 			fButtonView;	// for kewl resizing ;)
+	BButton *			fConnect;
+	BButton *			fRefresh;
+	BStringView *		fStatus;
+	
 	BMessenger			fTarget;
+	DCHTTPConnection *	fList;
+	
+	void				InitGUI();
+	void				AddItem(DCHTTPConnection::Hub * hub)
+		{ AddItem(hub->fName, hub->fServer, hub->fDesc, hub->fUsers);}
+	void				AddItem(const BString & name, const BString & addr,
+								const BString & desc, uint32 users);
+	void				HandleDisconnect();
+	void				RestoreList();
 };
 
 #endif	// _DC_HUB_WINDOW_H_

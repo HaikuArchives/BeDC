@@ -47,29 +47,73 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCSettings.h"
 #include "DCDownloadQueue.h"
 #include "DCStrings.h"
+#include "DCHubWindow.h"
 
 DCApp::DCApp()
-: BApplication("application/x-vnd.vegardw-BeDC")
+	: BApplication("application/x-vnd.vegardw-BeDC")
 {
 	DCSetLanguage(DC_LANG_ENGLISH);
 	
-	theSettings = new DCSettings;
-	theQueue = new DCDownloadQueue;
-	theQueue->Run();
-	theSettings->LoadSettings();
-	BRect windowrect;
-	if(theSettings->GetRect("windowrect",&windowrect)!=B_OK)
-		windowrect.Set(50,50,600,500);
-	theWindow = new DCWindow(windowrect);	
+	fQueue = new DCDownloadQueue;
+	fQueue->Run();
+
+	// Load our settings
+	fSettings = new DCSettings;
+	fSettings->LoadSettings();
+	
+	// Init an empty window list
+	fWindowList = new DCWindowList;
+	
+	// No hub window yet
+	fHubWindow = NULL;
 }
 
 DCApp::~DCApp()
 {
-	delete theSettings;
+	delete fSettings;
+	delete fWindowList;
 }
 
-bool DCApp::QuitRequested()
+bool 
+DCApp::QuitRequested()
 {
-	theSettings->SaveSettings();
+	fSettings->SaveSettings();
 	return true;
+}
+
+void
+DCApp::MessageReceived(BMessage * msg)
+{
+	switch (msg->what)
+	{
+		case DC_MSG_APP_SHOW_HUB_LIST:
+			ShowHubWindow();
+			break;
+			
+		case DC_MSG_HUB_CLOSED:
+		{
+			fHubWindow = NULL;
+			if (fWindowList->CountItems() == 0)	// no more windows? quit
+				PostMessage(B_QUIT_REQUESTED);
+			break;
+		}
+		
+		default:
+			BApplication::MessageReceived(msg);
+			break;
+	}
+}
+
+void
+DCApp::ReadyToRun()
+{
+	ShowHubWindow();
+}
+
+void
+DCApp::ShowHubWindow()
+{
+	if (!fHubWindow)
+		fHubWindow = new DCHubWindow(BMessenger(this));
+	fHubWindow->Show();
 }

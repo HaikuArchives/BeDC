@@ -33,11 +33,11 @@ TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
 */
 
-class DCApp *dc_app;
-
 #include <Application.h>
 
 #include "DCApp.h"
+
+DCApp * dc_app;
 
 int 
 main(int argc, char ** argv)

@@ -1,3 +1,37 @@
+/*
+Open Tracker License
+
+Terms and Conditions
+
+Copyright (c) 1991-2000, Be Incorporated. All rights reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
+
+The above copyright notice and this permission notice applies to all licensees
+and shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF TITLE, MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+BE INCORPORATED BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Except as contained in this notice, the name of Be Incorporated shall not be
+used in advertising or otherwise to promote the sale, use or other dealings in
+this Software without prior written authorization from Be Incorporated.
+
+Tracker(TM), Be(R), BeOS(R), and BeIA(TM) are trademarks or registered trademarks
+of Be Incorporated in the United States and other countries. Other brand product
+names are registered trademarks or trademarks of their respective holders.
+All rights reserved.
+*/
+
 /*******************************************************************************
 /
 /	File:			ColumnListView.h
@@ -20,8 +54,7 @@
 
 class BScrollBar;
 
-namespace BPrivate 
-{
+namespace BPrivate {
 
 class OutlineView;
 class TitleView;
@@ -35,16 +68,14 @@ class BRow;
 class BColumn;
 class BColumnListView;
 
-enum LatchType 
-{
+enum LatchType {
 	B_NO_LATCH,
 	B_OPEN_LATCH,
 	B_PRESSED_LATCH,
 	B_CLOSED_LATCH
 };
 
-typedef enum 
-{
+typedef enum {
 	B_ALLOW_COLUMN_NONE = 0,
 	B_ALLOW_COLUMN_MOVE = 1,
 	B_ALLOW_COLUMN_RESIZE = 2,
@@ -52,8 +83,7 @@ typedef enum
 	B_ALLOW_COLUMN_REMOVE = 8,
 } column_flags;
 
-enum ColumnListViewColor 
-{
+enum ColumnListViewColor {
 	B_COLOR_BACKGROUND			=  0,
 	B_COLOR_TEXT				=  1,
 	B_COLOR_ROW_DIVIDER			=  2,
@@ -70,8 +100,7 @@ enum ColumnListViewColor
 	B_COLOR_TOTAL				= 12
 };
 
-enum ColumnListViewFont 
-{
+enum ColumnListViewFont {
 	B_FONT_ROW					=  0,
 	B_FONT_HEADER				=  1,
 	
@@ -80,8 +109,7 @@ enum ColumnListViewFont
 
 
 // A single row/column intersection in the list.
-class BField 
-{
+class BField {
 public:
 						BField();
 	virtual				~BField();
@@ -91,8 +119,7 @@ public:
 // for each column in the list, associated by their "logical field"
 // index.  Hierarchies are formed by adding other BRow objects as
 // a parent of a row, using the AddRow() function in BColumnListView().
-class BRow 
-{
+class BRow {
 public:
 						BRow(float height = 16.0);
 	virtual 			~BRow();
