@@ -40,12 +40,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 const int DC_HTTP_RECV_BUFFER = 512;
 
-DCHTTPConnection::DCHTTPConnection()
+enum 
+{
+	DC_HTTP_MSG_SEND = 'dHmS',
+	DC_HTTP_MSG_CONNECT = 'dHmC'
+}; 
+
+
+DCHTTPConnection::DCHTTPConnection(BMessenger target)
+	: BLooper("DCHTTPConnection", B_LOW_PRIORITY)
 {
 	fServer = "";
 	fFile = "";
 	fThreadID = -1;
 	fSocket = -1;
+	fTarget = target;
+	
+	Run();
 }
 
 DCHTTPConnection::~DCHTTPConnection()
@@ -60,7 +71,6 @@ DCHTTPConnection::Disconnect()
 	{
 		status_t junk;
 		kill_thread(fThreadID);
-		wait_for_thread(fThreadID, &junk);
 		fThreadID = -1;
 	}
 	if (fSocket >= 0)
@@ -75,12 +85,18 @@ DCHTTPConnection::Disconnect()
 	fLines.clear();
 }
 
-bool
+void
 DCHTTPConnection::Connect(const BString & optServer, const BString & optFile)
 {
 	fServer = optServer;
 	fFile = optFile;
-	
+	BMessage msg(DC_HTTP_MSG_CONNECT);
+	PostMessage(&msg);
+}
+
+void
+DCHTTPConnection::InternalConnect()
+{
 	printf("Connectiong to server %s on port 80\n", fServer.String());
 	
 	sockaddr_in sockAddr;
@@ -104,21 +120,25 @@ DCHTTPConnection::Connect(const BString & optServer, const BString & optFile)
 				{
 					resume_thread(fThreadID);
 					printf("Connection established\n");
-					return true;
+					fTarget.SendMessage(DC_MSG_HTTP_CONNECTED);
+					return;
 				}
 			}
 		}
 	}
 	printf("Connection failed!\n");
 	Disconnect();	// failed... cleanup
-	return false;
+	fTarget.SendMessage(DC_MSG_HTTP_CONNECT_ERROR);
+	return;
 }
 
-int32
+void
 DCHTTPConnection::Send(const BString & text)
 {
 	printf("DCHTTPConnect::Send: %s\n", text.String());
-	return send(fSocket, text.String(), text.Length(), 0);
+	BMessage msg(DC_HTTP_MSG_SEND);
+	msg.AddString("text", text);
+	PostMessage(&msg);
 }
 
 int32
@@ -148,6 +168,7 @@ DCHTTPConnection::ReceiveHandler(void * data)
 		{
 			printf("Disconnecting... failed in ReceiveHandler()\n");
 			http->Disconnect();
+			http->fTarget.SendMessage(DC_MSG_HTTP_RECV_ERROR);
 			return -1;
 		}
 #endif
@@ -156,6 +177,7 @@ DCHTTPConnection::ReceiveHandler(void * data)
 		{
 			printf("Disconnected from server\n");
 			http->Disconnect();
+			http->fTarget.SendMessage(DC_MSG_HTTP_DISCONNECTED);
 			return 0;	// success
 			// TODO: notify our window of the great news :)
 		}
@@ -178,5 +200,39 @@ DCHTTPConnection::ReceiveHandler(void * data)
 			insert = recvBuffer;
 			http->fLines.insert(http->fLines.end(), insert);
 		}
+	}
+}
+
+void
+DCHTTPConnection::MessageReceived(BMessage * msg)
+{
+	switch (msg->what)
+	{
+		case DC_HTTP_MSG_SEND:
+		{
+			printf("DC_HTTP_MSG_SEND\n");
+			if (fSocket >= 0)
+			{
+				BString text;
+				if (msg->FindString("text", &text) == B_OK)
+				{
+					if (send(fSocket, text.String(), text.Length(), 0) <= 0)
+						fTarget.SendMessage(DC_MSG_HTTP_SEND_ERROR);
+					else
+						printf("Sent...\n");
+				}
+			}
+			break;
+		}
+		
+		case DC_HTTP_MSG_CONNECT:
+		{
+			printf("DC_HTTP_MSG_CONNECT\n");
+			InternalConnect();
+			break;
+		}
+		
+		default:
+			BLooper::MessageReceived(msg);			
 	}
 }

@@ -36,30 +36,46 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _DC_HTTP_CONNECTION_H_
 #define _DC_HTTP_CONNECTION_H_
 
-
+#include <Looper.h>
 #include <String.h>
 #include <OS.h>
+#include <Message.h>
+#include <Messenger.h>
 
 #include <list>
 using std::list;
 
-class DCHTTPConnection
+enum
+{
+	DC_MSG_HTTP_CONNECTED = 'dmHC',
+	DC_MSG_HTTP_CONNECT_ERROR,	// Couldn't connnect...
+	DC_MSG_HTTP_SEND_ERROR,
+	DC_MSG_HTTP_RECV_ERROR,
+	DC_MSG_HTTP_DISCONNECTED
+};
+
+class DCHTTPConnection : public BLooper
 {
 public:
-						DCHTTPConnection();		// Constructor... does nothing...
+						DCHTTPConnection(BMessenger target);		// Constructor... pass the target of it's messages
 						~DCHTTPConnection();	// Destructor... closes the connection if still running
 	
-	bool				Connect(const BString & optServer = "www.neo-modus.com", 
+	void				Connect(const BString & optServer = "www.neo-modus.com", 
 								const BString & optFile = "PublicHubList.config");
 	void				Disconnect();
 	
 	bool				IsRunning() const { return (fThreadID != -1 && fSocket != -1) ? true : false; }
-	// You are giving a COPY of the list
-	list<BString> 		GetLines() const { return fLines; }
+	// You get a pointer to the list. ONLY call this method once
+	// you've been notified that the connection has been disconnected
+	list<BString> *		GetLines() { return &fLines; }
 	BString				GetServer() const { return fServer; }
 	BString				GetFile() const { return fFile; }
 	
-	int32				Send(const BString & text);
+	// this method posts a message to the internal thread telling it to send
+	// the text
+	void				Send(const BString & text);
+	
+	virtual void		MessageReceived(BMessage * msg);
 	
 private:
 	list<BString>		fLines;	// The config file is a set of lies
@@ -67,6 +83,9 @@ private:
 	BString				fFile;
 	thread_id			fThreadID;
 	int					fSocket;
+	BMessenger			fTarget;
+	
+	void				InternalConnect();
 	
 	static int32		ReceiveHandler(void *);
 };

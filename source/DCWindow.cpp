@@ -135,16 +135,17 @@ DCWindow::DCWindow(BRect frame)
 	fConnection = new DCConnection;
 	fConnection->SetMessageTarget(this);
 	
-	fHTTP = new DCHTTPConnection;
+	fHTTP = new DCHTTPConnection(BMessenger(this));
 	
 	Show();
+	fHTTP->Connect();
 	PostMessage(DC_INIT_WINDOW);
 }
 
 DCWindow::~DCWindow()
 {
 	delete fConnection;
-	delete fHTTP;
+	fHTTP->PostMessage(B_QUIT_REQUESTED);
 }
 
 void 
@@ -174,16 +175,13 @@ DCWindow::Init()
 	}
 	
 	// TEST
-	if (fHTTP->Connect())
-	{
 		BString httpRequest = "GET /";
 		httpRequest += fHTTP->GetFile();
 		httpRequest += " HTTP/1.1\nUser-Agent: BeDC/0.1-alpha\nHost: ";
 		httpRequest += fHTTP->GetServer();
 		httpRequest += "\n\n";
 		printf("Sending the following request: %s\n", httpRequest.String());
-		printf("Sent: %d\n", fHTTP->Send(httpRequest));
-	}
+		fHTTP->Send(httpRequest);
 }
 
 bool 
