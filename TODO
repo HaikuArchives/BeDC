@@ -4,6 +4,8 @@ Features:
 
 Bug fixes:
 * Sometimes the text in the output view becomes garbled
+* Fix the big crash in the Hub Window involving the CLV
+* Fix hub parsing
 
 Misc stuff:
 * Make a user interface that doesn't suck

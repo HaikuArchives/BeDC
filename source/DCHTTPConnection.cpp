@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "DCHTTPConnection.h"
 #include "DCNetSetup.h"
+#include "DCStrings.h"
 
 #include <unistd.h>
 #include <stdio.h>
@@ -56,14 +57,12 @@ DCHTTPConnection::DCHTTPConnection(BMessenger target)
 	fThreadID = -1;
 	fSocket = -1;
 	fTarget = target;
-	
-	Run();
 }
 
 DCHTTPConnection::~DCHTTPConnection()
 {
 	Disconnect();
-	EmptyHubList();
+	EmptyHubList(&fHubs);
 }
 
 void
@@ -243,13 +242,13 @@ DCHTTPConnection::MessageReceived(BMessage * msg)
 }
 
 void
-DCHTTPConnection::EmptyHubList()
+DCHTTPConnection::EmptyHubList(list<Hub *> * hubs)
 {
-	while (fHubs.begin() != fHubs.end())
+	while (hubs->begin() != hubs->end())
 	{
-		list<Hub *>::iterator i = fHubs.begin();
+		list<Hub *>::iterator i = hubs->begin();
 		delete (*i);	// free the item
-		fHubs.erase(i);
+		hubs->erase(i);
 	}
 }
 
@@ -301,10 +300,46 @@ DCHTTPConnection::ParseIntoHubList()
 		
 		printf("\tName: %s\n\tServer: %s\n\tDescription: %s\n\t# of users: %ld\n", 
 				name.String(), server.String(), desc.String(), users);
-				
+		
+		// Make sure we have a semi-valid server
+		if (server == "")
+			continue;	// invalid
+		if (server.Length() <= 4)	// i'd think it takes at least 5 characters for a domain name..
+			continue;
+			
 		// Insert into hub list
-		Hub * hub = new Hub(name, server, desc, users);
+		Hub * hub = new Hub(DCUTF8(name.String()), DCUTF8(server.String()), DCUTF8(desc.String()), users);
 		if (hub)
 			fHubs.insert(fHubs.end(), hub);
 	}
+}
+
+list<DCHTTPConnection::Hub *> *
+DCHTTPConnection::GetHubsCopy()
+{
+	list<DCHTTPConnection::Hub *> * lst = new list<DCHTTPConnection::Hub *>;
+	list<DCHTTPConnection::Hub *>::iterator i;
+	
+	for (i = fHubs.begin(); i != fHubs.end(); i++)
+	{
+		Hub * newHub = new Hub;
+		newHub->fName = (*i)->fName;
+		newHub->fServer = (*i)->fServer;
+		newHub->fDesc = (*i)->fDesc;
+		newHub->fUsers = (*i)->fUsers;
+		lst->push_back(newHub);
+	}
+	return lst;
+}
+
+void
+DCHTTPConnection::SendListRequest()
+{
+	// Format an HTTP request
+	BString http = "GET /";
+	http += GetFile();
+	http += " HTTP/1.1\r\nUser-Agent: BeDC/alpha\r\nHost: ";
+	http += GetServer();
+	http += "\r\n\r\n";
+	Send(http);
 }

@@ -59,7 +59,7 @@ class DCHTTPConnection : public BLooper
 public:
 	struct Hub
 	{
-						Hub(BString name, BString server, BString desc, uint32 users) 
+						Hub(BString name = "", BString server = "", BString desc = "", uint32 users = 0) 
 							{ fName = name; fServer = server; fDesc = desc; fUsers = users; }
 		BString			fName;		// Name of server
 		BString			fServer;	// IP/domain of server
@@ -78,13 +78,17 @@ public:
 	// You get a pointer to the list. ONLY call this method once
 	// you've been notified that the connection has been disconnected
 	list<Hub *> *		GetHubs() { return &fHubs; }
+	list<Hub *> *		GetHubsCopy();
 	BString				GetServer() const { return fServer; }
 	BString				GetFile() const { return fFile; }
-	void				EmptyHubList();
+	void				EmptyHubList(list<Hub *> *);
+	// Empty the internal list
+	void				EmptyHubList() { EmptyHubList(&fHubs); }
 	
 	// this method posts a message to the internal thread telling it to send
 	// the text
 	void				Send(const BString & text);
+	void				SendListRequest();	// helper so you don't have to format the request yourself
 	
 	virtual void		MessageReceived(BMessage * msg);
 	

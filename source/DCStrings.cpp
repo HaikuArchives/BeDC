@@ -34,6 +34,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "DCStrings.h"
 
+#include <UTF8.h>
+
+#include <string.h>
+#include <stdio.h>
+
 // This is the implementation of internationalization... 
 // If you want your own language to be implemented, translate the
 // english strings to your language, and send it my way :)
@@ -42,6 +47,8 @@ const char * DC_STR_ENGLISH[STR_NUM] =
 	"Hubs",
 	"Connect",
 	"Refresh",
+	"Next 50",
+	"Previous 50",
 	"Name",
 	"Address",
 	"Description",
@@ -74,4 +81,21 @@ DCSetLanguage(int lang)
 		default:
 			break;
 	};
+}
+
+BString
+DCUTF8(const char * str)
+{
+	BString ret(str);
+	int32 srcSize = strlen(str);
+	int32 convSize = srcSize * 2 + 4 /* 4 for padding... just in case */;
+	char * convStr = new char[convSize + 1];
+	
+	if (convert_to_utf8(B_MS_WINDOWS_CONVERSION, str, &srcSize, convStr, &convSize, NULL) == B_OK)
+	{
+		printf("Converted\n");
+		ret.SetTo(convStr);
+	}
+	delete [] convStr;
+	return ret;
 }

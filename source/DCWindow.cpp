@@ -210,10 +210,10 @@ DCWindow::MessageReceived(BMessage *message)
 		
 		case DC_SEARCH_WINDOW:
 		{
-			BRect r;
+/*			BRect r;
 			r = Frame();
 			r.OffsetBy(20,20);
-			new DCSearchWindow(r);
+			new DCSearchWindow(r);*/
 			/* Creates a new search window(S.W.) if no S.W. exists */
 			/* if a searsh window exists, make it focus */
 					

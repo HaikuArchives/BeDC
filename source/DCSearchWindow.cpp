@@ -61,7 +61,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCSettings.h"
 #include "DCSearchWindow.h"
 
-
+#if 0
 DCSearchWindow::DCSearchWindow(BRect frame) 
 : BWindow(frame, "Search", B_TITLED_WINDOW,B_NOT_ZOOMABLE)
 {
@@ -112,3 +112,4 @@ void DCSearchWindow::MessageReceived(BMessage *message)
 			BWindow::MessageReceived(message);
 	}	
 }
+#endif

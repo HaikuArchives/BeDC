@@ -292,7 +292,25 @@ $Direction	CLIENT 2		???? for passive or active mode downloading???
 					Format: $Direction <direction> <anumber>
 
 					<direction> could be "Upload" or "Download"
-					<anumber> ???
+					<anumber> ???	-> Read the below ;)
+					
+vandel405: It can be upload or download
+vandel405: if you want to download, send  download
+vandel405: if you don't, send upload
+vandel405: it has nothing to do with passive or active
+mikitcvi: oic
+mikitcvi: thanx
+mikitcvi: what's the anumber for?
+vandel405: what if they both want to download... they can't both do it
+vandel405: the number is random, and the person with the higher number gets to do what ever they said they wanted to do in the event they both wanted to do the same thing
+vandel405: if they tie, send the message again with a diff random number
+vandel405: ... dont' cheat!
+mikitcvi: ok, so I pick a number, he picks a number
+mikitcvi: if I want to upload, and he wants to upload
+vandel405: yeah
+mikitcvi: and my number's bigger, I upload :)
+vandel405: yeah
+
 
 $GetListLen	CLIENT 1		with this command the client requestes the filesize of the
 					sharelist.

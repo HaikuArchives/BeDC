@@ -9,6 +9,7 @@
 #include <List.h>
 #include <iostream.h>
 
+#if 0
 #include "ColumnListView.h"
 #include "ColumnTypes.h"
 
@@ -97,3 +98,4 @@ DCSearchView::~DCSearchView()
 void DCSearchView::Draw(BRect updaterect)
 {
 }
+#endif

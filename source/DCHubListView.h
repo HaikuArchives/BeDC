@@ -32,88 +32,31 @@ AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
 */
+#ifndef _DC_HUB_LIST_VIEW_H_
+#define _DC_HUB_LIST_VIEW_H_
 
+#ifdef NO_CRASH_LIST
 
-#include <stdio.h>
+#include "santa/ColumnListView.h"
 
-#include <Application.h>
-#include <Window.h>
-#include <Rect.h>
-#include <Message.h>
-#include <File.h>
-
-#include "DCApp.h"
-#include "DCWindow.h"
-#include "DCSettings.h"
-#include "DCDownloadQueue.h"
-#include "DCStrings.h"
-#include "DCHubWindow.h"
-
-DCApp::DCApp()
-	: BApplication("application/x-vnd.vegardw-BeDC")
+class DCHubListView : public ColumnListView
 {
-	DCSetLanguage(DC_LANG_ENGLISH);
-	
-//	fQueue = new DCDownloadQueue;
-//	fQueue->Run();
+public:
+						DCHubListView(BRect frame, CLVContainerView ** containerView, const char*  name = NULL, 
+									  uint32 resizingMode = B_FOLLOW_ALL, uint32 flags = B_WILL_DRAW | B_FRAME_EVENTS | B_NAVIGABLE,
+									  list_view_type type = B_SINGLE_SELECTION_LIST, bool hierarchical = false,	bool horizontal = true,
+									  bool vertical = true, bool scroll_view_corner = true,	border_style border = B_FANCY_BORDER,
+									  const BFont * labelFont = be_plain_font)
+							: ColumnListView(frame, containerView, name, resizingMode, flags, type, hierarchical, horizontal,
+											 vertical, scroll_view_corner, border, labelFont) {}
 
-	// Load our settings
-	fSettings = new DCSettings;
-	fSettings->LoadSettings();
-	
-	// Init an empty window list
-	fWindowList = new DCWindowList;
-	
-	// No hub window yet
-	fHubWindow = NULL;
-}
-
-DCApp::~DCApp()
-{
-	delete fSettings;
-	delete fWindowList;
-}
-
-bool 
-DCApp::QuitRequested()
-{
-	fSettings->SaveSettings();
-	return true;
-}
-
-void
-DCApp::MessageReceived(BMessage * msg)
-{
-	switch (msg->what)
+	virtual void		MouseDown(BPoint point)
 	{
-		case DC_MSG_APP_SHOW_HUB_LIST:
-			ShowHubWindow();
-			break;
-			
-		case DC_MSG_HUB_CLOSED:
-		{
-			fHubWindow = NULL;
-			if (fWindowList->CountItems() == 0)	// no more windows? quit
-				PostMessage(B_QUIT_REQUESTED);
-			break;
-		}
-		
-		default:
-			BApplication::MessageReceived(msg);
-			break;
+		ColumnListView::MouseDown(point);
+		MakeFocus(true);
 	}
-}
+};
 
-void
-DCApp::ReadyToRun()
-{
-	ShowHubWindow();
-}
+#endif
 
-void
-DCApp::ShowHubWindow()
-{
-	if (!fHubWindow)
-		fHubWindow = new DCHubWindow(BMessenger(this));
-	fHubWindow->Show();
-}
+#endif	// _DC_HUB_LIST_VIEW_H_

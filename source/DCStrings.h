@@ -35,12 +35,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _DC_STRINGS_H_
 #define _DC_STRINGS_H_
 
+#include <String.h>
+
 // String constants
 enum 
 {
 	STR_HUB_WINDOW_TITLE = 0,
 	STR_HUB_CONNECT,
 	STR_HUB_REFRESH,
+	STR_HUB_NEXT50,
+	STR_HUB_PREV50,
 	STR_SERVER_NAME,
 	STR_SERVER_ADDR,
 	STR_SERVER_DESC,
@@ -62,5 +66,6 @@ enum
 
 const char * DCStr(int);
 void DCSetLanguage(int);
+BString DCUTF8(const char * str);
 
 #endif	// _DC_STRINGS_H_
