@@ -274,13 +274,13 @@ DCHubWindow::InitGUI()
 	);
 #else
 	fHubView->AddColumn(
-		new BStringColumn(DCStr(STR_SERVER_NAME), 100, 30, 200, 185, B_ALIGN_LEFT), 0
+		new BStringColumn(DCStr(STR_SERVER_NAME), 150, 30, 300, 285, B_ALIGN_LEFT), 0
 	);
 	fHubView->AddColumn(
-		new BStringColumn(DCStr(STR_SERVER_ADDR), 100, 30, 200, 185, B_ALIGN_LEFT), 1
+		new BStringColumn(DCStr(STR_SERVER_ADDR), 150, 30, 300, 285, B_ALIGN_LEFT), 1
 	);
 	fHubView->AddColumn(
-		new BStringColumn(DCStr(STR_SERVER_DESC), 230, 50, 330, 315, B_ALIGN_LEFT), 2
+		new BStringColumn(DCStr(STR_SERVER_DESC), 230, 50, 430, 375, B_ALIGN_LEFT), 2
 	);
 	fHubView->AddColumn(
 		new BIntegerColumn(DCStr(STR_SERVER_USERS), 50, 30, 70, B_ALIGN_RIGHT), 3
