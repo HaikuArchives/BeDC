@@ -123,6 +123,7 @@ const char * DC_STR_ENGLISH[STR_NUM] =
 	// END /help
 };
 
+
 // If you want different key shortcuts then the defaults for english,
 // include your own language version of key shortcuts
 const char DC_KEY_ENGLISH[KEY_NUM] =
@@ -130,6 +131,95 @@ const char DC_KEY_ENGLISH[KEY_NUM] =
 	'A',	// About
 	'W',	// Close
 	'P',	// Prefs
+	'H'		// Hubs
+};
+
+const char * DC_STR_SWEDISH[STR_NUM] =
+{
+	"Hubbar",
+	"Anslut",
+	"Uppdatera",
+	"Nästa 50",
+	"Föregående 50",
+	
+	"Namn",
+	"Adress",
+	"Beskrivning",
+	"Användare",
+	
+	"Vilande.",
+	"Ansluter...",
+	"Ansluten, hämtar serverlista...",
+	"Fel vid anslutning.",
+	"Fel vid förfrågan.",
+	"Fel vid hämtning av data.",
+	"Antal servrar: ",
+	
+	"Fil",
+	"Om",
+	"Stäng",
+	"Redigera",
+	"Inställningar",
+	"Fänster",
+	"Visa hubbar",
+	
+	"Inställningar",
+	"Generella",
+	"Personlig information",
+	"Anslutnings inställningar",
+	"Nick (Måste)",
+	"E-Post",
+	"Beskrivning",
+	"Anslutning",
+	"Aktiv",
+	"Passiv (Jag är bakom brandvägg)",
+	"IP",
+	"Port",
+	
+	// "Name" is reused
+	"Uppkoppling",
+	"Beskrivning",
+	"E-Post",
+	"Delade",
+	"Chat:",
+	"Stäng", 
+	
+	"OK",
+	"Avbryt",
+	"Fel",
+	"Användare",
+	
+	"Vargod välj ett nytt Nickname i Redigera->Inställningar.",
+	
+	"System: ",
+	"Fel: ",
+	"Ansluter till ",
+	"Ansluten.",
+	"Anslutning till server misslyckades",
+	"Försöker att återansluta till server...",
+	"Ej ansluten till server.",
+	"Någon annan använder ditt nickname, Välj ett nytt.",
+	"Användare %s har anslutigt.",
+	"Användare %s har loggat ut.",	// the user name is prepended to this string
+	"Redirecting to ",
+	"Hubben är redan full.",
+	"Kan inte hitta användare",
+	"Kommandot finns inte.",
+	
+	// START /help
+	"Tillgängliga kommandon:\n"
+	"\t\t\t/close - Stäng anslutning.\n"
+	"\t\t\t/help - Visar det här medelandet.\n"
+	"\t\t\t/msg <namn> <text> - SKickar ett privat medelande.\n"
+	"\t\t\t/quit - Avslutar BDC",
+	// END /help
+};
+
+const char DC_KEY_SWEDISH[KEY_NUM] =
+{
+	'A',	// About
+	'C',	// Close
+	'I',	// Prefs
 	'H'		// Hubs
 };
 

@@ -138,6 +138,7 @@ enum
 enum
 {
 	DC_LANG_ENGLISH = 0,
+	DC_LANG_SWEDISH,
 	DC_LANG_NUM		// Place holder
 };
 
