@@ -615,36 +615,15 @@ DCConnection::LockReceived(BString str)
 	str.RemoveFirst("$Lock ");
 	int32 i = str.FindFirst(" ");
 	str.Remove(i, str.Length() - i);
-	printf("Str is now: %s [%d]\n", str.String(), (int)str.Length());
-	string key = DCConnection::GenerateKey(str);
 
-	printf("Length: %d [%s ]\n", (int)key.size(), key.c_str());
+	BString key = DCConnection::GenerateKey(str);
 	
-	// Dump the key for debugging
-	FILE * fp = fopen("key.txt", "w");
-	if (fp)
-	{
-		fprintf(fp, "Lock size: %d\n", (int)str.Length());
-		for (int j = 0; j < str.Length(); j++)
-		{
-			fprintf(fp, "%d, ", (unsigned char)str[j]);
-			if (j % 10 == 0 && j != 0)
-				fprintf(fp, "\n");
-		}
-		
-		fprintf(fp, "\n\nKey Size: %d\n", (int)key.size());
-		for (int j = 0; j < key.size(); j++)
-		{
-			fprintf(fp, "%d, ", (unsigned char)key.c_str()[j]);
-			if (j % 10 == 0 && j != 0)
-				fprintf(fp, "\n");
-		}
-		fclose(fp);
-	}
 	SetNonBlocking(false);
-	send(fSocket, "$Key ", 5, 0);
-	printf("KeySend %ld\n", send(fSocket, key.c_str(), key.size(), 0));
-	send(fSocket, "|", 1, 0);
+	BString keycommand;
+	keycommand += "$Key ";
+	keycommand += key;
+	keycommand += "|";
+	send(fSocket,keycommand.String(),5+key.Length()+1,0);
 	SetNonBlocking(true);
 	
 	
@@ -665,118 +644,48 @@ DCConnection::SendMessage(uint32 cmd, const char * name, const BString & str)
 void
 DCConnection::ValidateNick()
 {
+	printf("Validating Nick\n");
 	BString str = "$ValidateNick ";
-	str += fNick;
+	//str += fNick;
+	// Bug: Doesn't get nick from settings....
+	// Tries to send "$ValidateNick |"
+	str += "Ghostride";
 	str += "|";
 	SendData(str);
 }
 
-#define EXTRA(X) (X == 0) || (X == 5) || (X == 124) || (X == 126) || (X == 36) || (X == 96)
-
-string
-DCConnection::GenerateKey(BString & lck) 
-// The old keygen worked like a charm,
-// /me thinks the error is somwhere else
-// --Vegard
+BString
+DCConnection::GenerateKey(BString & lck)
 {
-	printf("Using lock: [ %s ]\n", lck.String());
-	uint8 * tmp = new uint8[lck.Length() + 1];
-	uint8 vl;
-	int extra = 0;
+	BString key("", 2048);
+	char c, v;
 	
-	vl = (uint8)(lck[0] ^ 5);
-	vl = (uint8)(((vl >> 4) | (vl << 4)) && 0xFF);
-	tmp[0] = vl;
-	 
-	int32 i;
-	for (i = 1; i < lck.Length(); i++)
+	for (int i = 0; i < lck.Length(); i++)
 	{
-		vl = (uint8)(lck[i] ^ lck[i - 1]);
-		vl = (uint8)(((vl >> 4) | (vl << 4)) & 0xFF);
-		tmp[i] = vl;
-		if (EXTRA(tmp[i]))
-			extra++;
-	}
-	
-	tmp[0] = (uint8)(tmp[0] ^ tmp[lck.Length() - 1]);
-	if (EXTRA(tmp[0]))
-		extra++;
-	
-	string key = SubKey(tmp, lck.Length(), extra);
-	delete [] tmp;
-
-//	key.Prepend("$Key ");
-//	key.Append("|");
-	return key;	
-}
-
-string
-DCConnection::SubKey(const uint8 * key, int32 length, int extra)
-{
-	uint8 * tmp = new uint8[length + extra * 10];
-	int32 j = 0;
-	int32 i = 0;
-	
-	for (; i < length; i++)
-	{
-		if (EXTRA(key[i]))
+		if (i == 0)
+			// If it's the first char we gotta XOR with the two last chars and 5
+			c = lck[i] ^ lck[lck.Length() - 1] ^ lck[lck.Length() - 2] ^ 5;
+		else
+			c = lck[i] ^ lck[i - 1]; // XOR with previous char
+		
+		v = c << 4 | c >> 4; // Shift some bits around :)
+		
+		if (v == 0 || v == 5 || v == 36 || v == 96 || v == 124 || v == 126)	// escape
 		{
-			tmp[j++] = '/';
-			tmp[j++] = '%';
-			tmp[j++] = 'D';
-			tmp[j++] = 'C';
-			tmp[j++] = 'N';
-			switch (key[i])
-			{
-				case 0:
-				{
-					tmp[j++] = '0'; tmp[j++] = '0'; tmp[j++] = '0'; 
-					break;
-				}
-				
-				case 5: 
-				{
-					tmp[j++] = '0'; tmp[j++] = '0'; tmp[j++] = '5'; 
-					break;
-				}
-				
-				case 36: 
-				{
-					tmp[j++] = '0'; tmp[j++] = '3'; tmp[j++] = '6'; 
-					break;
-				}
-				
-				case 96: 
-				{
-					tmp[j++] = '0'; tmp[j++] = '9'; tmp[j++] = '6'; 
-					break;
-				}
-				
-				case 124: 
-				{
-					tmp[j++] = '1'; tmp[j++] = '2'; tmp[j++] = '4'; 
-					break;
-				}
-				
-				case 126: 
-				{
-					tmp[j++] = '1'; tmp[j++] = '2'; tmp[j++] = '6'; 
-					break;
-				}
-			}
-			tmp[j++] = '%'; 
-			tmp[j++] = '/';
+			char buf[11];
+			memset(buf, 0, sizeof(buf));
+			sprintf(buf, "/%%DCN%03d%%/", v);
+			key.Append(buf);
 		}
 		else
 		{
-			tmp[j++] = key[i];
+			key.Append(v, 1);
 		}
 	}
-	
-	string ret((const char *)tmp, j);
-	delete [] tmp;
-	return ret;
+	printf("Key: %s\n",key.String());
+	return key;
 }
+
 
 void
 DCConnection::SendNickListRequest()

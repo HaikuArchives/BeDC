@@ -157,7 +157,7 @@ public:
 	
 	virtual void		MessageReceived(BMessage * msg);
 	
-	static string		GenerateKey(BString & lock);
+	static BString		GenerateKey(BString & lock);
 
 	// Protocol implementation
 	void				SendNickListRequest();

@@ -302,7 +302,7 @@ DCHubWindow::InitGUI()
 	);
 #endif
 	
-	AddItem("Test Server", "ip.noname.com", "Just a test server... for your viewing pleasure :)", 5);
+	AddItem("Test Server", "192.168.0.2", "Just a test server... for your viewing pleasure :)", 5);
 }
 
 void

@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCUser.h"
 #include "DCStrings.h"
 #include "DCApp.h"
-#include "UserResizeSplitView.h"
+//#include "UserResizeSplitView.h"
 
 #include <TextView.h>
 #include <TextControl.h>
