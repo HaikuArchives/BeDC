@@ -324,6 +324,15 @@ void DCWindow::MessageReceived(BMessage *message)
 					{
 						theView->Output()->SetText("");
 					}
+#ifdef CLIENT_TO_CLIENT_COMMUNICATION
+					else if(!tmpb.Compare("/GET")) /* Download a file */
+					{
+						if(tmp.Length() <= 5)
+								theView->Output()->Insert("Error; Use /get <nick> <remotepath>\n");
+						tmp.Remove(0,5);
+						printf("%s\n",tmp.String());					
+					}
+#endif
 					else if(!tmpb.Compare("/PASS"))
 					{
 						if(tmp.Length() <= 6)
