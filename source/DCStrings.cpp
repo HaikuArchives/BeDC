@@ -165,14 +165,14 @@ const char * DC_STR_SWEDISH[STR_NUM] =
 	"Stäng",
 	"Redigera",
 	"Inställningar",
-	"Fänster",
-	"Visa hubbar",
+	"Fönster",
+	"Lista Hubbar",
 	
 	"Inställningar",
 	"Generella",
 	"Personlig information",
 	"Anslutnings inställningar",
-	"Nick (Måste)",
+	"Nick ( Krävs )",
 	"E-Post",
 	"Beskrivning",
 	"Anslutning",
@@ -207,7 +207,7 @@ const char * DC_STR_SWEDISH[STR_NUM] =
 	"Någon annan använder ditt nickname, Välj ett nytt.",
 	"Användare %s har anslutigt.",
 	"Användare %s har loggat ut.",	// the user name is prepended to this string
-	"Redirecting to ",
+	"Återansluter till ",
 	"Hubben är redan full.",
 	"Kan inte hitta användare",
 	"Kommandot finns inte.",
@@ -216,7 +216,7 @@ const char * DC_STR_SWEDISH[STR_NUM] =
 	"Tillgängliga kommandon:\n"
 	"\t\t\t/close - Stäng anslutning.\n"
 	"\t\t\t/help - Visar det här medelandet.\n"
-	"\t\t\t/msg <namn> <text> - SKickar ett privat medelande.\n"
+	"\t\t\t/msg <namn> <text> - Skickar ett privat medelande.\n"
 	"\t\t\t/quit - Avslutar BDC",
 	// END /help
 };
@@ -328,7 +328,7 @@ const char DC_KEY_FINNISH[KEY_NUM] =
 //////////////////////////////////////////////////////
 const char * DC_STR_GERMAN[STR_NUM] =
 {
-	"Hubs",
+	"Server",
 	"Verbinden",
 	"Aktualisieren",
 	"Nächste 50",
@@ -353,7 +353,7 @@ const char * DC_STR_GERMAN[STR_NUM] =
 	"Bearbeiten",
 	"Einstellungen",
 	"Fenster",
-	"Zeige Hubs",
+	"Zeige Server",
 	
 	"Einstellungen",
 	"Allgemein",
@@ -372,7 +372,7 @@ const char * DC_STR_GERMAN[STR_NUM] =
 	"Geschwindigkeit",
 	"Beschreibung",
 	"E-Mail",
-	"Shared", // dunno exactly 'geteilt'
+	"Freigegeben", // taken from BeShare :)) but its the best-fitting one
 	"Chat:",
 	"Schließen", 
 	
@@ -380,7 +380,6 @@ const char * DC_STR_GERMAN[STR_NUM] =
 	"Abbrechen",
 	"Fehler",
 	"Benutzer",
-	"Sprache",
 	
 	"Bitte wählen Sie einen Namen im Menu Bearbeiten->Einstellungen.",
 	
@@ -392,17 +391,17 @@ const char * DC_STR_GERMAN[STR_NUM] =
 	"Versuche Verbindung wieder herzustellen...",
 	"Verbindung zum Server beendet.",
 	"Ihr Name ist schon in Benutzung. Bitte wählen Sie einen anderen.",
-	"Benutzer %s ist eingeloggt.",
+	"Benutzer %s ist jetzt verbunden.",
 	"Benutzer %s hat die Verbindung beendet.",	// the user name is prepended to this string
 	"Weiterleitung zu ",
-	"Hub ist voll.", // but 'Server' is more known to germans with no english-knowledge..
+	"Server ist voll.",
 	"Benutzer nicht gefunden!",
 	"Unbekannter Befehl.",
 	
 	// START /help
 	"Mögliche Befehle:\n"
-	"\t\t\t/close - Schliessen dieser Verbindung.\n"
-	"\t\t\t/help - Zeige diesen Hilfetext.\n"
+	"\t\t\t/close - Schließt diese Verbindung.\n"
+	"\t\t\t/help - Zeigt diesen Hilfetext.\n"
 	"\t\t\t/msg <name> <text> - Sendet eine private Nachricht.\n"
 	"\t\t\t/quit - Schließt BDC",
 	// END /help
@@ -502,6 +501,109 @@ const char * DC_STR_NORWEGIAN[STR_NUM] =
 	// END /help
 };
 
+const char DC_KEY_NORWEGIAN[KEY_NUM] =
+{
+	'A',	// About
+	'W',	// Close
+	'P',	// Prefs
+	'H'		// Hubs
+};
+
+//////////////////////////////////////////////////////
+// POLISH
+//////////////////////////////////////////////////////
+const char * DC_STR_POLISH[STR_NUM] =
+{
+	"Huby",
+	"Połącz",
+	"Odśwież",
+	"Następne 50",
+	"Poprzednie 50",
+	
+	"Nazwa",
+	"Adres",
+	"Opis",
+	"Użytkownicy",
+	
+	"Czekam.",
+	"Łączę...",
+	"Pobieram listę hubów...",
+	"Błąd podczas łączenia.",
+	"Błąd przy wysyłaniu żądania.",
+	"Błąd przy otrzymywaniu danych.",
+	"Ilość hubów: ",
+	
+	"Plik",
+	"O programie",
+	"Zamknij",
+	"Edycja",
+	"Ustawienia",
+	"Okna",
+	"Pokaż Huby",
+	
+	"Ustawienia",
+	"Główne",
+	"Informacje osobiste",
+	"Ustawienia połączenia",
+	"Ksywka (wymagane)",
+	"E-Mail",
+	"Opis",
+	"Połączenie",
+	"Aktywny",
+	"Pasywny (za firewallem)",
+	"IP",
+	"Port",
+	
+	// "Name" is reused
+	"Łącze",
+	"Opis",
+	"E-Mail",
+	"Udostępnione",
+	"Chat:",
+	"Zamknij",
+	
+	"OK",
+	"Anuluj",
+	"Błąd",
+	"Użytkownicy",
+	"Język",
+	
+	"Wpisz ksywkę w  Edycja -> Ustawienia.",
+	
+	"System: ",
+	"Błąd: ",
+	"Łączę z ",
+	"Połączony.",
+	"Nie udało się połączyć z serwerem!!",
+	"Próbuję połączyć się ponownie...",
+	"Rozłączono z serwerem.",
+	"Twoja ksywka jest już używana: wybierz inną.",
+	"Użytkownik %s zalogował się.",
+	"Użytkownik %s rozłączył się.",	// the user name is prepended to this string
+	"Przekierowuję do ",
+	"Hub jest pełny.",
+	"Nie ma takiego użytkownika!",
+	"Nieznane polecenie.",
+	
+	// START /help
+	"Dostępne polecenia:\n"
+	"\t\t\t/close - Zamyka to połączenie.\n"
+	"\t\t\t/help - Pokazuje ten tekst pomocy.\n"
+	"\t\t\t/msg <ksywka> <tekst> - Wysyła prywatną wiadomość.\n"
+	"\t\t\t/quit - Zamyka BDC",
+	// END /help
+};
+
+
+// If you want different key shortcuts then the defaults for english,
+// include your own language version of key shortcuts
+const char DC_KEY_POLISH[KEY_NUM] =
+{
+	'A',	// About
+	'W',	// Close
+	'P',	// Prefs
+	'H'		// Hubs
+};
 
 
 const char ** DC_STR_USE = 0;	// Set to the current language in use
@@ -513,7 +615,8 @@ const char * DC_LANGUAGES[DC_LANG_NUM] =
 	"Svensk",
 	"suomi",
 	"Deutsch",
-	"Norsk"
+	"Norsk",
+	"Polish"	// TODO
 };
 
 int gCurrentLanguage = -1;
@@ -565,9 +668,14 @@ DCSetLanguage(int lang)
 		case DC_LANG_NORWEGIAN:
 		{
 			DC_STR_USE = DC_STR_NORWEGIAN;
-			// Use same shortcuts as the english version, we don't need our own :)
-			DC_KEY_USE = DC_KEY_ENGLISH;
+			DC_KEY_USE = DC_KEY_NORWEGIAN;
 			break;
+		}
+		
+		case DC_LANG_POLISH:
+		{
+			DC_STR_USE = DC_STR_POLISH;
+			DC_KEY_USE = DC_KEY_POLISH;
 		}
 		
 		default:
