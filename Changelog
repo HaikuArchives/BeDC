@@ -6,6 +6,10 @@
 	- Fix a bug where auto-reconnect would spawn large amounts of threads, and then lock up the app when you went to close the window.
 	- Added tab-completion for names.
 	- Added Swedish translation, thanks Mikael Konradson.
-	-Added Norwegian translation
+	- Added Norwegian translation
+	- Added Finnish translation, thanks Mika Lindqvist.
+	- Added German translation, thanks Michael Weirauch.
+	- Implemented live language swapping.
+	- Preferences now saved when you close the preferences window and change the language.
 0.5.0 
 	- First release

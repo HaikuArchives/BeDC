@@ -85,6 +85,8 @@ public:
 	BTextControl *			GetInputControl() const { return fInput; }
 	DCConnection *			GetConnection() const { return fConn; }
 	
+	void					UpdateLanguage();
+	
 	static BString			GetConnectionText(int val);
 	
 private:

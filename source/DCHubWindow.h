@@ -42,12 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCHTTPConnection.h"
 
 class BView;
-#ifdef NO_CRASH_LIST
-class DCHubListView;
-class CLVContainerView;
-#else
 class BColumnListView;
-#endif
 class BButton;
 class BStringView;
 
@@ -77,12 +72,7 @@ public:
 	
 private:
 	BView *				fView;
-#ifdef NO_CRASH_LIST
-	DCHubListView *	fHubView;
-	CLVContainerView *	fHubViewContainer;
-#else
 	BColumnListView *	fHubView;
-#endif
 	BView * 			fButtonView;	// for kewl resizing ;)
 	BButton *			fConnect;
 	BButton *			fRefresh;
@@ -106,6 +96,7 @@ private:
 	void				RestoreList();
 	void				ListSomeItems();
 	void				CleanUpConnection();
+	void				UpdateLanguage();
 };
 
 #endif	// _DC_HUB_WINDOW_H_

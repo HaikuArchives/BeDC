@@ -55,15 +55,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 DCApp::DCApp()
 	: BApplication("application/x-vnd.OSS-BeDC")
 {
-	DCSetLanguage(DC_LANG_ENGLISH);
-	
-//	fQueue = new DCDownloadQueue;
-//	fQueue->Run();
-
 	// Load our settings
 	fSettings = new DCSettings;
 	fSettings->LoadSettings();
 	
+	int32 lang = DC_LANG_ENGLISH;
+	fSettings->GetInt(DCS_LANGUAGE, lang);
+	DCSetLanguage(lang);
+
 	// No hub window yet
 	fHubWindow = NULL;
 	fWindow = NULL;
@@ -99,7 +98,8 @@ DCApp::MessageReceived(BMessage * msg)
 				MergeDifferences((DCSettings *)prefs);
 			else
 				delete prefs;
-				
+			fSettings->SaveSettings();
+			
 			if (fWindow)
 				fWindow->PostMessage(DC_MSG_APP_NEW_SETTINGS);
 			break;
@@ -150,6 +150,8 @@ DCApp::MessageReceived(BMessage * msg)
 		{
 			if (fHubWindow)
 				fHubWindow->PostMessage(DC_MSG_APP_UPDATE_LANG);
+			if (fPrefsWindow)
+				fPrefsWindow->PostMessage(DC_MSG_APP_UPDATE_LANG);
 			break;
 		}
 		

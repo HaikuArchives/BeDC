@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCPrefs.h"
 #include "DCStrings.h"
 #include "DCSettings.h"
+#include "DCApp.h"
 
 #include <View.h>
 #include <ListView.h>
@@ -114,6 +115,10 @@ DCPrefs::MessageReceived(BMessage * msg)
 			break;
 		}
 		
+		case DC_MSG_APP_UPDATE_LANG:
+			UpdateLanguage();
+			break;
+			
 		default:
 			BWindow::MessageReceived(msg);
 			break;
@@ -337,4 +342,27 @@ DCPrefs::InitGUI()
 							  new BMessage(DCP_CANCEL))
 	);
 	fOK->MakeDefault(true);
+}
+
+void
+DCPrefs::UpdateLanguage()
+{
+	// Options list
+	((BStringItem *)fOptions->ItemAt(0))->SetText(DCStr(STR_PREFS_GENERAL));
+	
+	// Personal info
+	fGeneralPersonal->SetLabel(DCStr(STR_PREFS_GENERAL_PERSONAL));
+	fGeneralConnection->SetLabel(DCStr(STR_PREFS_GENERAL_CONNECTION_SETTINGS));
+	
+	fNick->SetLabel(DCStr(STR_PREFS_GENERAL_NICK));
+	fEmail->SetLabel(DCStr(STR_PREFS_GENERAL_EMAIL));
+	fDescription->SetLabel(DCStr(STR_PREFS_GENERAL_DESC));
+	fConnection->SetLabel(DCStr(STR_PREFS_GENERAL_CONNECTION));
+	
+	fActive->SetLabel(DCStr(STR_PREFS_GENERAL_ACTIVE));
+	fIP->SetLabel(DCStr(STR_PREFS_GENERAL_IP));
+	fPort->SetLabel(DCStr(STR_PREFS_GENERAL_PORT));
+	fPassive->SetLabel(DCStr(STR_PREFS_GENERAL_PASSIVE));
+	
+	SetTitle(DCStr(STR_PREFS_TITLE));
 }

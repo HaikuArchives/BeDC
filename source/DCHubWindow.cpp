@@ -34,14 +34,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "DCHubWindow.h"
 #include "DCStrings.h"
-#ifdef NO_CRASH_LIST
-#include "DCHubListView.h"
-#include "santa/CLVColumn.h"
-#include "santa/CLVEasyItem.h"
-#else
 #include "ColumnListView.h"
 #include "ColumnTypes.h"
-#endif
+#include "DCApp.h"
 
 #include <View.h>
 #include <Button.h>
@@ -91,12 +86,13 @@ DCHubWindow::MessageReceived(BMessage * msg)
 {
 	switch (msg->what)
 	{
+		case DC_MSG_APP_UPDATE_LANG:
+			UpdateLanguage();
+			break;
+		
 		case HUB_CONNECT:
 		{
 			BMessage msg(DC_MSG_HUB_CONNECT);
-#ifdef NO_CRASH_LIST
-# error "not implemented yet"
-#else
 			BRow * row = fHubView->CurrentSelection();
 			if (!row)
 				break;	// nothing selected yet
@@ -105,7 +101,6 @@ DCHubWindow::MessageReceived(BMessage * msg)
 			msg.AddString("addr", ((BStringField *)row->GetField(1))->String());
 			msg.AddString("desc", ((BStringField *)row->GetField(2))->String());
 			fTarget.SendMessage(&msg);
-#endif
 			break;
 		}
 		
@@ -216,25 +211,15 @@ DCHubWindow::InitGUI()
 	
 	float height = fView->Frame().Height() - 35;
 	
-#ifdef NO_CRASH_LIST
-	fHubView = new DCHubListView(BRect(3, 3, fView->Frame().Width() - B_V_SCROLL_BAR_WIDTH - 3, 
-								  height - B_H_SCROLL_BAR_HEIGHT), &fHubViewContainer,
-								  "the_list_view");
-#endif
-
 	fView->AddChild(
-#ifdef NO_CRASH_LIST
-		fHubViewContainer
-#else
 		fHubView = new BColumnListView(BRect(3, 3, fView->Frame().Width() - 6, height),
 									   "the_list_view", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP_BOTTOM, 
 									   B_WILL_DRAW, B_FANCY_BORDER)
-#endif
 	);
 	
 	float top = height + 5;
 	float bottom = fView->Frame().Height();
-	float left = fView->Frame().Width() - 308 /*158*/;
+	float left = fView->Frame().Width() - 348 /*158*/;
 	height = fView->Frame().Width() - 3;	// var reuse ;)
 	
 	fView->AddChild(
@@ -244,24 +229,24 @@ DCHubWindow::InitGUI()
 	fButtonView->SetViewColor(216, 216, 216);
 	
 	fButtonView->AddChild(/* 0, 0, 80, 28 */
-		fConnect = new BButton(BRect(3, 3, 77, 25), "b_connect", DCStr(STR_HUB_CONNECT),
+		fConnect = new BButton(BRect(3, 3, 87, 25), "b_connect", DCStr(STR_HUB_CONNECT),
 							   new BMessage(HUB_CONNECT), B_FOLLOW_LEFT | B_FOLLOW_BOTTOM)
 	);
 	fConnect->MakeDefault(true);
 	
 	fButtonView->AddChild(
-		fRefresh = new BButton(BRect(85, 0, 155, 28), "b_refresh",
+		fRefresh = new BButton(BRect(95, 0, 175, 28), "b_refresh",
 							   DCStr(STR_HUB_REFRESH), new BMessage(HUB_REFRESH), 
 							   B_FOLLOW_LEFT | B_FOLLOW_BOTTOM)
 	);
 	
 	fButtonView->AddChild(
-		fPrev = new BButton(BRect(160, 0, 230, 28), "b_prev", DCStr(STR_HUB_PREV50), 
+		fPrev = new BButton(BRect(180, 0, 260, 28), "b_prev", DCStr(STR_HUB_PREV50), 
 							new BMessage(HUB_PREV50), B_FOLLOW_LEFT | B_FOLLOW_BOTTOM)
 	);
 	
 	fButtonView->AddChild(
-		fNext = new BButton(BRect(235, 0, 305, 28), "b_next", DCStr(STR_HUB_NEXT50),
+		fNext = new BButton(BRect(265, 0, 345, 28), "b_next", DCStr(STR_HUB_NEXT50),
 							new BMessage(HUB_NEXT50), B_FOLLOW_LEFT | B_FOLLOW_BOTTOM)
 	);
 
@@ -273,20 +258,6 @@ DCHubWindow::InitGUI()
 	
 		
 	// Setup the columns in the list view
-#ifdef NO_CRASH_LIST
-	fHubView->AddColumn(
-		new CLVColumn(DCStr(STR_SERVER_NAME), 100, CLV_SORT_KEYABLE, 30)
-	);
-	fHubView->AddColumn(
-		new CLVColumn(DCStr(STR_SERVER_ADDR), 100, CLV_SORT_KEYABLE, 30)
-	);
-	fHubView->AddColumn(
-		new CLVColumn(DCStr(STR_SERVER_DESC), 230, CLV_SORT_KEYABLE, 50)
-	);
-	fHubView->AddColumn(
-		new CLVColumn(DCStr(STR_SERVER_USERS), 50, CLV_SORT_KEYABLE, 30)
-	);
-#else
 	fHubView->AddColumn(
 		new BStringColumn(DCStr(STR_SERVER_NAME), 150, 30, 300, 285, B_ALIGN_LEFT), 0
 	);
@@ -299,7 +270,6 @@ DCHubWindow::InitGUI()
 	fHubView->AddColumn(
 		new BIntegerColumn(DCStr(STR_SERVER_USERS), 50, 30, 100, B_ALIGN_RIGHT), 3 // Made the max size bigger to fit the norwegian translation --Vegard
 	);
-#endif
 	
 	AddItem("Test Server", "192.168.0.2", "Just a test server... for your viewing pleasure :)", 5);
 }
@@ -307,14 +277,6 @@ DCHubWindow::InitGUI()
 void
 DCHubWindow::AddItem(const BString & name, const BString & addr, const BString & desc, uint32 users)
 {
-#ifdef NO_CRASH_LIST
-	CLVEasyItem * item = new CLVEasyItem;
-	item->SetColumnContent(0, name.String());
-	item->SetColumnContent(1, addr.String());
-	item->SetColumnContent(2, desc.String());
-	item->SetColumnContent(3, users);
-	fHubView->AddItem(item);
-#else
 	BRow * row = new BRow;
 	row->SetField(new BStringField(name.String()), 0);
 	row->SetField(new BStringField(addr.String()), 1);
@@ -322,7 +284,6 @@ DCHubWindow::AddItem(const BString & name, const BString & addr, const BString &
 	row->SetField(new BIntegerField((int32)users), 3);
 
 	fHubView->AddRow(row);
-#endif
 }
 
 void
@@ -413,11 +374,7 @@ DCHubWindow::ListSomeItems()
 		i++;
 		f++;
 	}
-#ifdef NO_CRASH_LIST
-	fHubView->MakeEmpty();
-#else
 	fHubView->Clear();
-#endif
 
 	for (int j = fOffset; j < fNextOffset; j++)
 	{
@@ -427,4 +384,21 @@ DCHubWindow::ListSomeItems()
 			break;
 		i++;
 	}
+}
+
+void
+DCHubWindow::UpdateLanguage()
+{
+	fConnect->SetLabel(DCStr(STR_HUB_CONNECT));
+	fRefresh->SetLabel(DCStr(STR_HUB_REFRESH));
+	fPrev->SetLabel(DCStr(STR_HUB_PREV50));
+	fNext->SetLabel(DCStr(STR_HUB_NEXT50));
+	((BTitledColumn *)fHubView->ColumnAt(0))->SetTitle(DCStr(STR_SERVER_NAME));
+	((BTitledColumn *)fHubView->ColumnAt(1))->SetTitle(DCStr(STR_SERVER_ADDR));
+	((BTitledColumn *)fHubView->ColumnAt(2))->SetTitle(DCStr(STR_SERVER_DESC));
+	((BTitledColumn *)fHubView->ColumnAt(3))->SetTitle(DCStr(STR_SERVER_USERS));
+	fHubView->Hide();
+	fHubView->Show();
+	
+	SetTitle(DCStr(STR_HUB_WINDOW_TITLE));
 }

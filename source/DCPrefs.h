@@ -100,6 +100,7 @@ private:
 	DCSettings *		fSettings;	// a COPY of the original settings
 	
 	void				InitGUI();
+	void				UpdateLanguage();
 };
 
 

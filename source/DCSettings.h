@@ -52,6 +52,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define DCS_PREFS_ACTIVE		"prefs_active"
 #define DCS_PREFS_PORT			"prefs_port"
 #define DCS_PREFS_IP			"prefs_ip"
+#define DCS_LANGUAGE			"language"
 
 class DCSettings : public BMessage
 {

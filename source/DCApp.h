@@ -68,8 +68,8 @@ enum
 	// The DCWindow sends this to the app telling it the
 	// language prefs have changed and it should tell
 	// the hub window to update. Basically, the app
-	// just redirects this message to the hub window if it
-	// exists.
+	// just redirects this message to the hub and prefs 
+	// windows if they exist.
 	DC_MSG_APP_UPDATE_LANG = 'aUlS'
 };
 

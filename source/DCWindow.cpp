@@ -580,7 +580,12 @@ DCWindow::InitializeLanguage(int lang)
 	if (DCGetLanguage() != lang)
 	{
 		DCSetLanguage(lang);
+		// Update it in the settings... careful, possible crash
+		// if DCApp or DCHubWindow reads/writes from it
+		dc_app->GetSettings()->SetInt(DCS_LANGUAGE, lang);
+		dc_app->GetSettings()->SaveSettings();
 		
+		dc_app->PostMessage(DC_MSG_APP_UPDATE_LANG);
 		// Update our menus...
 		// File menu
 		fMenuBar->ItemAt(0)->SetLabel(DCStr(STR_MENU_FILE));
@@ -601,5 +606,10 @@ DCWindow::InitializeLanguage(int lang)
 		fWindowsMenu->ItemAt(0)->SetShortcut(DCKey(KEY_WINDOWS_HUB), B_COMMAND_KEY);
 		
 		// Now all of our views
+		for (int32 i = 0; i < fViewList.CountItems(); i++)
+		{
+			Container * c = fViewList.ItemAt(i);
+			c->fView->UpdateLanguage();
+		}
 	}
 }

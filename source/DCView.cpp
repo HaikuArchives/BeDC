@@ -838,3 +838,19 @@ DCView::SendUpdateNotification()
 	msg.AddPointer("view", this);
 	fTarget.SendMessage(&msg);
 }
+
+void
+DCView::UpdateLanguage()
+{
+	fInput->SetLabel(DCStr(STR_VIEW_CHAT));
+	fInput->SetDivider(fInput->TextView()->StringWidth(DCStr(STR_VIEW_CHAT)) + 7 );
+	
+	((BTitledColumn *)fUsers->ColumnAt(0))->SetTitle(DCStr(STR_VIEW_NAME));
+	((BTitledColumn *)fUsers->ColumnAt(1))->SetTitle(DCStr(STR_VIEW_SPEED));
+	((BTitledColumn *)fUsers->ColumnAt(2))->SetTitle(DCStr(STR_VIEW_DESC));
+	((BTitledColumn *)fUsers->ColumnAt(3))->SetTitle(DCStr(STR_VIEW_EMAIL));
+	((BTitledColumn *)fUsers->ColumnAt(4))->SetTitle(DCStr(STR_VIEW_SHARED));
+	// Seems to be the only way to refresh the column titles...
+	fUsers->Hide();
+	fUsers->Show();
+}
