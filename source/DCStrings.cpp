@@ -188,13 +188,13 @@ const char * DC_STR_SWEDISH[STR_NUM] =
 	"Passiv (Jag är bakom brandvägg)",
 	"IP",
 	"Port",
-	"Colors",	// TRANSLATE
-	"System Label",	// TRANSLATE
-	"Text",	// TRANSLATE
-	"Error Label",	// TRANSLATE
-	"Remote Nick",	// TRANSLATE
-	"Local Nick",	// TRANSLATE
-	"Private Text",	// TRANSLATE
+	"Färger",
+	"System text",
+	"Chat text",
+	"Felmedelande",
+	"Andras Nick",
+	"Ditt Nick",
+	"Privat text",
 	
 	// "Name" is reused
 	"Uppkoppling",
@@ -209,7 +209,7 @@ const char * DC_STR_SWEDISH[STR_NUM] =
 	"Fel",
 	"Användare",
 	"Språk",
-	"Revert",		// TRANSLATE
+	"Ångra",
 
 	"Vargod välj ett nytt Nickname i Redigera->Inställningar.",
 	
@@ -697,6 +697,13 @@ const char * DC_STR_RUSSIAN[STR_NUM] =
 	"Пассивное (за файрволлом)", //"Passive (behind a firewall)",
 	"IP", //"IP",
 	"Порт", //"Port",
+	"Colors",	// TRANSLATE
+	"System Label",	// TRANSLATE
+	"Text",	// TRANSLATE
+	"Error Label",	// TRANSLATE
+	"Remote Nick",	// TRANSLATE
+	"Local Nick",	// TRANSLATE
+	"Private Text",	// TRANSLATE
 	
 	// "", //"Name" is reused
 	"Скорость", //"Speed",
@@ -711,6 +718,7 @@ const char * DC_STR_RUSSIAN[STR_NUM] =
 	"Ошибка", //"Error",
 	"Пользователи", //"Users",
 	"Language", //"Language",
+	"Revert",		// TRANSLATE
 	
 	"", //"Please choose a nick name in Edit->Preferences.",
 	
@@ -722,12 +730,12 @@ const char * DC_STR_RUSSIAN[STR_NUM] =
 	"Повторяю попытку соединения с сервером...", //"Trying to reconnect to server...",
 	"Соединение с сервером разорвано", //"Disconnected from server.",
 	"Ваш псевдоним уже занят, используйте другой", //"Your nick is already in use, please choose another.",
-	"Вошел пользователь %", //"User %s has logged in.",
-	"Пользователь % вышел", //"User %s has logged out.",	// the user name is prepended to this string
+	"Вошел пользователь %s", //"User %s has logged in.",
+	"Пользователь %s вышел", //"User %s has logged out.",	// the user name is prepended to this string
 	"Перенаправление на ", //Redirecting to ",
-	"Нет места на узле", "Hub is full.",
-	"Нет такого пользователя", "User not found!",
-	"Неизвестная команда", "Unknown command.",
+	"Нет места на узле", //	"Hub is full.",
+	"Нет такого пользователя", //"User not found!",
+	"Неизвестная команда", //"Unknown command.",
 	
 	// START /help
 	"Доступные команды:\n"
@@ -753,7 +761,7 @@ const char * DC_KEY_USE = 0;	// Set to the current key set in use
 const char * DC_LANGUAGES[DC_LANG_NUM] =
 {
 	"English",
-	"Svensk",
+	"Svenska",
 	"suomi",
 	"Deutsch",
 	"Norsk",
