@@ -45,6 +45,7 @@ class DCWindow;
 class DCSettings;
 class DCDownloadQueue;
 class DCHubWindow;
+class DCPrefs;
 
 class BString;
 
@@ -58,7 +59,9 @@ enum
 	// window requesting it to open a new connection to
 	// the specified server, basically, the DC_MSG_HUB_CONNECT
 	// message is passed on to the window
-	DC_MSG_APP_OPEN_NEW_HUB = 'aOnH'
+	DC_MSG_APP_OPEN_NEW_HUB = 'aOnH',
+	// Sent this message to the app to open up the prefs window
+	DC_MSG_APP_SHOW_PREFS = 'aOpF'
 };
 
 class DCApp : public BApplication
@@ -79,8 +82,10 @@ protected:
 	DCSettings *			fSettings /*theSettings*/;
 	DCWindow *				fWindow;
 	DCHubWindow *			fHubWindow;
+	DCPrefs *				fPrefsWindow;
 	
 	void					ShowHubWindow();
+	void					ShowPrefsWindow();
 	void					EnsureWindowAllocated();	// make sure a window exists
 };
 

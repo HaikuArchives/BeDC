@@ -69,6 +69,20 @@ DCWindow::MessageReceived(BMessage * msg)
 {
 	switch (msg->what)
 	{
+		case DCW_ABOUT:
+			break;
+			
+		case DCW_PREFS:
+			dc_app->PostMessage(DC_MSG_APP_SHOW_PREFS);
+			break;
+		
+		case DCW_HUBS:
+			dc_app->PostMessage(DC_MSG_APP_SHOW_HUB_LIST);
+			break;
+		
+		case DCW_HUB_CHANGED:
+			break;
+			
 		default:
 			BWindow::MessageReceived(msg);
 			break;

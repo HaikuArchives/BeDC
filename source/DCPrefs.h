@@ -32,88 +32,75 @@ AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
 */
+#ifndef _DC_PREFS_H_
+#define _DC_PREFS_H_
 
+#include <Window.h>
+#include <Messenger.h>
+#include <Point.h>
 
-#include <stdio.h>
+class BView;
+class BListView;
+class BScrollView;
+class BButton;
+class BBox;
+class BTextControl;
+class BMenuField;
+class BPopUpMenu;
+class BRadioButton;
 
-#include <Message.h>
-#include <File.h>
-#include <Path.h>
-#include <Directory.h>
-#include <String.h>
+class DCSettings;
 
-#include "DCSettings.h"
-
-
-void 
-DCSettings::LoadSettings()
+enum
 {
-	BFile settingsfile;
-	if(settingsfile.SetTo("/boot/home/config/settings/BeDC/BeDC-Settings",B_READ_ONLY)==B_OK)
-	{
-		Unflatten(&settingsfile);
-	}
-}
+	// Prefs closed
+	//	'point'		BPoint	--> Position
+	DC_MSG_PREFS_CLOSED = 'dMpC',
+	// Prefs OK'd
+	//	'prefs'		BMessage --> New prefs
+	DC_MSG_PREFS_UPDATE = 'dMpU'
+};
 
-void 
-DCSettings::SaveSettings()
+class DCPrefs : public BWindow
 {
-	BPath path("/boot/home/config/settings/BeDC/BeDC-Settings");
-	BFile settingsfile;
-	if(settingsfile.InitCheck() != B_OK) /* Didn't work, try to create parent dir */
-	{
-		BPath parent;
-		path.GetParent(&parent);
-		create_directory(parent.Path(),0777);
-	}
-	if(settingsfile.SetTo(path.Path(),B_WRITE_ONLY|B_CREATE_FILE)==B_OK)
-		Flatten(&settingsfile);
-}
+public:
+						DCPrefs(BMessenger target, BPoint pos = BPoint(60, 30));
+	virtual				~DCPrefs();
+	
+	virtual void		MessageReceived(BMessage * msg);
+	virtual bool		QuitRequested();
 
-status_t 
-DCSettings::GetString(const char *name, BString *string)
-{
-	return FindString(name,string);
-}
+	void				InitSettings(DCSettings * set);
+	
+private:
+	BMessenger 			fTarget;
+	bool				fOKPressed;
+	
+	BView *				fView;		// main view
+	BListView *			fOptions;
+	BScrollView *		fScrollOptions;
+	BBox *				fContainer;
+	BButton *			fOK;
+	BButton *			fCancel;
+	
+	// General
+	BView *				fGeneral;
+		BBox *			fGeneralPersonal;
+		BTextControl *	fNick;
+		BTextControl *	fEmail;
+		BTextControl *	fDescription;
+		BMenuField *	fConnection;
+		BPopUpMenu *	fConnMenu;
+		BBox *			fGeneralConnection;
+		BRadioButton *	fActive;
+		BRadioButton *	fPassive;
+		BTextControl *	fIP;
+		BTextControl *	fPort;
+		
+	DCSettings *		fSettings;	// a COPY of the original settings
+	
+	void				InitGUI();
+};
 
-void 
-DCSettings::SetString(const char *name, const char *string)
-{
-	BString tmp;
-	if((FindString(name,&tmp))==B_OK)
-		ReplaceString(name,string);
-	else
-		AddString(name,string);
-}
 
-status_t 
-DCSettings::GetRect(const char *name, BRect *rect)
-{
-	return FindRect(name,rect);
-}
-
-void 
-DCSettings::SetRect(const char *name, const BRect & rect)
-{
-	BRect tmp;
-	if((FindRect(name,&tmp))==B_OK)
-		ReplaceRect(name,rect);
-	else
-		AddRect(name,rect);
-}
-
-status_t
-DCSettings::GetPoint(const char * name, BPoint * point)
-{
-	return FindPoint(name, point);
-}
-
-void
-DCSettings::SetPoint(const char * name, const BPoint & point)
-{
-	BPoint tmp;
-	if (FindPoint(name, &tmp) == B_OK)
-		ReplacePoint(name, point);
-	else
-		AddPoint(name, point);
-}
+#endif	// _DC_PREFS_H_

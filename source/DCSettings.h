@@ -37,26 +37,32 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _DC_SETTINGS_H_
 #define _DC_SETTINGS_H_
 
-class BMessage;
-class BRect;
+#include <Message.h>
+#include <Rect.h>
+#include <Point.h>
 
 #define DCS_WINDOW_RECT 		"window_rect"
 #define DCS_HUB_RECT			"hub_rect"
+#define DCS_PREFS_POS			"prefs_pos"
 
 class DCSettings : public BMessage
 {
 public:
-						DCSettings();
+						DCSettings() {}
+						DCSettings(const DCSettings & copy) : BMessage(copy) {}
 						
+	virtual				~DCSettings() {}
+	
 	void 				LoadSettings();
 	void 				SaveSettings();
 	
 	void 				SetString(const char *name, const char *string);
-	void 				SetRect(const char *name, BRect rect);
+	void 				SetRect(const char *name, const BRect & rect);
+	void				SetPoint(const char * name, const BPoint & point);
 	
 	status_t 			GetRect(const char *name, BRect *rect);
 	status_t 			GetString(const char *name, BString *string);
-
+	status_t			GetPoint(const char * name, BPoint * point);
 };
 
 #endif /* !_DC_SETTINGS_H_ */

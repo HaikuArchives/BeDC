@@ -49,6 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCDownloadQueue.h"
 #include "DCStrings.h"
 #include "DCHubWindow.h"
+#include "DCPrefs.h"
 
 DCApp::DCApp()
 	: BApplication("application/x-vnd.OSS-BeDC")
@@ -65,6 +66,7 @@ DCApp::DCApp()
 	// No hub window yet
 	fHubWindow = NULL;
 	fWindow = NULL;
+	fPrefsWindow = NULL;
 }
 
 DCApp::~DCApp()
@@ -84,6 +86,20 @@ DCApp::MessageReceived(BMessage * msg)
 {
 	switch (msg->what)
 	{
+		case DC_MSG_PREFS_CLOSED:
+		{
+			BPoint p;
+			if (msg->FindPoint("point", &p) == B_OK)
+				fSettings->SetPoint(DCS_PREFS_POS, p);
+			fPrefsWindow = NULL;
+			
+			break;
+		}
+		
+		case DC_MSG_APP_SHOW_PREFS:
+			ShowPrefsWindow();
+			break;
+			
 		case DC_MSG_APP_SHOW_HUB_LIST:
 			ShowHubWindow();
 			break;
@@ -127,7 +143,7 @@ DCApp::MessageReceived(BMessage * msg)
 void
 DCApp::ReadyToRun()
 {
-	ShowHubWindow();
+	EnsureWindowAllocated();	// create the main window
 }
 
 void
@@ -156,4 +172,19 @@ DCApp::EnsureWindowAllocated()
 			fWindow = new DCWindow;	// default rect
 		fWindow->Show();
 	}
+}
+
+void
+DCApp::ShowPrefsWindow()
+{
+	if (!fPrefsWindow)
+	{
+		BPoint p;
+		if (fSettings->GetPoint(DCS_PREFS_POS, &p) == B_OK)
+			fPrefsWindow = new DCPrefs(BMessenger(this), p);
+		else
+			fPrefsWindow = new DCPrefs(BMessenger(this));
+		fPrefsWindow->InitSettings(fSettings);
+	}
+	fPrefsWindow->Show();
 }

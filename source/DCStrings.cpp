@@ -69,7 +69,23 @@ const char * DC_STR_ENGLISH[STR_NUM] =
 	"Edit",
 	"Preferences",
 	"Windows",
-	"Show Hubs"
+	"Show Hubs",
+	
+	"Preferences",
+	"General",
+	"Personal Information",
+	"Connection Settings",
+	"Nick (Required)",
+	"E-Mail",
+	"Description",
+	"Connection",
+	"Active",
+	"Passive (behind a firewall)",
+	"IP",
+	"Port",
+	
+	"OK",
+	"Cancel"
 };
 
 // If you want different key shortcuts then the defaults for english,
