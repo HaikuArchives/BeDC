@@ -79,7 +79,6 @@ DCStatusBar::Draw(BRect frame)
 	}
 	
 
-	//DrawString("Status Bar (Under construction :)", BPoint(Bounds().left + 2, Bounds().bottom - 2));
 }
 
 void

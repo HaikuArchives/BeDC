@@ -417,6 +417,91 @@ const char DC_KEY_GERMAN[KEY_NUM] =
 	'H'		// Hubs
 };
 
+//////////////////////////////////////////////////////
+// NORWEGIAN
+//////////////////////////////////////////////////////
+const char * DC_STR_NORWEGIAN[STR_NUM] =
+{
+	"Huber",
+	"Koble til",
+	"Oppdater",
+	"Neste 50",
+	"Forrige 50",
+	
+	"Navn",
+	"Addresse",
+	"Beskrivelse",
+	"Antall brukere",
+	
+	"Idle.",
+	"Kobler til...",
+	"Tilkoblet, henter server liste...",
+	"Feil under tilkobling.",
+	"Feil under sending av forespørselen.",
+	"Feil under henting av data.",
+	"Antall servere: ",
+	
+	"Fil",
+	"Om",
+	"Lukk",
+	"Edit",
+	"Instillinger",
+	"Vinduer",
+	"Vis Huber",
+	
+	"Instillinger",
+	"Generelt",
+	"Personlig informasjon",
+	"Tilkoblingsinstillinger",
+	"Nick (Required)",
+	"E-mail",
+	"Beskrivelse",
+	"Tilkobling",
+	"Aktiv",
+	"Passiv (bak brannmur)",
+	"IP",
+	"Port",
+	
+	// "Name" is reused
+	"Speed",
+	"Beskrivelse",
+	"E-mail",
+	"Delt",
+	"Chat:",
+	"Lukk", 
+	
+	"OK",
+	"Avbryt",
+	"Feil",
+	"Brukere",
+	"Språk",
+	
+	"Velg et nick i Edit->Instillinger.",
+	
+	"System: ",
+	"Feil: ",
+	"Kobler til ",
+	"Tilkoblet.",
+	"Tilkoblingen feilet!",
+	"Prøver å koble til på nytt...",
+	"Frakoblet server.",
+	"Nicket du har valgt er allerede i bruk, velg et annet.",
+	"%s har logget inn.",
+	"%s har logget ut.",	// the user name is prepended to this string
+	"Redirecting to ",
+	"Huben er full.",
+	"Kan ikke finne brukeren!",
+	"Ukjent kommando.",
+	
+	// START /help
+	"Tilgjengelige kommandoer:\n"
+	"\t\t\t/close - Lukker tilkoblingen.\n"
+	"\t\t\t/help - Viser denne hjelpen.\n"
+	"\t\t\t/msg <navn> <tekst> - Sender en privat beskjed.\n"
+	"\t\t\t/quit - Lukker BDC",
+	// END /help
+};
+
 
 
 const char ** DC_STR_USE = 0;	// Set to the current language in use
@@ -427,7 +512,8 @@ const char * DC_LANGUAGES[DC_LANG_NUM] =
 	"English",
 	"Svensk",
 	"suomi",
-	"Deutsch"
+	"Deutsch",
+	"Norsk"
 };
 
 int gCurrentLanguage = -1;
@@ -474,6 +560,13 @@ DCSetLanguage(int lang)
 		{
 			DC_STR_USE = DC_STR_GERMAN;
 			DC_KEY_USE = DC_KEY_FINNISH;
+			break;
+		}
+		case DC_LANG_NORWEGIAN:
+		{
+			DC_STR_USE = DC_STR_NORWEGIAN;
+			// Use same shortcuts as the english version, we don't need our own :)
+			DC_KEY_USE = DC_KEY_ENGLISH;
 			break;
 		}
 		

@@ -297,7 +297,7 @@ DCHubWindow::InitGUI()
 		new BStringColumn(DCStr(STR_SERVER_DESC), 230, 50, 430, 375, B_ALIGN_LEFT), 2
 	);
 	fHubView->AddColumn(
-		new BIntegerColumn(DCStr(STR_SERVER_USERS), 50, 30, 70, B_ALIGN_RIGHT), 3
+		new BIntegerColumn(DCStr(STR_SERVER_USERS), 50, 30, 100, B_ALIGN_RIGHT), 3 // Made the max size bigger to fit the norwegian translation --Vegard
 	);
 #endif
 	

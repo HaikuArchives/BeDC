@@ -64,7 +64,8 @@ enum
 	DCW_LANG_ENGLISH = 'dWlE',
 	DCW_LANG_SWEDISH = 'dWlS',
 	DCW_LANG_FINNISH = 'dWlF',
-	DCW_LANG_GERMAN = 'dWlG'
+	DCW_LANG_GERMAN = 'dWlG',
+	DCW_LANG_NORWEGIAN = 'dWlN'
 };
 
 class DCWindowListView : public BListView
@@ -142,6 +143,9 @@ DCWindow::MessageReceived(BMessage * msg)
 		
 		case DCW_LANG_GERMAN:
 			InitializeLanguage(DC_LANG_GERMAN);
+			break;
+		case DCW_LANG_NORWEGIAN:
+			InitializeLanguage(DC_LANG_NORWEGIAN);
 			break;
 		
 		case DCW_CLOSE_HUB:
@@ -446,6 +450,9 @@ DCWindow::InitGUI()
 	);
 	fEditLangMenu->AddItem(
 		new BMenuItem(DC_LANGUAGES[DC_LANG_GERMAN], new BMessage(DCW_LANG_GERMAN))
+	);
+	fEditLangMenu->AddItem(
+		new BMenuItem(DC_LANGUAGES[DC_LANG_NORWEGIAN], new BMessage(DCW_LANG_NORWEGIAN))
 	);
 	
 	// Windows menu

@@ -394,14 +394,6 @@ DCConnection::ReceiveHandler(void * d)
 				me->fTarget.SendMessage(&msg);
 			}
 			else	// This is just chat text w/out a name
-			// Do we ever get that? /me thinks we don't
-			// Never seen it as I remember
-			// All the chat text I've seen has been private or has had a nick
-			// Also, none of the protocol specs I've seen has had it iirc 
-			//  --Ghostride
-			// It does happen. Pay attention to the debug output in Terminal VERY
-			// carefully ;) The specs say that ANYTHING that doesn't start with a $
-			// is chat.
 			{
 				me->TrimString(str2);
 				if (str2 != "")	// if we actually have text
@@ -662,19 +654,13 @@ DCConnection::LockReceived(BString str)
 
 	BString key = DCConnection::GenerateKey(str);
 	
-//	SetNonBlocking(false);
-	BString keycommand;
-	keycommand += "$Key ";
-	keycommand += key;
-	keycommand += "|";
-	// We don't use our message protocol for sending this... 
-	// we want to meet the server's challenge right away.
-//	send(fSocket,keycommand.String(), 5 + key.Length() + 1, 0);
-//	SetNonBlocking(true);
-	SendRawData(keycommand);
+	key.Prepend("$Key ");
+	key += "|";
+	
+	SendRawData(key);
 	
 	
-	// Also, send our nick too
+	// Alscommando, send our nick too
 	ValidateNick();
 }
 
