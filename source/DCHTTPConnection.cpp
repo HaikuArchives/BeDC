@@ -288,11 +288,7 @@ DCHTTPConnection::ParseIntoHubList()
 		// Insert into hub list
 		Hub * hub = new Hub(DCUTF8(name.String()), DCUTF8(server.String()), DCUTF8(desc.String()), users);
 		if (hub)
-		{
-			printf("Inserting: [%s] [%s] [%s] [%d]\n", hub->fName.String(), hub->fServer.String(), 
-					hub->fDesc.String(), hub->fUsers);
 			fHubs.push_back(hub);
-		}
 	}
 }
 

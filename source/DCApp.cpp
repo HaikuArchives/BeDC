@@ -50,7 +50,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCHubWindow.h"
 
 DCApp::DCApp()
-	: BApplication("application/x-vnd.vegardw-BeDC")
+	: BApplication("application/x-vnd.OSS-BeDC")
 {
 	DCSetLanguage(DC_LANG_ENGLISH);
 	
