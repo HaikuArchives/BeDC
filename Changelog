@@ -1,4 +1,7 @@
-
+*01-alpha4
+	-Started on huffman en/decoding
+	-Started on client-client comm
+	-Now using makefile
 	-Changed settings-stuff, should work now
 	-BeDC now uses the correct charset
 	-BeDC has moved to sourceforge
