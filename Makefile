@@ -1,7 +1,7 @@
 # Makefile for BeDC
 # Makefile by Vegard Waerp
 
-BINARY := BeDC
+BINARY := BDirectConnect
 
 OBJS := DCApp.o DCClientConnection.o DCConnection.o DCDownloadQueue.o DCHuffman.o DCSettings.o DCView.o \
 DCWindow.o main.o DCSearchWindow.o DCSearchView.o ColumnListView.o ColorTools.o ColumnTypes.o DCHTTPConnection.o \
@@ -16,7 +16,7 @@ OBJS	:= $(addprefix $(OBJDIR)/,$(OBJS))
 LIBS := -lbe -lroot -ltracker -ltranslation -ltextencoding -lstdc++.r4
 CC := g++ -c -pipe
 LD := g++
-CFLAGS := -DCLIENT_TO_CLIENT_COMMUNICATION -g
+CFLAGS := -DCLIENT_TO_CLIENT_COMMUNICATION
 LDFLAGS := 
 
 ######################################

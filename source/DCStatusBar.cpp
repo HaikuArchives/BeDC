@@ -65,5 +65,5 @@ DCStatusBar::Draw(BRect frame)
 	SetDrawingMode(B_OP_OVER);
 	SetHighColor(0, 0, 0, 255);
 	
-	DrawString("Status Bar (Under construction :)", BPoint(Bounds().left + 2, Bounds().bottom - 2));
+	//DrawString("Status Bar (Under construction :)", BPoint(Bounds().left + 2, Bounds().bottom - 2));
 }

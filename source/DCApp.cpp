@@ -274,5 +274,9 @@ DCApp::GetColor(int c)
 void
 DCApp::AboutRequested()
 {
-	//((new BAlert("", DC_WINDOW_TITLE
+	((new BAlert("", DC_APP_NAME " Version " DC_APP_VERSION "\n\n"
+					 "Written By:\n"
+					 "Vitaliy Mikitchenko\n"
+					 "With the help of Vegard Wærp", "Nifty!", NULL, NULL,
+					 B_WIDTH_AS_USUAL, B_IDEA_ALERT)))->Go();
 }
