@@ -57,7 +57,7 @@ enum
 	DC_MSG_HUB_CLOSED = 'dcHC',
 	// Sent after a click on Connect is handled
 	//	Fields:
-	//		'server'	String
+	//		'name'		String
 	//		'addr'		String
 	//		'desc'		String
 	DC_MSG_HUB_CONNECT = 'dcHT'

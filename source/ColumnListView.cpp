@@ -1465,60 +1465,32 @@ void BColumnListView::Draw(BRect)
 	BRect rect = Bounds();
 	PushState();
 
-	FILE * fp = fopen("drawbug.txt", "w");
-	fprintf(fp, "Draw\n");
-	fflush(fp);
 	BRect cornerRect(rect.right - B_V_SCROLL_BAR_WIDTH, rect.bottom - B_H_SCROLL_BAR_HEIGHT,
 		rect.right, rect.bottom);
 	if (fBorderStyle == B_PLAIN_BORDER) {
-		fprintf(fp, "Plain border\n");
-		fflush(fp);
 		BView::SetHighColor(0, 0, 0); 
-		fprintf(fp, "StrokeRect\n");
-		fflush(fp);
 		StrokeRect(rect);
-		fprintf(fp, "Cornveroffset\n");
-		fflush(fp);
 		cornerRect.OffsetBy(-1, -1); 
 	} else if (fBorderStyle == B_FANCY_BORDER) {
 		bool isFocus = IsFocus() && Window()->IsActive();
 
-		fprintf(fp, "isFocus\n");
-		fflush(fp);
 		if (isFocus)
 			BView::SetHighColor(0, 0, 190);	// Need to find focus color programatically
 		else
 			BView::SetHighColor(255, 255, 255);
-		fprintf(fp, "StrokeRect\n");
-		fflush(fp);
 		StrokeRect(rect);
-		fprintf(fp, "!isFocus\n");
-		fflush(fp);
 		if (!isFocus)
 			BView::SetHighColor(184, 184, 184);
 		else
 			BView::SetHighColor(152, 152, 152);
-		fprintf(fp, "inset\n");
-		fflush(fp);
 		rect.InsetBy(1,1);
 		StrokeRect(rect);
-		fprintf(fp, "another stroke\n");
-		fflush(fp);
 		cornerRect.OffsetBy(-2, -2);
 	}
 	
-	fprintf(fp, "bview::set\n");
-	fflush(fp);
 	BView::SetHighColor(215, 215, 215); // fills lower right rect between scroll bars
-	fprintf(fp, "fill\n");
-	fflush(fp);
 	FillRect(cornerRect);
-	fprintf(fp, "pop\n");
-	fflush(fp);
 	PopState();
-	fprintf(fp, "done\n");
-	fflush(fp);
-	fclose(fp);
 }
 
 void BColumnListView::SaveState(BMessage *msg)
@@ -2742,8 +2714,9 @@ void OutlineView::Draw(BRect invalidBounds)
 								SetHighColor(fMasterView->Color(B_COLOR_SELECTION));
 						}
 						else
-							SetHighColor(fMasterView->Color(B_COLOR_NON_FOCUS_SELECTION));
-					} else
+								SetHighColor(fMasterView->Color(B_COLOR_NON_FOCUS_SELECTION));
+					} 
+					else
 						SetHighColor(fMasterView->Color(B_COLOR_BACKGROUND));
 
 					BRect destRect(fullRect);

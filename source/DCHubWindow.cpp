@@ -93,7 +93,19 @@ DCHubWindow::MessageReceived(BMessage * msg)
 	{
 		case HUB_CONNECT:
 		{
-			// TODO: Launch message
+			BMessage msg(DC_MSG_HUB_CONNECT);
+#ifdef NO_CRASH_LIST
+# error "not implemented yet"
+#else
+			BRow * row = fHubView->CurrentSelection();
+			if (!row)
+				break;	// nothing selected yet
+
+			msg.AddString("name", ((BStringField *)row->GetField(0))->String());
+			msg.AddString("addr", ((BStringField *)row->GetField(1))->String());
+			msg.AddString("desc", ((BStringField *)row->GetField(2))->String());
+			fTarget.SendMessage(&msg);
+#endif
 			break;
 		}
 		
