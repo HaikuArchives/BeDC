@@ -33,18 +33,34 @@ TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
 */
 
+enum {
+	DC_ADD_DL = 'dcad',
+	DC_GET_DL = 'dcgd',
+	DC_REMOVE_DL = 'dcrd'
+};
+
 
 class BList;
+class BLooper;
+class BMessage;
 
-class DCDownloadQueue
+class DCQueueItem
+{
+	public:
+		DCQueueItem(const char *theNick,const char *theRemotePath, const char *theLocalPath, int theCount);
+		~DCQueueItem();
+		BString *nick;
+		BString *remotePath;
+		BString *localPath;
+		int downloadCount;
+};
+
+class DCDownloadQueue : public BLooper
 {
 	public :
 		DCDownloadQueue();
 		~DCDownloadQueue();
-		void AddDownload();
-		void RemoveDownload();
-		void FindNick();
-		void GetFirstDownload();
+		virtual void MessageReceived(BMessage *message);
 	private :
 		BList *theList;				
 };

@@ -35,10 +35,29 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #include <List.h>
+#include <Looper.h>
+#include <Message.h>
+#include <String.h>
 
 #include "DCDownloadQueue.h"
 
-DCDownloadQueue::DCDownloadQueue()
+DCQueueItem::DCQueueItem(const char *theNick, const char *theRemotePath, const char *theLocalPath, int theCount)
+{
+	nick = new BString(theNick);
+	remotePath = new BString(theRemotePath);
+	localPath = new BString(theLocalPath);
+	downloadCount = theCount;
+}
+
+DCQueueItem::~DCQueueItem()
+{
+	delete nick;
+	delete remotePath;
+	delete localPath;
+}
+
+
+DCDownloadQueue::DCDownloadQueue() : BLooper("download_queue")
 {
 	theList = new BList;
 }
@@ -48,23 +67,30 @@ DCDownloadQueue::~DCDownloadQueue()
 	delete theList;
 }
 
-void DCDownloadQueue::AddDownload()
+void DCDownloadQueue::MessageReceived(BMessage *message)
 {
+	switch(message->what)
+	{
+		case  DC_ADD_DL:
+		{
+			BString nick, remote, local;
+			int dlcount;
+			
+			break;
+		}
+		
+		case  DC_GET_DL:
+		{
+			BString nick;
+			
+			break;
+		}
+		
+		case  DC_REMOVE_DL:
+		{
+			BString nick, remote, local;
+			break;
+		}
 	
+	}
 }
-
-void DCDownloadQueue::RemoveDownload()
-{
-	
-}
-
-void DCDownloadQueue::FindNick()
-{
-	
-}
-
-void DCDownloadQueue::GetFirstDownload()
-{
-	
-}
-

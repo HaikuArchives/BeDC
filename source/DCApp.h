@@ -41,6 +41,8 @@ extern class DCApp *dc_app;
 
 class DCWindow;
 class DCSettings;
+class DCDownloadQueue;
+class BString;
  
 class DCApp : public BApplication
 {
@@ -49,8 +51,10 @@ class DCApp : public BApplication
 		~DCApp();
 		virtual bool QuitRequested(void);
 		DCSettings *GetSettings() {return theSettings;};
+		DCDownloadQueue *GetQueue() {return theQueue;};
 protected:
 		DCWindow *theWindow;
+		DCDownloadQueue *theQueue;
 		DCSettings *theSettings;
 };
 

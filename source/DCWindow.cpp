@@ -453,8 +453,9 @@ void DCWindow::MessageReceived(BMessage *message)
 			rvcdstring.RemoveFirst(":");
 			DCClientConnection *dccc = new DCClientConnection();
 			dccc->SetNick(theConnection->GetNick());
-			printf("Tralalala: %s\n",dccc->GetNick());
+			dccc->DownloadNickList();
 			dccc->Connect(tmpstr.String(),atoi(rvcdstring.String()));
+			
 #endif
 			break;
 		}

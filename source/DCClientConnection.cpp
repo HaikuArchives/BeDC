@@ -69,7 +69,8 @@ DCClientConnection::DCClientConnection()
 	connected = false;
 	thid = -1;
 	nick = new BString;
-	//direction = DC_UPLOAD_DIR;
+	nextFile = new BString;
+	nextLocalFile = new BString;
 	direction = DC_DOWNLOAD_DIR;
 	conn_socket = -1;
 }
@@ -121,7 +122,7 @@ void DCClientConnection::DownloadFile(const char *remote_path, const char *local
 
 void DCClientConnection::DownloadNickList(int resume_count)
 {
-
+	nextFile->SetTo("MyList.DcLst");
 }
 
 int32 clientReceiver(void *data)
@@ -195,7 +196,9 @@ int32 clientReceiver(void *data)
 					send(theconn->GetSocket(),bstr2.String(),bstr2.Length(),0);
 					if(theconn->GetDirection() == DC_DOWNLOAD_DIR)
 					{
-						bstr2.SetTo("$Get MyList.DcLst$1|");
+						bstr2.SetTo("$Get ");
+						bstr2.Append(theconn->GetNextFile());
+						bstr2.Append("$1|");
 						//bstr2.SetTo("$Get Diverse\\mirc591t.exe$1|");
 						send(theconn->GetSocket(),bstr2.String(),bstr2.Length(),0);
 					}
@@ -235,8 +238,6 @@ int32 clientReceiver(void *data)
 					file.Seek(0,SEEK_SET);
 					DCHuffman huf;
 					huf.Decode(&file,NULL);
-					//bstr2.SetTo("Empty\\empty|");
-					//send(theconn,bstr2.String(),bstr2.Length(),0);
 				}
 			}
 		}

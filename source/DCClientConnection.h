@@ -57,9 +57,13 @@ class DCClientConnection
 		int GetSocket(){return conn_socket;};
 		int GetDirection(){return direction;};
 		const char *GetNick(){return nick->String();};
+		const char *GetNextFile(){return nextFile->String();};
 	private:
 		bool connected;
 		BString *nick;
+		BString *nextFile;
+		BString *nextLocalFile;
+		int resumecount;
 		int conn_socket;
 		int direction;
 		thread_id thid;

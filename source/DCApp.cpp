@@ -45,12 +45,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCApp.h"
 #include "DCWindow.h"
 #include "DCSettings.h"
+#include "DCDownloadQueue.h"
 
 
 DCApp::DCApp()
 : BApplication("application/x-vnd.vegardw-BeDC")
 {
 	theSettings = new DCSettings;
+	theQueue = new DCDownloadQueue;
+	theQueue->Run();
 	theSettings->LoadSettings();
 	BRect windowrect;
 	if(theSettings->GetRect("windowrect",&windowrect)!=B_OK)
