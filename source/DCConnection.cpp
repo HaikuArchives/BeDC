@@ -404,6 +404,10 @@ DCConnection::ReceiveHandler(void * d)
 				me->fTarget.SendMessage(&msg);
 			}
 			else	// This is just chat text w/out a name
+			// Do we ever get that? /me thinks we shouldn't
+			// All the chat text I've seen has been private or has had a nick
+			// Also, none of the protocol specs I've seen has had it iirc 
+			//  --Ghostride
 			{
 				BMessage msg(DC_MSG_CON_CHAT_MSG);
 				msg.AddString("chat", str2);
@@ -670,7 +674,10 @@ DCConnection::ValidateNick()
 #define EXTRA(X) (X == 0) || (X == 5) || (X == 124) || (X == 126) || (X == 36) || (X == 96)
 
 string
-DCConnection::GenerateKey(BString & lck)
+DCConnection::GenerateKey(BString & lck) 
+// The old keygen worked like a charm,
+// /me thinks the error is somwhere else
+// --Vegard
 {
 	printf("Using lock: [ %s ]\n", lck.String());
 	uint8 * tmp = new uint8[lck.Length() + 1];
