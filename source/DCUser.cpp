@@ -32,3 +32,36 @@ AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
 */
+#include "DCUser.h"
+#include "ColumnListView.h"
+#include "ColumnTypes.h"
+
+DCUser::DCUser(const BString & name, const BString & desc, const BString & email, const BString & speed)
+{
+	fName = name; 
+	fDesc = desc; 
+	fEmail = email; 
+	fSpeed = speed;
+	fRow = NULL;
+	fList = NULL;
+}
+
+BRow *
+DCUser::CreateRow(BColumnListView * list)
+{
+	if (fRow)
+	{
+		fList->RemoveRow(fRow);
+		delete fRow;
+		fRow = NULL;
+	}
+	if (list)
+	{
+		fRow = new BRow;
+		fRow->SetField(new BStringField(fName.String()), 0);
+		fRow->SetField(new BStringField(fSpeed.String()), 1);
+		fRow->SetField(new BStringField(fDesc.String()), 2);
+		fRow->SetField(new BStringField(fEmail.String()), 3);
+	}
+	return fRow;
+}

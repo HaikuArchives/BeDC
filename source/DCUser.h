@@ -32,3 +32,45 @@ AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
 */
+#ifndef _DC_USER_H_
+#define _DC_USER_H_
+
+#include <String.h>
+
+class BRow;
+class BColumnListView;
+
+// The list view to which this user belongs to, the columns should be like this:
+//	Name, Speed, Desc, Email
+class DCUser
+{
+public:
+							DCUser(const BString & name = "", const BString & desc = "",
+								   const BString & email = "", const BString & speed = "");
+							~DCUser() {}
+
+	// Create a row for use with BCLV
+	// Pass NULL to remove from the current list
+	BRow *					CreateRow(BColumnListView * owner);
+	
+	BString					GetName() const { return fName; }
+	BString					GetDesc() const { return fDesc; }
+	BString					GetEmail() const { return fEmail; }
+	BString					GetSpeed() const { return fSpeed; }
+	
+	void					SetName(const BString & s) { fName = s; }
+	void					SetDesc(const BString & s) { fDesc = s; }
+	void					SetEmail(const BString & s) { fEmail = s; }
+	void					SetSpeed(const BString & s) { fSpeed = s; }
+	
+private:
+	BRow * 					fRow;
+	BColumnListView * 		fList;
+	
+	BString					fName;
+	BString					fDesc;
+	BString					fEmail;
+	BString					fSpeed;
+};
+
+#endif
