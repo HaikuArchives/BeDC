@@ -448,8 +448,8 @@ DCConnection::Sender()
 		}
 		else
 		{
-			delete str;
 			fToSend.RemoveItemAt(0);
+			delete str;
 			if (fToSend.CountItems() == 0)
 			{
 				UnlockList();
@@ -609,14 +609,40 @@ DCConnection::LockReceived(BString str)
 {
 	printf("\t\tGOT $Lock\n");
 	str.RemoveFirst("$Lock ");
+	int32 i = str.FindFirst(" ");
+	str.Remove(i, str.Length() - i);
+	printf("Str is now: %s [%d]\n", str.String(), (int)str.Length());
+	string key = DCConnection::GenerateKey(str);
+
+	printf("Length: %d [%s ]\n", (int)key.size(), key.c_str());
 	
-	BString key = DCConnection::GenerateKey(str);
-	// Parse the key, and send it
+	// Dump the key for debugging
+	FILE * fp = fopen("key.txt", "w");
+	if (fp)
+	{
+		fprintf(fp, "Lock size: %d\n", (int)str.Length());
+		for (int j = 0; j < str.Length(); j++)
+		{
+			fprintf(fp, "%d, ", (unsigned char)str[j]);
+			if (j % 10 == 0 && j != 0)
+				fprintf(fp, "\n");
+		}
+		
+		fprintf(fp, "\n\nKey Size: %d\n", (int)key.size());
+		for (int j = 0; j < key.size(); j++)
+		{
+			fprintf(fp, "%d, ", (unsigned char)key.c_str()[j]);
+			if (j % 10 == 0 && j != 0)
+				fprintf(fp, "\n");
+		}
+		fclose(fp);
+	}
 	SetNonBlocking(false);
-	printf("KeySend %d\n", send(fSocket, "$Key ", 5, 0));
-	printf("KeySend %d\n", send(fSocket, key.String(), key.Length(), 0));
-	printf("KeySend %d\n", send(fSocket, "|", 1, 0));
+	send(fSocket, "$Key ", 5, 0);
+	printf("KeySend %ld\n", send(fSocket, key.c_str(), key.size(), 0));
+	send(fSocket, "|", 1, 0);
 	SetNonBlocking(true);
+	
 	
 	// Also, send our nick too
 	ValidateNick();
@@ -641,13 +667,12 @@ DCConnection::ValidateNick()
 	SendData(str);
 }
 
-#define EXTRA(X) (X == 0) || (X == 5) || (X == 124) || (X == 126) || (X == 36)
+#define EXTRA(X) (X == 0) || (X == 5) || (X == 124) || (X == 126) || (X == 36) || (X == 96)
 
-BString
+string
 DCConnection::GenerateKey(BString & lck)
 {
 	printf("Using lock: [ %s ]\n", lck.String());
-	BString key = "";
 	uint8 * tmp = new uint8[lck.Length() + 1];
 	uint8 vl;
 	int extra = 0;
@@ -666,13 +691,19 @@ DCConnection::GenerateKey(BString & lck)
 			extra++;
 	}
 	
-	key = SubKey(tmp, lck.Length(), extra);
+	tmp[0] = (uint8)(tmp[0] ^ tmp[lck.Length() - 1]);
+	if (EXTRA(tmp[0]))
+		extra++;
+	
+	string key = SubKey(tmp, lck.Length(), extra);
 	delete [] tmp;
-	printf("Generated key: %s\n", key.String());
-	return key;
+
+//	key.Prepend("$Key ");
+//	key.Append("|");
+	return key;	
 }
 
-BString
+string
 DCConnection::SubKey(const uint8 * key, int32 length, int extra)
 {
 	uint8 * tmp = new uint8[length + extra * 10];
@@ -735,7 +766,7 @@ DCConnection::SubKey(const uint8 * key, int32 length, int extra)
 		}
 	}
 	
-	BString ret((const char *)tmp, j);
+	string ret((const char *)tmp, j);
 	delete [] tmp;
 	return ret;
 }

@@ -42,6 +42,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Messenger.h>
 #include <OS.h>
 
+#include <string>
+using std::string;
+
 #include "ObjectList.h"
 
 // Messages launched by DCConnection
@@ -154,7 +157,7 @@ public:
 	
 	virtual void		MessageReceived(BMessage * msg);
 	
-	static BString		GenerateKey(BString & lock);
+	static string		GenerateKey(BString & lock);
 
 	// Protocol implementation
 	void				SendNickListRequest();
@@ -225,7 +228,7 @@ private:
 	
 	static int32		ReceiveHandler(void * data);
 	// Helper for GenerateKey()
-	static BString		SubKey(const uint8 * key, int32 length, int extra);
+	static string		SubKey(const uint8 * key, int32 length, int extra);
 	
 	// If these return 0, the it disconnected
 	// If it returns < 0, than an error occured

@@ -69,6 +69,7 @@ DCView::DCView(DCSettings * settings, BMessenger target, BRect pos)
 
 DCView::~DCView()
 {
+	fClosing = true;	// definitely ;)
 	Disconnect();
 	fConn->Lock();
 	fConn->Quit();
@@ -220,6 +221,7 @@ bool
 DCView::QuitRequested()
 {
 	fClosing = true;
+	Disconnect();
 	return true;	// Just this for now...
 }
 
