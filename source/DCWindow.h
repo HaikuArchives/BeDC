@@ -43,6 +43,7 @@ class BMenu;
 class BAlert;
 class DCSearchWindow;
 
+#include "DCHTTPConnection.h"
 
 enum 
 {
@@ -67,6 +68,7 @@ private:
 	DCConnection *		fConnection;
 	BMenuBar *			fMenubar;
 	BMenu *				fConnMenu;
+	DCHTTPConnection *	fHTTP;
 };
 
 #endif /* !_DC_WINDOW_H_ */

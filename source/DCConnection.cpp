@@ -37,17 +37,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <unistd.h>
 
-#ifdef NETSERVER_BUILD 
-#include <netdb.h>
-#include <socket.h>
-#endif
-
-#ifdef BONE_BUILD
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#endif
-
 #include <OS.h>
 #include <Looper.h>
 #include <Message.h>
@@ -55,7 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <UTF8.h>
 
 #include "DCConnection.h"
-
+#include "DCNetSetup.h"
 
 DCConnection::DCConnection(const char * host, int port)
 {

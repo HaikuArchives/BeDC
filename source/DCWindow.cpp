@@ -115,7 +115,7 @@ DCWindow::DCWindow(BRect frame)
 	fMenubar->AddItem(menu);
 	
 	menu = new BMenu("Windows");
-	item = new BMenuItem("Show hub list", new BMessage(DC_SHOW_HUB_LIST);
+	item = new BMenuItem("Show hub list", new BMessage(DC_SHOW_HUB_LIST));
 	//item->SetEnabled(false);	// 20021205, VV
 	menu->AddItem(item);
 	item = new BMenuItem("Show search window", new BMessage(DC_SEARCH_WINDOW), 'S');
@@ -135,6 +135,8 @@ DCWindow::DCWindow(BRect frame)
 	fConnection = new DCConnection;
 	fConnection->SetMessageTarget(this);
 	
+	fHTTP = new DCHTTPConnection;
+	
 	Show();
 	PostMessage(DC_INIT_WINDOW);
 }
@@ -142,6 +144,7 @@ DCWindow::DCWindow(BRect frame)
 DCWindow::~DCWindow()
 {
 	delete fConnection;
+	delete fHTTP;
 }
 
 void 
@@ -169,6 +172,18 @@ DCWindow::Init()
 				fConnMenu->ItemAt(i)->SetMarked(true);
 		}	
 	}
+	
+	// TEST
+	if (fHTTP->Connect())
+	{
+		BString httpRequest = "GET /";
+		httpRequest += fHTTP->GetFile();
+		httpRequest += " HTTP/1.1\nUser-Agent: BeDC/0.1-alpha\nHost: ";
+		httpRequest += fHTTP->GetServer();
+		httpRequest += "\n\n";
+		printf("Sending the following request: %s\n", httpRequest.String());
+		printf("Sent: %d\n", fHTTP->Send(httpRequest));
+	}
 }
 
 bool 
@@ -176,6 +191,8 @@ DCWindow::QuitRequested()
 {
 	printf("DCWindow::QuitRequested\n");
 	fConnection->Disconnect();
+	// TEST
+	fHTTP->Disconnect();
 	be_app->PostMessage(B_QUIT_REQUESTED);
 	return true;
 }

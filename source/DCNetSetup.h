@@ -32,44 +32,14 @@ AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
 */
+#ifdef NETSERVER_BUILD 
+#include <netdb.h>
+#include <socket.h>
+#endif
 
-#ifndef _DC_HTTP_CONNECTION_H_
-#define _DC_HTTP_CONNECTION_H_
+#ifdef BONE_BUILD
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#endif
 
-
-#include <String.h>
-#include <OS.h>
-
-#include <list>
-using std::list;
-
-class DCHTTPConnection
-{
-public:
-						DCHTTPConnection();		// Constructor... does nothing...
-						~DCHTTPConnection();	// Destructor... closes the connection if still running
-	
-	bool				Connect(const BString & optServer = "www.neo-modus.com", 
-								const BString & optFile = "PublicHubList.config");
-	void				Disconnect();
-	
-	bool				IsRunning() const { return (fThreadID != -1 && fSocket != -1) ? true : false; }
-	// You are giving a COPY of the list
-	list<BString> 		GetLines() const { return fLines; }
-	BString				GetServer() const { return fServer; }
-	BString				GetFile() const { return fFile; }
-	
-	int32				Send(const BString & text);
-	
-private:
-	list<BString>		fLines;	// The config file is a set of lies
-	BString				fServer;
-	BString				fFile;
-	thread_id			fThreadID;
-	int					fSocket;
-	
-	static int32		ReceiveHandler(void *);
-};
-
-
-#endif	// _DC_HTTP_CONNECTION_H_

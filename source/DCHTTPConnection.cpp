@@ -32,3 +32,151 @@ AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
 */
+#include "DCHTTPConnection.h"
+#include "DCNetSetup.h"
+
+#include <unistd.h>
+#include <stdio.h>
+
+const int DC_HTTP_RECV_BUFFER = 512;
+
+DCHTTPConnection::DCHTTPConnection()
+{
+	fServer = "";
+	fFile = "";
+	fThreadID = -1;
+	fSocket = -1;
+}
+
+DCHTTPConnection::~DCHTTPConnection()
+{
+	Disconnect();
+}
+
+void
+DCHTTPConnection::Disconnect()
+{
+	if (fThreadID >= 0)
+	{
+		status_t junk;
+		kill_thread(fThreadID);
+		wait_for_thread(fThreadID, &junk);
+		fThreadID = -1;
+	}
+	if (fSocket >= 0)
+	{
+#ifdef NETSERVER_BUILD
+		closesocket(fSocket);
+#else
+		close(fSocket);
+#endif
+		fSocket = -1;
+	}
+	fLines.clear();
+}
+
+bool
+DCHTTPConnection::Connect(const BString & optServer, const BString & optFile)
+{
+	fServer = optServer;
+	fFile = optFile;
+	
+	printf("Connectiong to server %s on port 80\n", fServer.String());
+	
+	sockaddr_in sockAddr;
+	memset(&sockAddr, 0, sizeof(sockAddr));
+	
+	sockAddr.sin_family = AF_INET;
+	sockAddr.sin_port = htons(80);
+	
+	// Get address
+	hostent * hostAddr = gethostbyname(fServer.String());
+	if (hostAddr)
+	{
+		sockAddr.sin_addr = *((in_addr *)(hostAddr->h_addr_list[0]));
+		fSocket = socket(AF_INET, SOCK_STREAM, 0);
+		if (fSocket >= 0)
+		{
+			if (connect(fSocket, (sockaddr *)&sockAddr, sizeof(sockAddr)) >= 0)
+			{
+				fThreadID = spawn_thread(ReceiveHandler, "http_receiver", B_LOW_PRIORITY, this);
+				if (fThreadID >= 0)
+				{
+					resume_thread(fThreadID);
+					printf("Connection established\n");
+					return true;
+				}
+			}
+		}
+	}
+	printf("Connection failed!\n");
+	Disconnect();	// failed... cleanup
+	return false;
+}
+
+int32
+DCHTTPConnection::Send(const BString & text)
+{
+	printf("DCHTTPConnect::Send: %s\n", text.String());
+	return send(fSocket, text.String(), text.Length(), 0);
+}
+
+int32
+DCHTTPConnection::ReceiveHandler(void * data)
+{
+	DCHTTPConnection * http = (DCHTTPConnection *)data;	// Get our class :)
+	char recvBuffer[DC_HTTP_RECV_BUFFER + 1];
+	int amountRead = 0;
+	
+	sleep(1);
+	while (1)
+	{
+		memset(recvBuffer, 0, DC_HTTP_RECV_BUFFER + 1);
+#ifdef NETSERVER_BUILD
+		if ((amountRead = recv(http->fSocket, recvBuffer, DC_HTTP_RECV_BUFFER, 0)) < 0)
+		{
+			if (amountRead != -1)
+			{
+				printf("Disconnecting... failed in ReceiveHandler()\n");
+				http->Disconnect();	// clean up.. we're done
+				return -1;
+			}
+		}
+#else
+		printf("going into recv()\n");
+		if ((amountRead = recv(http->fSocket, recvBuffer, DC_HTTP_RECV_BUFFER, 0)) < 0)
+		{
+			printf("Disconnecting... failed in ReceiveHandler()\n");
+			http->Disconnect();
+			return -1;
+		}
+#endif
+		
+		if (amountRead == 0)	// that's it, our connection has been dropped by the server
+		{
+			printf("Disconnected from server\n");
+			http->Disconnect();
+			return 0;	// success
+			// TODO: notify our window of the great news :)
+		}
+		
+		recvBuffer[amountRead] = 0;		// NULL-terminate
+		printf("Got some data... %s\n", recvBuffer);
+		char * iter = strtok(recvBuffer, "\n");
+		BString insert;
+		if (iter)
+		{
+			while (iter)
+			{
+				insert = iter;
+				http->fLines.insert(http->fLines.end(), insert);
+				iter = strtok(NULL, "\n");
+			}
+		}
+		else
+		{
+			insert = recvBuffer;
+			http->fLines.insert(http->fLines.end(), insert);
+		}
+	}
+}
