@@ -43,7 +43,14 @@ DC_SERVER_CHANGE = 'srvr',
 DC_CONNECT_BUTTON = 'cbtn',
 DC_SEND_BUTTON = 'sndb',
 DC_GET_FILE_LIST = 'fils',
-DC_CONNECTION_CHANGED = 'coch'
+DC_GET_FILE = 'gfil',
+DC_SEARCH_REQUEST = 'sreq',
+DC_CONNECTION_CHANGED = 'coch',
+DC_FILE_ABOUT = 'fabt',
+DC_QUIT = 'quit',
+DC_STOPP_DOWNLOAD = 'spdl',
+DC_CLOSE_WINDOW = 'dclw',
+DC_SEARCH_WINDOW = 'srcw'
 };
 
 
