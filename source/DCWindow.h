@@ -44,26 +44,29 @@ class BAlert;
 class DCSearchWindow;
 
 
-enum {
+enum 
+{
 	DC_INIT_WINDOW = 'dciw'
 };
 
 class DCWindow : public BWindow
 {
-	public:
-		DCWindow(BRect frame);
-		~DCWindow();
-		virtual bool QuitRequested();
-		virtual void FrameResized(float width, float height);
-		virtual void FrameMoved(BPoint origin);
-		virtual void DispatchMessage(BMessage * msg, BHandler * target);
-		virtual void MessageReceived(BMessage *message);
-	private:
-		void Init();
-		DCView *theView;
-		DCConnection *theConnection;
-		BMenuBar *menubar;
-		BMenu *connmenu;
+public:
+						DCWindow(BRect frame);
+	virtual 			~DCWindow();
+	
+	virtual bool 		QuitRequested();
+	virtual void 		FrameResized(float width, float height);
+	virtual void 		FrameMoved(BPoint origin);
+	virtual void 		DispatchMessage(BMessage * msg, BHandler * target);
+	virtual void 		MessageReceived(BMessage * message);
+	
+private:
+	void 				Init();
+	DCView *			fView;
+	DCConnection *		fConnection;
+	BMenuBar *			fMenubar;
+	BMenu *				fConnMenu;
 };
 
 #endif /* !_DC_WINDOW_H_ */

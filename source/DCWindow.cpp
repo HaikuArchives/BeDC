@@ -63,25 +63,25 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCSearchWindow.h"
 
 DCWindow::DCWindow(BRect frame)
-: BWindow(frame,"BeDC",B_TITLED_WINDOW,B_NOT_ZOOMABLE)
+	: BWindow(frame, "BeDC", B_TITLED_WINDOW, B_NOT_ZOOMABLE)
 {
 	BRect b = Bounds();
 	BMenu *menu, *submenu;
 	BMenuItem *item;
 	BString tmp;
 	
-	menubar= (new BMenuBar(b,"menubar"));
+	fMenubar = new BMenuBar(b,"fMenubar");
 	menu = new BMenu("File");
 	menu->AddItem(item = new BMenuItem("About", new BMessage(DC_FILE_ABOUT)));
 	menu->AddSeparatorItem();
 	menu->AddItem(item = new BMenuItem("Quit", new BMessage(DC_QUIT),'Q'));
-	menubar->AddItem(menu);
+	fMenubar->AddItem(menu);
 	
 	menu = new BMenu("Edit");
-	menubar->AddItem(menu);
+	fMenubar->AddItem(menu);
 	
 	menu = new BMenu("Settings");
-	connmenu = submenu = new BMenu("Connection");
+	fConnMenu = submenu = new BMenu("Connection");
 	submenu->SetRadioMode(true);
 	submenu->AddItem(item = new BMenuItem("28.8Kbps",new BMessage(DC_CONNECTION_CHANGED)));
 	submenu->AddItem(item = new BMenuItem("33.6Kbps",new BMessage(DC_CONNECTION_CHANGED)));
@@ -112,7 +112,7 @@ DCWindow::DCWindow(BRect frame)
 	item->SetMarked(true);
 	item->SetEnabled(false);
 	menu->AddItem(item);
-	menubar->AddItem(menu);
+	fMenubar->AddItem(menu);
 	
 	menu = new BMenu("Windows");
 	item = new BMenuItem("Show hub list",NULL);
@@ -121,64 +121,67 @@ DCWindow::DCWindow(BRect frame)
 	item = new BMenuItem("Show search window", new BMessage(DC_SEARCH_WINDOW), 'S');
 	//item->SetEnabled(false);
 	menu->AddItem(item);
-	menubar->AddItem(menu);
+	fMenubar->AddItem(menu);
 		
 	menu = new BMenu("Help");
-	menubar->AddItem(menu);
+	fMenubar->AddItem(menu);
 	
-	AddChild(menubar);
+	AddChild(fMenubar);
 	
-	b.top += menubar->Bounds().bottom + 1;
-	theView = new DCView(b);
-	AddChild(theView);
+	b.top += fMenubar->Bounds().bottom + 1;
+	fView = new DCView(b);
+	AddChild(fView);
 	
-	theConnection = new DCConnection;
-	theConnection->SetMessageTarget(this);
+	fConnection = new DCConnection;
+	fConnection->SetMessageTarget(this);
 	
 	Show();
 	PostMessage(DC_INIT_WINDOW);
 }
- 
-void DCWindow::Init()
+
+DCWindow::~DCWindow()
+{
+	delete fConnection;
+}
+
+void 
+DCWindow::Init()
 {
 	BString tmp;
 	if((dc_app->GetSettings()->GetString("nick",&tmp))==B_OK)
 	{
-		theView->NickView()->SetText(tmp.String());
-		theConnection->SetNick(tmp.String());
-		theView->NickView()->Invalidate();
+		fView->NickView()->SetText(tmp.String());
+		fConnection->SetNick(tmp.String());
+		fView->NickView()->Invalidate();
 	}
 	if((dc_app->GetSettings()->GetString("server",&tmp))==B_OK)
 	{
-		theView->ServerView()->SetText(tmp.String());
-		theView->ServerView()->Invalidate();
+		fView->ServerView()->SetText(tmp.String());
+		fView->ServerView()->Invalidate();
 	}
 	
 	if((dc_app->GetSettings()->GetString("connection",&tmp))==B_OK)
 	{
-		theConnection->SetConn(tmp.String());
-		for(int i=0;i<connmenu->CountItems();i++)
+		fConnection->SetConn(tmp.String());
+		for(int i=0;i<fConnMenu->CountItems();i++)
 		{
-			if(!tmp.Compare(connmenu->ItemAt(i)->Label()))
-				connmenu->ItemAt(i)->SetMarked(true);
+			if(!tmp.Compare(fConnMenu->ItemAt(i)->Label()))
+				fConnMenu->ItemAt(i)->SetMarked(true);
 		}	
 	}
 }
 
-DCWindow::~DCWindow()
-{
-	delete theConnection;
-}
-
-bool DCWindow::QuitRequested()
+bool 
+DCWindow::QuitRequested()
 {
 	printf("DCWindow::QuitRequested\n");
-	theConnection->Disconnect();
+	fConnection->Disconnect();
 	be_app->PostMessage(B_QUIT_REQUESTED);
 	return true;
 }
 
-void DCWindow::MessageReceived(BMessage *message)
+void 
+DCWindow::MessageReceived(BMessage *message)
 {
 	BTextControl *ptr;
 	switch(message->what)
@@ -186,7 +189,7 @@ void DCWindow::MessageReceived(BMessage *message)
 		case DC_INIT_WINDOW :
 		{
 			Init();
-			//theView->InputView()->MakeFocus();
+			//fView->InputView()->MakeFocus();
 			break;
 		}
 		
@@ -221,7 +224,7 @@ void DCWindow::MessageReceived(BMessage *message)
 			message->FindPointer("source",(void**)&menuitm);
 			if((menuitm))
 			{
-				theConnection->SetConn(menuitm->Label());
+				fConnection->SetConn(menuitm->Label());
 				dc_app->GetSettings()->SetString("connection",menuitm->Label());	
 			}
 			break;
@@ -230,12 +233,12 @@ void DCWindow::MessageReceived(BMessage *message)
 		case DC_NICK_CHANGE: /* Nick Changed*/
 		{
 			message->FindPointer("source",(void**)&ptr);
-			theConnection->SetNick(ptr->TextView()->Text());
-			if(theConnection->IsConnected())
+			fConnection->SetNick(ptr->TextView()->Text());
+			if(fConnection->IsConnected())
 			{
-				theConnection->Disconnect();
-				theView->NickList()->RemoveItems(0,theView->NickList()->CountItems());
-				theConnection->Connect(theView->GetServer(),411);
+				fConnection->Disconnect();
+				fView->NickList()->RemoveItems(0,fView->NickList()->CountItems());
+				fConnection->Connect(fView->GetServer(),411);
 			}
 			dc_app->GetSettings()->SetString("nick",ptr->TextView()->Text());
 			break;
@@ -243,50 +246,50 @@ void DCWindow::MessageReceived(BMessage *message)
 		case DC_SERVER_CHANGE: /* Server Changed */
 		{
 			message->FindPointer("source",(void**)&ptr);
-			if(strcmp(theView->GetNick(),"") != 0)
-				theConnection->SetNick(theView->GetNick());
-			if(theConnection->IsConnected())
+			if(strcmp(fView->GetNick(),"") != 0)
+				fConnection->SetNick(fView->GetNick());
+			if(fConnection->IsConnected())
 			{
-				theConnection->Disconnect();
-				theView->NickList()->RemoveItems(0,theView->NickList()->CountItems());
+				fConnection->Disconnect();
+				fView->NickList()->RemoveItems(0,fView->NickList()->CountItems());
 			}
 			dc_app->GetSettings()->SetString("server",ptr->TextView()->Text());
-			theConnection->Connect(ptr->TextView()->Text(),411);
+			fConnection->Connect(ptr->TextView()->Text(),411);
 			break;
 		}
 		case DC_CONNECT_BUTTON : /* User has clicked connect button */
 		{
-			if(strcmp(theView->GetNick(),"") != 0)
-				theConnection->SetNick(theView->GetNick());
-			if(strcmp(theView->GetServer(),"") != 0)
+			if(strcmp(fView->GetNick(),"") != 0)
+				fConnection->SetNick(fView->GetNick());
+			if(strcmp(fView->GetServer(),"") != 0)
 			{
-				if(theConnection->IsConnected())
+				if(fConnection->IsConnected())
 				{
-					theConnection->Disconnect();
-					theView->NickList()->RemoveItems(0,theView->NickList()->CountItems());
+					fConnection->Disconnect();
+					fView->NickList()->RemoveItems(0,fView->NickList()->CountItems());
 				}
-				theConnection->Connect(theView->GetServer(),411);
+				fConnection->Connect(fView->GetServer(),411);
 			}
 			break;	
 		}
 		case DC_SEND_BUTTON : /* User har clicked Send button */
 		{
 			/* Todo: move parsing of commands to seperate method */
-			BString tmp = theView->InputView()->Text();
+			BString tmp = fView->InputView()->Text();
 			if (tmp!= "")
 			{
 				if(tmp[0] != '/')
 				{
-					if (theConnection->IsConnected())
+					if (fConnection->IsConnected())
 					{
 						tmp.Prepend("> ");
-						tmp.Prepend(theConnection->GetNick());
+						tmp.Prepend(fConnection->GetNick());
 						tmp.Prepend("<");
 						tmp.Append("|");
-						theConnection->SendData(tmp.String());
+						fConnection->SendData(tmp.String());
 					}
 					else
-						theView->Output()->Insert("Error; Not connected to hub\n");
+						fView->Output()->Insert("Error; Not connected to hub\n");
 				}
 				else
 				{
@@ -299,22 +302,22 @@ void DCWindow::MessageReceived(BMessage *message)
 					printf("->%s<-\n",tmpb.String());
 					if(!tmpb.Compare("/HELP")) /* Show the available commands */
 					{
-						theView->Output()->Insert("Available commands:\n");
-						theView->Output()->Insert("/help                 - shows this text\n");
-						theView->Output()->Insert("/clear                - clear this view\n");
-						theView->Output()->Insert("/msg <nick> <message> - sends <message> to <nick> (Case sensitive)\n");
+						fView->Output()->Insert("Available commands:\n");
+						fView->Output()->Insert("/help                 - shows this text\n");
+						fView->Output()->Insert("/clear                - clear this view\n");
+						fView->Output()->Insert("/msg <nick> <message> - sends <message> to <nick> (Case sensitive)\n");
 					}
 					else if(!tmpb.Compare("/MSG")) /* Sends a private message */
 					{
-						if(theConnection->IsConnected())
+						if(fConnection->IsConnected())
 						{
 							if(tmp.Length() <= 5)
-								theView->Output()->Insert("Error; Use /msg <nick> <message>\n");
+								fView->Output()->Insert("Error; Use /msg <nick> <message>\n");
 							else
 							{
 								tmp.Remove(0,5);
 								if((tmpint = tmp.FindFirst(" ")) < 0) /* no spaces */
-									theView->Output()->Insert("Error; Use /msg <nick> <message>\n");
+									fView->Output()->Insert("Error; Use /msg <nick> <message>\n");
 								else
 								{
 									/* Check if the nick exists, and send the message if it does    */
@@ -322,40 +325,40 @@ void DCWindow::MessageReceived(BMessage *message)
 									bool foundit = false;
 									BString tmpc;
 									tmp.MoveInto(tmpc,0,tmpint);
-									for(int i=0;i<theView->NickList()->CountItems();i++)
+									for(int i=0;i<fView->NickList()->CountItems();i++)
 									{
-										if(!tmpc.Compare(((BStringItem*)theView->NickList()->ItemAt(i))->Text()))
+										if(!tmpc.Compare(((BStringItem*)fView->NickList()->ItemAt(i))->Text()))
 											foundit = true;
 									}
 									if(!foundit)
-										theView->Output()->Insert("Error; No such user\n");
+										fView->Output()->Insert("Error; No such user\n");
 									else
 									{
 										tmpc.Prepend("$To: ");
 										tmpc.Append(" From: ");
-										tmpc.Append(theConnection->GetNick());
+										tmpc.Append(fConnection->GetNick());
 										tmpc.Append(" $<");
-										tmpc.Append(theConnection->GetNick());
+										tmpc.Append(fConnection->GetNick());
 										tmpc.Append(">");
 										tmpc.Append(tmp);
 										tmpc.Append("|");
-										theConnection->SendData(tmpc.String());
+										fConnection->SendData(tmpc.String());
 									}
 								}
 							}
 						}
 						else
-							theView->Output()->Insert("Error; Not connected to hub\n");	
+							fView->Output()->Insert("Error; Not connected to hub\n");	
 					}
 					else if(!tmpb.Compare("/CLEAR")) /* Clears the output view */
 					{
-						theView->Output()->SetText("");
+						fView->Output()->SetText("");
 					}
 #ifdef CLIENT_TO_CLIENT_COMMUNICATION
 					else if(!tmpb.Compare("/GET")) /* Download a file */
 					{
 						if(tmp.Length() <= 5)
-								theView->Output()->Insert("Error; Use /get <nick> <remotepath>\n");
+								fView->Output()->Insert("Error; Use /get <nick> <remotepath>\n");
 						tmp.Remove(0,5);
 						printf("%s\n",tmp.String());					
 					}
@@ -363,19 +366,19 @@ void DCWindow::MessageReceived(BMessage *message)
 					else if(!tmpb.Compare("/PASS"))
 					{
 						if(tmp.Length() <= 6)
-								theView->Output()->Insert("Error; Use /pass <password>\n");
+								fView->Output()->Insert("Error; Use /pass <password>\n");
 						else
 						{
 							tmp.Remove(0,6);
 							tmp.Prepend("$MyPass ");
 							tmp.Append("|");
-							theConnection->SendData(tmp.String());
+							fConnection->SendData(tmp.String());
 						}
 
 					}
 				}
 			}
-			theView->InputView()->SetText("");
+			fView->InputView()->SetText("");
 			break;
 		}
 		
@@ -386,15 +389,15 @@ void DCWindow::MessageReceived(BMessage *message)
 			printf("Invoked\n");
 			int32 index;
 			BString nick;
-			if((index=theView->NickList()->CurrentSelection(0)) >= 0)
+			if((index=fView->NickList()->CurrentSelection(0)) >= 0)
 			{
-				nick = ((BStringItem*)theView->NickList()->ItemAt(index))->Text();
+				nick = ((BStringItem*)fView->NickList()->ItemAt(index))->Text();
 				printf("Got nick: %s\n",nick.String());
 				nick.Prepend(" ");
-				nick.Prepend(theConnection->GetNick());
+				nick.Prepend(fConnection->GetNick());
 				nick.Prepend("$RevConnectToMe ");
 				nick.Append("|");
-				theConnection->SendData(nick.String());
+				fConnection->SendData(nick.String());
 			}
 #endif
 			break;
@@ -409,11 +412,11 @@ void DCWindow::MessageReceived(BMessage *message)
 			message->FindString("thetext",&rvcdstring);
 			rvcdstring.Prepend("(Priv. msg): ");
 			rvcdstring.Append("\n");
-			theView->Output()->Insert(rvcdstring.String());
+			fView->Output()->Insert(rvcdstring.String());
 			/* Scroll down when we get new text */
 			float scMin,scMax;
-			theView->OutScroll()->ScrollBar(B_VERTICAL)->GetRange(&scMin,&scMax);
-			theView->OutScroll()->ScrollBar(B_VERTICAL)->SetValue(scMax);
+			fView->OutScroll()->ScrollBar(B_VERTICAL)->GetRange(&scMin,&scMax);
+			fView->OutScroll()->ScrollBar(B_VERTICAL)->SetValue(scMax);
 			//printf("Rcvd: %s\n",rvcdstring.String());
 			break;
 		}
@@ -423,11 +426,11 @@ void DCWindow::MessageReceived(BMessage *message)
 			message->FindString("thetext",&rvcdstring);
 			rvcdstring.RemoveAll("\r"); /* windows lines are terminated by \r\n, strip out the \r's*/
 			rvcdstring.Append("\n");
-			theView->Output()->Insert(rvcdstring.String());
+			fView->Output()->Insert(rvcdstring.String());
 			/* Scroll down when we get new text */
 			float scMin,scMax;
-			theView->OutScroll()->ScrollBar(B_VERTICAL)->GetRange(&scMin,&scMax);
-			theView->OutScroll()->ScrollBar(B_VERTICAL)->SetValue(scMax);
+			fView->OutScroll()->ScrollBar(B_VERTICAL)->GetRange(&scMin,&scMax);
+			fView->OutScroll()->ScrollBar(B_VERTICAL)->SetValue(scMax);
 			//printf("Rcvd: %s\n",rvcdstring.String());
 			break;
 		}
@@ -437,13 +440,13 @@ void DCWindow::MessageReceived(BMessage *message)
 			bool foundit = false;
 			message->FindString("nick",&rvcdstring);
 			//printf("Got nick: %s\n",rvcdstring.String());
-			for(int i=0;i<theView->NickList()->CountItems();i++)
+			for(int i=0;i<fView->NickList()->CountItems();i++)
 			{
-				if(!rvcdstring.Compare(((BStringItem*)theView->NickList()->ItemAt(i))->Text()))
+				if(!rvcdstring.Compare(((BStringItem*)fView->NickList()->ItemAt(i))->Text()))
 					foundit = true;
 			}
 			if(!foundit)
-				theView->NickList()->AddItem(new BStringItem(rvcdstring.String()));
+				fView->NickList()->AddItem(new BStringItem(rvcdstring.String()));
 			break;
 		}
 		case DC_USER_DISCONNECTED : /* User left hub */
@@ -453,21 +456,21 @@ void DCWindow::MessageReceived(BMessage *message)
 			int index = 0;
 			message->FindString("nick",&rvcdstring);
 			//printf("Got nick: %s\n",rvcdstring.String());
-			for(int i=0;i<theView->NickList()->CountItems();i++)
+			for(int i=0;i<fView->NickList()->CountItems();i++)
 			{
-				if(!rvcdstring.Compare(((BStringItem*)theView->NickList()->ItemAt(i))->Text()))
+				if(!rvcdstring.Compare(((BStringItem*)fView->NickList()->ItemAt(i))->Text()))
 				{
 					foundit = true;
 					index = i;
 				}
 			}
 			if(foundit)
-				theView->NickList()->RemoveItem(index);
+				fView->NickList()->RemoveItem(index);
 			break;
 		}
 		case DC_NEED_PASS:
 		{
-			theView->Output()->Insert("Use /pass <password> to supply the password, or choose another nick\n");
+			fView->Output()->Insert("Use /pass <password> to supply the password, or choose another nick\n");
 			break;
 		}
 		case DC_USER_CONNECT : /* Other user wants us to connect to him */
@@ -479,7 +482,7 @@ void DCWindow::MessageReceived(BMessage *message)
 			rvcdstring.MoveInto(tmpstr,0,colonindex);
 			rvcdstring.RemoveFirst(":");
 			DCClientConnection *dccc = new DCClientConnection();
-			dccc->SetNick(theConnection->GetNick());
+			dccc->SetNick(fConnection->GetNick());
 			dccc->DownloadNickList();
 			dccc->Connect(tmpstr.String(),atoi(rvcdstring.String()));
 			
@@ -491,39 +494,44 @@ void DCWindow::MessageReceived(BMessage *message)
 	}
 }
 
-void DCWindow::FrameResized(float width, float height)
+void 
+DCWindow::FrameResized(float width, float height)
 {
 	/* Change text rect in output view */
 	BRect fr;
-	fr = theView->Output()->Bounds();
+	fr = fView->Output()->Bounds();
 	fr.left += 3;
 	fr.right -= 3;
-	theView->Output()->SetTextRect(fr);
+	fView->Output()->SetTextRect(fr);
 	
 	dc_app->GetSettings()->SetRect("windowrect",Frame());
 }
 
-void DCWindow::FrameMoved(BPoint origin)
+void 
+DCWindow::FrameMoved(BPoint origin)
 {
 	dc_app->GetSettings()->SetRect("windowrect",Frame());
 }
 
-void DCWindow::DispatchMessage(BMessage * msg, BHandler * target)
+void 
+DCWindow::DispatchMessage(BMessage * msg, BHandler * target)
 {
-	if(msg->what==B_KEY_DOWN)
+	if (msg->what == B_KEY_DOWN)
 	{
 		int8 ch;
 		int32 modifier; /* We don't use this for anything yet */
-		if((msg->FindInt8("byte",&ch)==B_NO_ERROR)&&(msg->FindInt32("modifiers",&modifier)==B_NO_ERROR)&&(ch==B_ENTER))
+		if ((msg->FindInt8("byte",&ch) == B_NO_ERROR) &&
+			(msg->FindInt32("modifiers",&modifier) == B_NO_ERROR) &&
+			(ch == B_ENTER))
 		{
 			BTextView * targetView = dynamic_cast<BTextView *>(target);
-			if((target)&&(targetView==theView->InputView()))
+			if(target && (targetView==fView->InputView()))
 			{
 				PostMessage(new BMessage(DC_SEND_BUTTON)); /* Hmm, should rename this... */
 				msg = NULL;
 			}
 		}
 	}
-	if(msg)
-		BWindow::DispatchMessage(msg,target);
+	if (msg)
+		BWindow::DispatchMessage(msg, target);
 }
