@@ -40,10 +40,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Message.h>
 #include <Rect.h>
 #include <Point.h>
+#include <String.h>
 
 #define DCS_WINDOW_RECT 		"window_rect"
 #define DCS_HUB_RECT			"hub_rect"
 #define DCS_PREFS_POS			"prefs_pos"
+#define DCS_PREFS_NICK			"prefs_nick"
+#define DCS_PREFS_EMAIL			"prefs_email"
+#define DCS_PREFS_DESC			"prefs_desc"
+#define DCS_PREFS_CONNECTION	"prefs_connection"
+#define DCS_PREFS_ACTIVE		"prefs_active"
+#define DCS_PREFS_PORT			"prefs_port"
+#define DCS_PREFS_IP			"prefs_ip"
 
 class DCSettings : public BMessage
 {
@@ -57,12 +65,17 @@ public:
 	void 				SaveSettings();
 	
 	void 				SetString(const char *name, const char *string);
+	void				SetString(const char * name, const BString & str) { SetString(name, str.String()); }
 	void 				SetRect(const char *name, const BRect & rect);
 	void				SetPoint(const char * name, const BPoint & point);
+	void				SetBool(const char * name, bool val);
+	void				SetInt(const char * name, int32 val);
 	
 	status_t 			GetRect(const char *name, BRect *rect);
 	status_t 			GetString(const char *name, BString *string);
 	status_t			GetPoint(const char * name, BPoint * point);
+	status_t			GetBool(const char * name, bool & val);
+	status_t			GetInt(const char * name, int32 & val);
 };
 
 #endif /* !_DC_SETTINGS_H_ */

@@ -93,6 +93,12 @@ DCApp::MessageReceived(BMessage * msg)
 				fSettings->SetPoint(DCS_PREFS_POS, p);
 			fPrefsWindow = NULL;
 			
+			BMessage * prefs = new BMessage;
+			if (msg->FindMessage("prefs", prefs) == B_OK)
+				MergeDifferences((DCSettings *)prefs);
+			else
+				delete prefs;
+
 			break;
 		}
 		
@@ -187,4 +193,22 @@ DCApp::ShowPrefsWindow()
 		fPrefsWindow->InitSettings(fSettings);
 	}
 	fPrefsWindow->Show();
+}
+
+// This message MUST be allocated on the heap!
+void
+DCApp::MergeDifferences(DCSettings * msg)
+{
+	// Copy our window settings into the new prefs message
+	BRect rect;
+	BPoint point;
+	
+	if (fSettings->GetRect(DCS_WINDOW_RECT, &rect) == B_OK)
+		msg->SetRect(DCS_WINDOW_RECT, rect);
+	if (fSettings->GetRect(DCS_HUB_RECT, &rect) == B_OK)
+		msg->SetRect(DCS_HUB_RECT, rect);
+	if (fSettings->GetPoint(DCS_PREFS_POS, &point) == B_OK)
+		msg->SetPoint(DCS_PREFS_POS, point);
+	delete fSettings;	// old settings
+	fSettings = msg;	// keep the new ones :)
 }

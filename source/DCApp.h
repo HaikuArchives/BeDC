@@ -87,6 +87,7 @@ protected:
 	void					ShowHubWindow();
 	void					ShowPrefsWindow();
 	void					EnsureWindowAllocated();	// make sure a window exists
+	void					MergeDifferences(DCSettings * msg);
 };
 
 extern DCApp * dc_app;

@@ -78,10 +78,15 @@ DCPrefs::MessageReceived(BMessage * msg)
 	switch (msg->what)
 	{
 		case DCP_OK:
+		{
+			fOKPressed = true;
+			PostMessage(B_QUIT_REQUESTED);
 			break;
+		}
 			
 		case DCP_ACTIVE:
 		{
+			fActive->SetValue(1);
 			fIP->SetEnabled(true);
 			fPort->SetEnabled(true);
 			break;
@@ -89,6 +94,7 @@ DCPrefs::MessageReceived(BMessage * msg)
 			
 		case DCP_PASSIVE:
 		{
+			fPassive->SetValue(1);
 			fIP->SetEnabled(false);
 			fPort->SetEnabled(false);
 			break;
@@ -104,7 +110,6 @@ DCPrefs::MessageReceived(BMessage * msg)
 			{
 				fGeneral->Hide();
 			}
-			
 			break;
 		}
 		
@@ -117,10 +122,19 @@ DCPrefs::MessageReceived(BMessage * msg)
 bool
 DCPrefs::QuitRequested()
 {
-	if (fNick->Text() == "" && fOKPressed)
-		return false;
 	BMessage msg(DC_MSG_PREFS_CLOSED);
 	msg.AddPoint("point", BPoint(Frame().left, Frame().top));
+	if (fOKPressed)
+	{
+		fSettings->SetString(DCS_PREFS_NICK, fNick->Text());
+		fSettings->SetString(DCS_PREFS_EMAIL, fEmail->Text());
+		fSettings->SetString(DCS_PREFS_DESC, fDescription->Text());
+		fSettings->SetInt(DCS_PREFS_CONNECTION, fConnMenu->IndexOf(fConnMenu->FindMarked()));
+		fSettings->SetBool(DCS_PREFS_ACTIVE, (fActive->Value() == 0) ? false : true);
+		fSettings->SetString(DCS_PREFS_PORT, fPort->Text());
+		fSettings->SetString(DCS_PREFS_IP, fIP->Text());
+		msg.AddMessage("prefs", fSettings);
+	}
 	fTarget.SendMessage(&msg);
 	return true;
 }
@@ -135,8 +149,69 @@ DCPrefs::InitSettings(DCSettings * set)
 	}
 	if (set)
 	{
+		BString str;
+		int32 val = 0;
+		bool bval = false;
+		
 		fSettings = new DCSettings(*set);
-		// TODO: setup widgets, etc...
+		if (fSettings->GetString(DCS_PREFS_NICK, &str) == B_OK)
+			fNick->SetText(str.String());
+		if (fSettings->GetString(DCS_PREFS_EMAIL, &str) == B_OK)
+			fEmail->SetText(str.String());
+		if (fSettings->GetString(DCS_PREFS_DESC, &str) == B_OK)
+			fDescription->SetText(str.String());
+		if (fSettings->GetInt(DCS_PREFS_CONNECTION, val) == B_OK)
+		{
+			switch (val)
+			{
+				case 0:
+					fConnMenu->FindItem("28.8Kbps")->SetMarked(true);
+					break;
+				
+				case 1:
+					fConnMenu->FindItem("33.6Kbps")->SetMarked(true);
+					break;
+					
+				case 2:
+					fConnMenu->FindItem("56Kbps")->SetMarked(true);
+					break;
+					
+				case 3:
+					fConnMenu->FindItem("ISDN")->SetMarked(true);
+					break;
+					
+				case 4:
+					fConnMenu->FindItem("DSL")->SetMarked(true);
+					break;
+					
+				case 5:
+					fConnMenu->FindItem("Cable")->SetMarked(true);
+					break;
+					
+				case 6:
+					fConnMenu->FindItem("LAN(T1)")->SetMarked(true);
+					break;
+					
+				case 7:
+					fConnMenu->FindItem("LAN(T3)")->SetMarked(true);
+					break;
+					
+				case 8:
+					fConnMenu->FindItem("Satellite")->SetMarked(true);
+					break;
+			}
+		}
+		if (fSettings->GetBool(DCS_PREFS_ACTIVE, bval) == B_OK)
+		{
+			if (bval)
+				PostMessage(DCP_ACTIVE);
+			else
+				PostMessage(DCP_PASSIVE);
+		}
+		if (fSettings->GetString(DCS_PREFS_IP, &str) == B_OK)
+			fIP->SetText(str.String());
+		if (fSettings->GetString(DCS_PREFS_PORT, &str) == B_OK)
+			fPort->SetText(str.String());
 	}
 }
 

@@ -117,3 +117,35 @@ DCSettings::SetPoint(const char * name, const BPoint & point)
 	else
 		AddPoint(name, point);
 }
+
+status_t
+DCSettings::GetBool(const char * name, bool & val)
+{
+	return FindBool(name, &val);
+}
+
+void
+DCSettings::SetBool(const char * name, bool val)
+{
+	bool temp;
+	if (FindBool(name, &temp) == B_OK)
+		ReplaceBool(name, val);
+	else
+		AddBool(name, val);
+}
+
+status_t
+DCSettings::GetInt(const char * name, int32 & val)
+{
+	return FindInt32(name, &val);
+}
+
+void
+DCSettings::SetInt(const char * name, int32 val)
+{
+	int32 temp;
+	if (FindInt32(name, &temp) == B_OK)
+		ReplaceInt32(name, val);
+	else
+		AddInt32(name, val);
+}
