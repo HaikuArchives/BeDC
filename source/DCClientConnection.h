@@ -52,7 +52,8 @@ class DCClientConnection
 		void Connect(const char *host,int port = 412);
 		void SetNick(const char *in_nick) {nick->SetTo(in_nick);};
 		void SetDirection(int in_direction = DC_UPLOAD_DIR) {direction = in_direction;};
-		void GetFile(const char *remote_path, const char *local_path,int resume_count = 1);
+		void DownloadFile(const char *remote_path, const char *local_path,int resume_count = 1);
+		void DownloadNickList(int resume_count = 1);		
 		int GetSocket(){return conn_socket;};
 		int GetDirection(){return direction;};
 		const char *GetNick(){return nick->String();};

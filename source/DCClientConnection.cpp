@@ -114,6 +114,16 @@ void DCClientConnection::Connect(const char *host,int port)
 	
 }
 
+void DCClientConnection::DownloadFile(const char *remote_path, const char *local_path,int resume_count)
+{
+	
+}
+
+void DCClientConnection::DownloadNickList(int resume_count)
+{
+
+}
+
 int32 clientReceiver(void *data)
 {
 	DCClientConnection *theconn;
