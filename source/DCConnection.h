@@ -40,8 +40,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class BLooper;
 struct conn_info;
 
-int32 receiver(void *data);
-BString *generate_key(BString &lck);
+int32 receiver(void * data);
+BString *generate_key(BString & lck);
 
 
 enum
@@ -57,35 +57,39 @@ enum
 
 class DCConnection 
 {
-	public:
-		DCConnection(const char *host=NULL,int port = 411);
-		~DCConnection();
-		void Connect(const char *host,int port = 411);
-		void Disconnect();
-		bool IsConnected()  {return connected;};
-		void SetNick(const char *in_nick);
-		void SetConn(const char *in_conn) {myconn->SetTo(in_conn);};
-		const char *GetNick() { return nick->String();};
-		const char *GetConn() { return myconn->String();};
-		void SetMessageTarget(BLooper *looper);
-		int32 SendRawData(const char *command);
-		int32 SendData(const char *command);
-	private:
-		bool connected;
-		BString *nick;
-		BString *myconn;
-		int connection;
-		BLooper *msgTarget;
-		thread_id thid;
-		conn_info *cinfo;
+public:
+						DCConnection(const char * host=NULL, int port = 411);
+						~DCConnection();
+						
+	void 				Connect(const char * host, int port = 411);
+	void 				Disconnect();
+	bool 				IsConnected() { return fConnected; }
+	
+	void 				SetNick(const char * in_nick);
+	void 				SetConn(const char * in_conn) { fConn->SetTo(in_conn); }
+	
+	const char *		GetNick() { return fNick->String(); }
+	const char *		GetConn() { return fConn->String(); }
+	
+	void 				SetMessageTarget(BLooper * looper);
+	int32 				SendRawData(const char * command);
+	int32 				SendData(const char * command);
+private:
+	bool 				fConnected /*connected*/;
+	BString *			fNick /*nick*/;
+	BString *			fConn /*fConn*/;
+	int 				fConnection /*connection*/;
+	BLooper *			fMsgTarget /*msgTarget*/;
+	thread_id 			fThreadID /*thid*/;
+	conn_info *			fConnInfo /*cinfo*/;
 };
 
 struct conn_info
 {
-		BLooper			**target;
+		BLooper	**		target;
 		int				conn;
-		BString			*nick;
-		DCConnection 	*conn_obj;
+		BString	*		nick;
+		DCConnection *	conn_obj;
 };
 
 #endif /* !_DC_CONNECTION_H_ */
