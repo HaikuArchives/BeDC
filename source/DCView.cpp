@@ -43,10 +43,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCStrings.h"
 #include "DCApp.h"
 #include "WrappingTextView.h"
+#include "DCWindow.h"
 
 #include <TextView.h>
 #include <TextControl.h>
 #include <ScrollView.h>
+#include <MessageRunner.h>
 
 #include <stdlib.h>
 
@@ -54,7 +56,11 @@ enum
 {
 	// Enter was pressed in the text input
 	DCV_SEND_TEXT = 'cvST',
+	// Refresh the user list
+	DCV_REFRESH = 'cvRF'
 };
+
+const BMessage * DCV_REFRESH_MESSAGE = new BMessage(DCV_REFRESH);
 
 DCView::DCView(DCSettings * settings, BMessenger target, BRect pos)
 	: BView(pos, "dcview", B_FOLLOW_ALL, 0)
@@ -64,15 +70,16 @@ DCView::DCView(DCSettings * settings, BMessenger target, BRect pos)
 	fTarget = target;
 	fConn = NULL;
 	fClosing = false;
+	fRunner = NULL;
 	InitGUI();
 }
 
 DCView::~DCView()
 {
+	delete fRunner;
 	fClosing = true;	// definitely ;)
 	Disconnect();
-	fConn->Lock();
-	fConn->Quit();
+	fConn->PostMessage(B_QUIT_REQUESTED);
 }
 
 void
@@ -234,7 +241,13 @@ DCView::MessageReceived(BMessage * msg)
 				msg->FindString("speed", &speed) == B_OK &&
 				msg->FindString("email", &email) == B_OK &&
 				msg->FindInt64("size", (int64 *)&size) == B_OK)
+			{
 				UpdateUser(nick, desc, speed, email, size);
+				if (fRunner)
+					delete fRunner;
+				fRunner = new BMessageRunner(BMessenger(this), DCV_REFRESH_MESSAGE, 
+											 500000, 1);
+			}
 			break;
 		}
 		
@@ -245,6 +258,13 @@ DCView::MessageReceived(BMessage * msg)
 			break;
 		}
 		
+		case DCV_REFRESH:
+		{
+			delete fRunner;
+			fRunner = NULL;
+			fUsers->Refresh();
+			break;
+		}
 		default:
 			BView::MessageReceived(msg);
 			break;
@@ -262,7 +282,6 @@ DCView::UpdateUser(const BString & nick, const BString & desc, const BString & s
 		user->SetSpeed(speed);
 		user->SetEmail(email);
 		user->SetShared(size);
-		fUsers->Refresh();
 	}
 }
 
@@ -482,9 +501,7 @@ DCView::InitGUI()
 void
 DCView::Disconnect()
 {
-	printf("Asking connection to disconnect\n");
 	fConn->Disconnect();
-	printf("Disconnected\n");
 	EmptyUserList();
 }
 
@@ -745,21 +762,59 @@ DCView::ParseSendText()
 	}
 	else if(!text.ICompare("/help", 5))
 	{
-		LogSystem("Available commands:");
-		LogSystem("  /help - Show this help text");
-		LogSystem("  /msg <name> <text> - Send a private message");
+		LogSystem(DCStr(STR_MSG_HELP));
+	}
+	else if (!text.ICompare("/close", 6))
+	{
+		BMessage msg(DC_MSG_CLOSE_VIEW);
+		msg.AddPointer("view", (const void *)this);
+		fTarget.SendMessage(&msg);
+	}
+	else if (!text.ICompare("/quit", 5))
+	{
+		dc_app->PostMessage(B_QUIT_REQUESTED);
+	}
+	else if (!text.ICompare("//", 2))	// used to escape the / in commands
+	{
+		text.Remove(0, 1);
+		SendChat(text);
 	}
 	else if(!text.ICompare("/", 1))
 	{
-		LogError("Unknown command");
+		LogError(DCStr(STR_MSG_UNKNOWN_COMMAND));
 	}
 	else
 	{
-		BString chat = "<";
-		chat += fConn->GetNick();
-		chat += "> ";
-		chat += text;
-		chat += "|";
-		fConn->SendData(chat);
+		SendChat(text);
 	}
+}
+
+void
+DCView::SendChat(const BString & text)
+{
+	BString chat = "<";
+	chat += fConn->GetNick();
+	chat += "> ";
+	chat += text;
+	chat += "|";
+	fConn->SendData(chat);
+}
+
+BString
+DCView::AutoCompleteNick(const BString & nick)
+{
+	BString ret = nick;
+	
+	for (int32 i = 0; i < fUserList.CountItems(); i++)
+	{
+		DCUser * user = fUserList.ItemAt(i);
+		if ((user->GetName().Length() > nick.Length()) &&
+			(user->GetName().ICompare(nick.String(), nick.Length()) == 0))
+		{
+			ret = user->GetName();
+			break;
+		}
+	}
+	
+	return ret;
 }

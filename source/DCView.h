@@ -52,6 +52,7 @@ class BTextView;
 class BTextControl;
 class BColumnListView;
 class BScrollView;
+class BMessageRunner;
 
 class DCView : public BView
 {
@@ -71,6 +72,8 @@ public:
 	void					Disconnect();
 	
 	int32					GetNumUsers() const { return fNumUsers; }
+	BString					AutoCompleteNick(const BString & txt);
+	BTextControl *			GetInputControl() const { return fInput; }
 	
 	static BString			GetConnectionText(int val);
 	
@@ -84,6 +87,7 @@ private:
 	BColumnListView *		fUsers;
 	BTextControl *			fInput;
 	int32					fNumUsers;
+	BMessageRunner *		fRunner;	// for user list updating
 	
 	UserList				fUserList;
 	BString					fHost;	// For reconnect
@@ -117,6 +121,7 @@ private:
 	void					ScrollToBottom();
 	
 	void					ParseSendText();
+	void					SendChat(const BString & text);
 };
 
 

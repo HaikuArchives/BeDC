@@ -56,7 +56,11 @@ enum
 {
 	// The window was closed
 	//	'rect'	BRect	--> The position of the window
-	DC_MSG_WINDOW_CLOSED = 'msWC'
+	DC_MSG_WINDOW_CLOSED = 'msWC',
+	// DCView will send this to the window on a /close
+	// command
+	//	'view'	pointer	--> The view to close
+	DC_MSG_CLOSE_VIEW = 'msCV'	
 };
 
 class DCWindow : public BWindow
@@ -96,8 +100,15 @@ private:
 										  const BString & desc);
 	void				HideAll();
 	void				ShowItem(BListItem * item);
+	void				ShowFirstHub();
+	
 	Container *			FindItem(BListItem * item);
 	Container *			FindItem(const BString & name);	// find item by server name
+	Container *			FindItem(DCView * item);
+	// Find which view owns the following text view
+	// This is a helper for DispatchMessage()
+	// for tab-completion
+	DCView *			FindOwner(BTextView * tv);
 };
 
 #endif	// _DC_WINDOW_H_

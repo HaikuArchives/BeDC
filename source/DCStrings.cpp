@@ -110,7 +110,16 @@ const char * DC_STR_ENGLISH[STR_NUM] =
 	" has logged out.",	// the user name is prepended to this string
 	"Redirecting to ",
 	"Hub is full.",
-	"User not found!"
+	"User not found!",
+	"Unknown command.",
+	
+	// START /help
+	"Available commands:\n"
+	"\t\t\t/close - Close this connect.\n"
+	"\t\t\t/help - Show this help text.\n"
+	"\t\t\t/msg <name> <text> - Send a private message.\n"
+	"\t\t\t/quit - Quit BDC",
+	// END /help
 };
 
 // If you want different key shortcuts then the defaults for english,

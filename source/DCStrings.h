@@ -116,6 +116,10 @@ enum
 	STR_MSG_REDIRECTING,
 	STR_MSG_HUB_IS_FULL,
 	STR_MSG_USER_NOT_FOUND,
+	STR_MSG_UNKNOWN_COMMAND,
+	
+	// This is a LONG string that contains the WHOLE /help text
+	STR_MSG_HELP,
 	
 	STR_NUM	 // Place holder
 };

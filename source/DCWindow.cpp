@@ -49,6 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <PopUpMenu.h>
 #include <Alert.h>
 #include <TextView.h>
+#include <TextControl.h>
 
 enum
 {
@@ -136,6 +137,32 @@ DCWindow::MessageReceived(BMessage * msg)
 				delete c;
 				
 				SetTitle(DC_WINDOW_TITLE);
+				
+				ShowFirstHub();
+			}
+			break;
+		}
+		
+		case DC_MSG_CLOSE_VIEW:
+		{
+			DCView * v = NULL;
+			if (msg->FindPointer("view", (void **)&v) == B_OK)
+			{
+				Container * c = FindItem(v);
+				if (c)
+				{
+					fViewList.RemoveItem(c);
+					c->fView->Disconnect();
+					fHubs->RemoveItem(c->fListItem);
+					fParentView->RemoveChild(c->fView);
+					delete c->fView;
+					delete c->fListItem;
+					delete c;
+					
+					SetTitle(DC_WINDOW_TITLE);
+					
+					ShowFirstHub();
+				}
 			}
 			break;
 		}
@@ -261,6 +288,19 @@ DCWindow::FindItem(const BString & name)
 	return NULL;
 }
 
+// Returns NULL if the item is not found
+DCWindow::Container *
+DCWindow::FindItem(DCView * item)
+{
+	for (int32 i = 0; i < fViewList.CountItems(); i++)
+	{
+		Container * it = fViewList.ItemAt(i);
+		if (it->fView == item)
+			return it;
+	}
+	return NULL;
+}
+
 void
 DCWindow::HideAll()
 {
@@ -282,6 +322,7 @@ DCWindow::ShowItem(BListItem * item)
 	if (it && it->fView->IsHidden() == true) // Must be hidden... otherwise we don't need to show it
 	{
 		it->fView->Show();
+		fHubs->Select(fHubs->IndexOf(it->fListItem));
 		
 		BString title = DC_WINDOW_TITLE;
 		title += " - ";
@@ -379,7 +420,31 @@ DCWindow::DispatchMessage(BMessage * msg, BHandler * target)
 				{
 					if (c == B_TAB)	// Eat the tab
 					{
-						if (tv->TextLength() != 0) // but only we have text in the view, and modifiers aren't down
+						DCView * v = NULL;
+						
+						if ((mod == 0) && (tv->TextLength() > 0) && ((v = FindOwner(tv)) != NULL))
+						{
+							BString text = tv->Text();
+							int32 i = text.FindLast(" ");	// Look for a space..
+							if (i == B_ERROR)	// no space? use the whole string
+							{
+								text = v->AutoCompleteNick(text);
+							}
+							else
+							{
+								BString cut;
+								text.MoveInto(cut, i + 1, text.Length() - (i + 1));
+								if (cut != "")
+								{
+									cut = v->AutoCompleteNick(cut);
+									text += cut;
+								}
+							}
+							tv->SetText(text.String());
+							tv->Select(text.Length(), text.Length());
+							return;
+						}
+						else if (tv->TextLength() != 0) // but only we have text in the view, and modifiers aren't down
 						{
 							if ((mod & (B_CONTROL_KEY)) == 0)	
 								return;
@@ -393,4 +458,33 @@ DCWindow::DispatchMessage(BMessage * msg, BHandler * target)
 	
 	// Let the window handle it
 	BWindow::DispatchMessage(msg, target);
+}
+
+
+DCView *
+DCWindow::FindOwner(BTextView * tv)
+{
+	DCView * ret = NULL;
+	
+	for (int32 i = 0; i < fViewList.CountItems(); i++)
+	{
+		Container * c = fViewList.ItemAt(i);
+		if (c->fView->GetInputControl()->TextView() == tv)
+		{
+			ret = c->fView;
+			break;
+		}
+	}
+	return ret;
+}
+
+// Show the first hub in the list.... IF we have any open
+void
+DCWindow::ShowFirstHub()
+{
+	if (fViewList.CountItems() > 0)
+	{
+		Container * c = fViewList.ItemAt(0);
+		fHubs->Select(fHubs->IndexOf(c->fListItem));
+	}
 }

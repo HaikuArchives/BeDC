@@ -71,7 +71,7 @@ void DCDownloadQueue::MessageReceived(BMessage *message)
 {
 	switch(message->what)
 	{
-		case  DC_ADD_DL:
+/*		case  DC_ADD_DL:
 		{
 			BString nick, remote, local;
 			int dlcount;
@@ -90,7 +90,7 @@ void DCDownloadQueue::MessageReceived(BMessage *message)
 		{
 			BString nick, remote, local;
 			break;
-		}
+		}*/
 	
 	}
 }

@@ -107,18 +107,19 @@ DCConnection::Disconnect()
 		wait_for_thread(fThreadID, &junk);
 #endif
 	}
+#ifdef BONE_BUILD	
 	if (fSocket >= 0)
 	{
 		CLOSE_SOCKET(fSocket);
 		fSocket = -1;
 	}
+#endif
 	// Clean up our list
 	if (LockList())
 	{
 		EmptyList();
 		UnlockList();
 	}
-	printf("Conn disconnected\n");
 }
 
 void
@@ -241,7 +242,7 @@ DCConnection::ReceiveHandler(void * d)
 	DCConnection * me = (DCConnection *)d;
 	BString str1 = "", str2 = "";
 	
-	while (1 && me->fConnected)
+	while (me->fConnected)
 	{
 		int ret = me->Sender();
 		if (ret == 0)
@@ -285,7 +286,6 @@ DCConnection::ReceiveHandler(void * d)
 			
 			if (!str2.Compare("$Lock ", 6))
 			{
-				printf("Got $Lock\n");
 				me->LockReceived(str2);
 			}
 			else if (!str2.Compare("$HubName ", 9))
@@ -434,11 +434,9 @@ DCConnection::Sender()
 	int i = 0;
 	int totalSent = 0;
 	SetNonBlocking(false);
-	while (true)
+	while (fConnected)
 	{
-		printf("Sending...\n");
 		i = send(fSocket, str->String(), str->Length(), 0);
-		printf("Sent %d\n", i);
 		if (i <= 0)
 		{
 			SetNonBlocking(true);
@@ -478,11 +476,11 @@ DCConnection::Reader(BString & ret)
 	int r = 0;
 	int totalRead = 0;
 	
-#ifndef BONE_BUILD
+#ifdef BONE_BUILD
 	if (SetNonBlocking(true) == B_ERROR)
 		printf("ERROR SETTING NON_BLOCK!\n");
 #endif
-	while (true)
+	while (fConnected)
 	{
 #ifdef NETSERVER_BUILD	// stupid stupid stupid
 		fd_set set;
@@ -496,29 +494,23 @@ DCConnection::Reader(BString & ret)
 		r = select(fSocket + 1, &set, NULL, NULL, &tv);
 		if (r == 0)	// timeout
 		{
-			printf("Select timeout: amount read %d\n", totalRead);
 			if (totalRead > 0)
 			{
 				ret = converted;
-				printf("Converted: [%s]\n", ret.String());
 			}
 			return totalRead == 0 ? 1 : totalRead;
 		}
 		else if (r < 0)
 		{
-			printf("Nice error ;)\n");
 			return -1;	// error
 		}
 		
 		if (!FD_ISSET(fSocket, &set))
 		{
-			printf("Read not set??\n");
 			return -1;
 		}
 #endif
-		printf("Entering recv\n");
 		r = recv(fSocket, recvBuffer, BUFFER_SIZE, 0);
-		printf("Recv returned %d\n", r);
 		if (r <= 0)
 		{
 #ifdef BONE_BUILD			
