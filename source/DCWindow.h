@@ -40,6 +40,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class DCView;
 class DCConnection;
 class BMenu;
+class BAlert;
+class DCSearchWindow;
+
 
 enum {
 	DC_INIT_WINDOW = 'dciw'
