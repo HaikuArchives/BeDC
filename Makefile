@@ -3,7 +3,7 @@
 
 BINARY := BeDC
 
-OBJS := DCApp.o DCClientConnection.o DCConnection.o DCDownloadQueue.o DCHuffman.o DCSettings.o DCView.o DCWindow.o main.o DCSearchWindow.o DCSearchView.o ColumnListView.o ColorTools.o ColumnTypes.o DCHTTPConnection.o
+OBJS := DCApp.o DCClientConnection.o DCConnection.o DCDownloadQueue.o DCHuffman.o DCSettings.o DCView.o DCWindow.o main.o DCSearchWindow.o DCSearchView.o ColumnListView.o ColorTools.o ColumnTypes.o DCHTTPConnection.o DCStrings.o
 OBJDIR := obj.x86
 SRCDIR := source
 RSRCS := BeDC.rsrc

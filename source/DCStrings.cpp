@@ -32,17 +32,34 @@ AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
 */
+#include "DCStrings.h"
 
-class DCApp *dc_app;
-
-#include <Application.h>
-
-#include "DCApp.h"
-
-int 
-main(int argc, char ** argv)
+// This is the implementation of internationalization... 
+// If you want your own language to be implemented, translate the
+// english strings to your language, and send it my way :)
+const char * DC_STR_ENGLISH[STR_NUM] =
 {
-	dc_app = new DCApp();
-	dc_app->Run();
-	delete dc_app;
+	"Hubs"
+};
+
+const char ** DC_STR_USE = 0;	// Set to the current language in use
+
+const char * 
+DCStr(int str)
+{
+	return DC_STR_USE[str];	// invalid index will cause a CRASH
+}
+
+void
+DCSetLanguage(int lang)
+{
+	switch (lang)
+	{
+		case DC_LANG_ENGLISH:
+			DC_STR_USE = DC_STR_ENGLISH;
+			break;
+			
+		default:
+			break;
+	};
 }

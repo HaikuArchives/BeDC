@@ -46,11 +46,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCWindow.h"
 #include "DCSettings.h"
 #include "DCDownloadQueue.h"
-
+#include "DCStrings.h"
 
 DCApp::DCApp()
 : BApplication("application/x-vnd.vegardw-BeDC")
 {
+	DCSetLanguage(DC_LANG_ENGLISH);
+	
 	theSettings = new DCSettings;
 	theQueue = new DCDownloadQueue;
 	theQueue->Run();

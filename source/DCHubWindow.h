@@ -32,3 +32,29 @@ AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
 */
+#ifndef _DC_HUB_WINDOW_H_
+#define _DC_HUB_WINDOW_H_
+
+
+#include <Window.h>
+#include <Messenger.h>
+
+class BView;
+
+class DCHubWindow : public BWindow
+{
+public:
+						// Create a hub window with a target for messages
+						DCHubWindow(BMessenger target);
+	virtual 			~DCHubWindow();
+	
+	virtual void		MessageReceived(BMessage * msg);
+	
+	void				SetMessageTarget(BMessenger target) { fTarget = target; }
+	
+private:
+	BView *				fView;
+	BMessenger			fTarget;
+};
+
+#endif	// _DC_HUB_WINDOW_H_

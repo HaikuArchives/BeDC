@@ -32,17 +32,23 @@ AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
 */
+#ifndef _DC_STRINGS_H_
+#define _DC_STRINGS_H_
 
-class DCApp *dc_app;
-
-#include <Application.h>
-
-#include "DCApp.h"
-
-int 
-main(int argc, char ** argv)
+// String constants
+enum 
 {
-	dc_app = new DCApp();
-	dc_app->Run();
-	delete dc_app;
-}
+	STR_HUB_WINDOW_TITLE = 0,
+	STR_NUM	 // Place holder
+};
+
+enum
+{
+	DC_LANG_ENGLISH = 0,
+	DC_LANG_NUM		// Place holder
+};
+
+const char * DCStr(int);
+void DCSetLanguage(int);
+
+#endif	// _DC_STRINGS_H_
