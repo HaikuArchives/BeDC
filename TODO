@@ -4,7 +4,6 @@ Features:
 
 Bug fixes:
 * Sometimes the text in the output view becomes garbled
-* Crashes on exit sometimes, have something to do with the settings...
 
 Misc stuff:
 * Make a user interface that doesn't suck

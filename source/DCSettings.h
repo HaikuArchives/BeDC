@@ -38,6 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define _DC_SETTINGS_H_
 
 class BMessage;
+class BRect;
 
 class DCSettings : public BMessage
 {
@@ -45,7 +46,9 @@ class DCSettings : public BMessage
 		DCSettings();
 		void LoadSettings();
 		void SaveSettings();
-		void SetString(const char *name, const char *nick);
+		void SetString(const char *name, const char *string);
+		void SetRect(const char *name, BRect rect);
+		status_t GetRect(const char *name, BRect *rect);
 		status_t GetString(const char *name, BString *string);
 
 };

@@ -52,6 +52,7 @@ class DCWindow : public BWindow
 		~DCWindow();
 		virtual bool QuitRequested();
 		virtual void FrameResized(float width, float height);
+		virtual void FrameMoved(BPoint origin);
 		virtual void DispatchMessage(BMessage * msg, BHandler * target);
 		virtual void MessageReceived(BMessage *message);
 	private:

@@ -52,7 +52,10 @@ DCApp::DCApp()
 {
 	theSettings = new DCSettings;
 	theSettings->LoadSettings();
-	theWindow = new DCWindow(BRect(50,50,600,500));	
+	BRect windowrect;
+	if(theSettings->GetRect("windowrect",&windowrect)!=B_OK)
+		windowrect.Set(50,50,600,500);
+	theWindow = new DCWindow(windowrect);	
 }
 
 DCApp::~DCApp()

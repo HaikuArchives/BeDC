@@ -38,6 +38,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <Message.h>
 #include <File.h>
+#include <Path.h>
+#include <Directory.h>
 #include <String.h>
 
 #include "DCSettings.h"
@@ -50,7 +52,7 @@ DCSettings::DCSettings()
 void DCSettings::LoadSettings()
 {
 	BFile settingsfile;
-	if(settingsfile.SetTo("/boot/home/config/settings/vegardw/BeDC/BeDC-Settings",B_READ_ONLY)==B_OK)
+	if(settingsfile.SetTo("/boot/home/config/settings/BeDC/BeDC-Settings",B_READ_ONLY)==B_OK)
 	{
 		Unflatten(&settingsfile);
 	}
@@ -58,8 +60,15 @@ void DCSettings::LoadSettings()
 
 void DCSettings::SaveSettings()
 {
+	BPath path("/boot/home/config/settings/BeDC/BeDC-Settings");
 	BFile settingsfile;
-	if(settingsfile.SetTo("/boot/home/config/settings/vegardw/BeDC/BeDC-Settings",B_WRITE_ONLY|B_CREATE_FILE)==B_OK)
+	if(settingsfile.InitCheck()!=B_OK) /* Didn't work, try to create parent dir */
+	{
+		BPath parent;
+		path.GetParent(&parent);
+		create_directory(parent.Path(),0777);
+	}
+	if(settingsfile.SetTo(path.Path(),B_WRITE_ONLY|B_CREATE_FILE)==B_OK)
 		Flatten(&settingsfile);
 }
 
@@ -76,3 +85,18 @@ void DCSettings::SetString(const char *name, const char *string)
 	else
 		AddString(name,string);
 }
+
+status_t DCSettings::GetRect(const char *name, BRect *rect)
+{
+	return FindRect(name,rect);
+}
+
+void DCSettings::SetRect(const char *name, BRect rect)
+{
+	BRect tmp;
+	if((FindRect(name,&tmp))==B_OK)
+		ReplaceRect(name,rect);
+	else
+		AddRect(name,rect);
+}
+

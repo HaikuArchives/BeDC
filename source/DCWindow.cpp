@@ -449,11 +449,19 @@ void DCWindow::MessageReceived(BMessage *message)
 
 void DCWindow::FrameResized(float width, float height)
 {
+	/* Change text rect in output view */
 	BRect fr;
 	fr = theView->Output()->Bounds();
 	fr.left += 3;
 	fr.right -= 3;
 	theView->Output()->SetTextRect(fr);
+	
+	dc_app->GetSettings()->SetRect("windowrect",Frame());
+}
+
+void DCWindow::FrameMoved(BPoint origin)
+{
+	dc_app->GetSettings()->SetRect("windowrect",Frame());
 }
 
 void DCWindow::DispatchMessage(BMessage * msg, BHandler * target)
