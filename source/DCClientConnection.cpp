@@ -95,12 +95,13 @@ void DCClientConnection::Connect(const char *host,int port)
 		conn_socket = socket(AF_INET, SOCK_STREAM, 0);
 		if(connect(conn_socket,(sockaddr*)&sock_addr,sizeof(sock_addr)) >=0 )
 		{
-			/*memset(cinfo,0,sizeof(cinfo));
-			cinfo->target = &msgTarget;
-			cinfo->conn = conn_socket;
-			cinfo->nick = nick;
-			cinfo->conn_obj = this;*/
-			printf(">%d<\n",conn_socket);
+			/*Send our nick and the lock */
+			BString nickandlock;
+			nickandlock.SetTo("$MyNick ");
+			nickandlock.Append(GetNick());
+			nickandlock.Append("|$Lock iamjusttesting thisout|");
+			send(conn_socket,nickandlock.String(),nickandlock.Length(),0);
+			
 			thid = spawn_thread(clientReceiver,"client_receiver",B_NORMAL_PRIORITY,this);
 			resume_thread(thid);
 			connected = true;
@@ -119,11 +120,9 @@ int32 clientReceiver(void *data)
 	theconn = (DCClientConnection*)data;
 	char recvBuffer[1024];
 	BString bstr1, bstr2;
-	printf(">%s<\n",theconn->GetNick());
-	printf(">%d<\n",theconn->GetSocket());
 	while(true)
 	{
-		printf("In the loop\n");
+		bstr2.SetTo("");
 		memset(recvBuffer,0,1024);
 		status_t what;
 		if((what=recv(theconn->GetSocket(),recvBuffer,1023,0)) <= 0)
@@ -172,15 +171,10 @@ int32 clientReceiver(void *data)
 					bstr2.Append("|");
 					send(theconn->GetSocket(),bstr2.String(),bstr2.Length(),0);
 					delete bstr3;
-						bstr2.SetTo("$Lock iamjusttesting thisout|");
-						send(theconn->GetSocket(),bstr2.String(),bstr2.Length(),0);
 				}
 				else if(!bstr2.Compare("$Key ",5))
 				{
-						bstr2.SetTo("$MyNick ");
-						bstr2.Append(theconn->GetNick());
-						bstr2.Append("|");
-						send(theconn->GetSocket(),bstr2.String(),bstr2.Length(),0);
+					/* Maybe check that the key is valid? */
 				}
 				else if(!bstr2.Compare("$Direction ",11))
 				{
@@ -191,8 +185,8 @@ int32 clientReceiver(void *data)
 					send(theconn->GetSocket(),bstr2.String(),bstr2.Length(),0);
 					if(theconn->GetDirection() == DC_DOWNLOAD_DIR)
 					{
-						//bstr2.SetTo("$Get MyList.DcLst$1|");
-						bstr2.SetTo("$Get Diverse\\mirc591t.exe$1|");
+						bstr2.SetTo("$Get MyList.DcLst$1|");
+						//bstr2.SetTo("$Get Diverse\\mirc591t.exe$1|");
 						send(theconn->GetSocket(),bstr2.String(),bstr2.Length(),0);
 					}
 				}
@@ -215,8 +209,8 @@ int32 clientReceiver(void *data)
 					bstr2.SetTo("$Send|");
 					send(theconn->GetSocket(),bstr2.String(),bstr2.Length(),0);
 					BFile file;
-					//file.SetTo("/tmp/DCList",B_READ_WRITE|B_CREATE_FILE);
-					file.SetTo("/boot/home/Desktop/mirc591t.exe",B_READ_WRITE|B_CREATE_FILE);
+					file.SetTo("/tmp/DCList",B_READ_WRITE|B_CREATE_FILE);
+					//file.SetTo("/boot/home/Desktop/mirc591t.exe",B_READ_WRITE|B_CREATE_FILE);
 					char buf[1024];
 					memset(buf,0,1024);
 					int read;
@@ -229,8 +223,8 @@ int32 clientReceiver(void *data)
 					}
 					printf("Ok...\n");
 					file.Seek(0,SEEK_SET);
-					//DCHuffman huf;
-					//huf.Decode(&file,NULL);
+					DCHuffman huf;
+					huf.Decode(&file,NULL);
 					//bstr2.SetTo("Empty\\empty|");
 					//send(theconn,bstr2.String(),bstr2.Length(),0);
 				}
