@@ -32,3 +32,34 @@ AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
 */
+#ifndef _DC_WINDOW_H_
+#define _DC_WINDOW_H_
+
+
+#include <Window.h>
+
+class BView;
+
+enum
+{
+	// The window was closed
+	//	'rect'	BRect	--> The position of the window
+	DC_MSG_WINDOW_CLOSED = 'msWC'
+};
+
+class DCWindow : public BWindow
+{
+public:
+						DCWindow(BRect pos = BRect(30, 70, 630, 430));
+	virtual				~DCWindow();
+	
+	virtual void		MessageReceived(BMessage * msg);
+	virtual bool		QuitRequested();
+	
+private:
+	BView *				fParentView;	// The main view everything gets slapped into
+	
+	void				InitGUI();
+};
+
+#endif	// _DC_WINDOW_H_

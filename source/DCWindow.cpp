@@ -32,3 +32,49 @@ AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
 */
+#include "DCWindow.h"
+#include "DCStrings.h"
+#include "DCApp.h"
+
+#include <View.h>
+#include <Message.h>
+
+DCWindow::DCWindow(BRect pos)
+	: BWindow(pos, "BeDC" /* i don't think the name can be localized ;) */,
+			  B_TITLED_WINDOW, B_ASYNCHRONOUS_CONTROLS)
+{
+	InitGUI();
+}
+
+DCWindow::~DCWindow()
+{
+}
+
+void
+DCWindow::MessageReceived(BMessage * msg)
+{
+	switch (msg->what)
+	{
+		default:
+			BWindow::MessageReceived(msg);
+			break;
+	}
+}
+
+bool
+DCWindow::QuitRequested()
+{
+	BMessage msg(DC_MSG_WINDOW_CLOSED);
+	msg.AddRect("rect", Frame());
+	dc_app->PostMessage(&msg);
+	return true;
+}
+
+void
+DCWindow::InitGUI()
+{
+	AddChild(
+		fParentView = new BView(Bounds(), "parent_view", B_FOLLOW_ALL, B_WILL_DRAW)
+	);
+	fParentView->SetViewColor(216, 216, 216);
+}

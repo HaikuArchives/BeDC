@@ -39,6 +39,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "ObjectList.h"
 
+#include <Application.h>
+
 class DCWindow;
 class DCSettings;
 class DCDownloadQueue;
@@ -46,14 +48,17 @@ class DCHubWindow;
 
 class BString;
 
-typedef BObjectList<DCWindow *> DCWindowList;
- 
 enum
 {
 	// Send this message to the app and it will show
 	// the hub window, or bring it to focus if it is
 	// already visible
-	DC_MSG_APP_SHOW_HUB_LIST = 'dcHL'
+	DC_MSG_APP_SHOW_HUB_LIST = 'dcHL',
+	// The app will launch this message to the main DC
+	// window requesting it to open a new connection to
+	// the specified server, basically, the DC_MSG_HUB_CONNECT
+	// message is passed on to the window
+	DC_MSG_APP_OPEN_NEW_HUB = 'aOnH'
 };
 
 class DCApp : public BApplication
@@ -72,10 +77,11 @@ public:
 protected:
 	DCDownloadQueue * 		fQueue	/*theQueue*/;
 	DCSettings *			fSettings /*theSettings*/;
-	DCWindowList *			fWindowList;
+	DCWindow *				fWindow;
 	DCHubWindow *			fHubWindow;
 	
 	void					ShowHubWindow();
+	void					EnsureWindowAllocated();	// make sure a window exists
 };
 
 extern DCApp * dc_app;

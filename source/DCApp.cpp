@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Window.h>
 #include <Rect.h>
 #include <Message.h>
+#include <Messenger.h>
 #include <File.h>
 
 #include "DCApp.h"
@@ -61,17 +62,14 @@ DCApp::DCApp()
 	fSettings = new DCSettings;
 	fSettings->LoadSettings();
 	
-	// Init an empty window list
-	fWindowList = new DCWindowList;
-	
 	// No hub window yet
 	fHubWindow = NULL;
+	fWindow = NULL;
 }
 
 DCApp::~DCApp()
 {
 	delete fSettings;
-	delete fWindowList;
 }
 
 bool 
@@ -92,8 +90,30 @@ DCApp::MessageReceived(BMessage * msg)
 			
 		case DC_MSG_HUB_CLOSED:
 		{
+			BRect rect;
+			if (msg->FindRect("rect", &rect) == B_OK)
+				fSettings->SetRect(DCS_HUB_RECT, rect);
+				
 			fHubWindow = NULL;
-			if (fWindowList->CountItems() == 0)	// no more windows? quit
+			if (fWindow == NULL)	// no windows either?
+				PostMessage(B_QUIT_REQUESTED);
+			break;
+		}
+		
+		case DC_MSG_HUB_CONNECT:
+		{
+			EnsureWindowAllocated();
+			BMessenger(fWindow).SendMessage(msg);	// hehehe :)
+			break;
+		}
+		
+		case DC_MSG_WINDOW_CLOSED:
+		{
+			BRect rect;
+			if (msg->FindRect("rect", &rect) == B_OK)
+				fSettings->SetRect(DCS_WINDOW_RECT, rect);
+			fWindow = NULL;
+			if (fHubWindow == NULL)	// no hub window either?
 				PostMessage(B_QUIT_REQUESTED);
 			break;
 		}
@@ -114,6 +134,26 @@ void
 DCApp::ShowHubWindow()
 {
 	if (!fHubWindow)
-		fHubWindow = new DCHubWindow(BMessenger(this));
+	{
+		BRect rect;
+		if (fSettings->GetRect(DCS_HUB_RECT, &rect) == B_OK)
+			fHubWindow = new DCHubWindow(BMessenger(this), rect);
+		else
+			fHubWindow = new DCHubWindow(BMessenger(this));
+	}
 	fHubWindow->Show();
+}
+
+void
+DCApp::EnsureWindowAllocated()
+{
+	if (!fWindow)
+	{
+		BRect winRect;
+		if (fSettings->GetRect(DCS_WINDOW_RECT, &winRect) == B_OK)
+			fWindow = new DCWindow(winRect);
+		else
+			fWindow = new DCWindow;	// default rect
+		fWindow->Show();
+	}
 }

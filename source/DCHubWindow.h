@@ -67,7 +67,7 @@ class DCHubWindow : public BWindow
 {
 public:
 						// Create a hub window with a target for messages
-						DCHubWindow(BMessenger target);
+						DCHubWindow(BMessenger target, BRect pos = BRect(50, 50, 600, 350));
 	virtual 			~DCHubWindow();
 	
 	virtual void		MessageReceived(BMessage * msg);

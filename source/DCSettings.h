@@ -40,16 +40,22 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class BMessage;
 class BRect;
 
+#define DCS_WINDOW_RECT 		"window_rect"
+#define DCS_HUB_RECT			"hub_rect"
+
 class DCSettings : public BMessage
 {
-	public:
-		DCSettings();
-		void LoadSettings();
-		void SaveSettings();
-		void SetString(const char *name, const char *string);
-		void SetRect(const char *name, BRect rect);
-		status_t GetRect(const char *name, BRect *rect);
-		status_t GetString(const char *name, BString *string);
+public:
+						DCSettings();
+						
+	void 				LoadSettings();
+	void 				SaveSettings();
+	
+	void 				SetString(const char *name, const char *string);
+	void 				SetRect(const char *name, BRect rect);
+	
+	status_t 			GetRect(const char *name, BRect *rect);
+	status_t 			GetString(const char *name, BString *string);
 
 };
 

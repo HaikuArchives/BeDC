@@ -60,8 +60,8 @@ enum
 
 #define HUB_WIN_ARCHIVE "/boot/home/config/settings/BeDC/Cached.hublist"
 
-DCHubWindow::DCHubWindow(BMessenger target)
-	: BWindow(BRect(50, 50, 600, 350), DCStr(STR_HUB_WINDOW_TITLE),
+DCHubWindow::DCHubWindow(BMessenger target, BRect pos)
+	: BWindow(pos, DCStr(STR_HUB_WINDOW_TITLE),
 			  B_TITLED_WINDOW, B_ASYNCHRONOUS_CONTROLS | B_OUTLINE_RESIZE)
 {
 	SetMessageTarget(target);
@@ -199,7 +199,9 @@ DCHubWindow::CleanUpConnection()
 bool
 DCHubWindow::QuitRequested()
 {
-	fTarget.SendMessage(DC_MSG_HUB_CLOSED);
+	BMessage msg(DC_MSG_HUB_CLOSED);
+	msg.AddRect("rect", Frame());
+	fTarget.SendMessage(&msg);
 	return true;
 }
 
