@@ -100,7 +100,11 @@ enum
 	DC_MSG_CON_FORCE_MOVE = 'chFM',
 	// User has disconnected
 	//	'nick'		BString		--> User's nick
-	DC_MSG_CON_QUIT = 'chCQ'
+	DC_MSG_CON_QUIT = 'chCQ',
+	// Chat Message
+	//	'from'		BString		--> From user
+	//	'text'		BString		--> the message
+	DC_MSG_CON_CHAT_MSG = 'chCH'
 };
 	
 class DCConnection : public BLooper

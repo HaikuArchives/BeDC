@@ -114,6 +114,8 @@ DCConnection::SetNick(const BString & nick)
 {
 	fNick = nick;
 	// TODO, send nick to server
+	// Dunno if the server handles a nick change while connected...
+	// I think it doesn't so you have to reconnect, but don't quite remember
 }
 
 void
@@ -312,6 +314,9 @@ DCConnection::ReceiveHandler(void * d)
 			else if (!str2.Compare("$MyINFO ", 8))
 			{
 				// TODO: Do we want to handle this?
+				// Yup, It's how we get another clients info (Speed/Description/Share etc)
+				// The Nicklist shows only the nick.
+				// Also, if we send out "$GetINFO", this is the response we get
 			}
 			else if (!str2.Compare("$NickList ", 10))
 			{
@@ -345,11 +350,15 @@ DCConnection::ReceiveHandler(void * d)
 			{
 				// TODO
 			}
-			else if (!str2.Compare("$SR ", 4))	// Search results
+			else if (!str2.Compare("$MultiSearch ", 13))	// A query request (Searching on all linked hub)
 			{
 				// TODO
 			}
-			else if (!str2.Compare("$ForceMove ", 11))
+			else if (!str2.Compare("$SR ", 4))	// Search results (Passive)
+			{
+				// TODO
+			}
+			else if (!str2.Compare("$ForceMove ", 11)) // They don't want us here :(
 			{
 				me->Disconnect();
 				str2.RemoveFirst("$ForceMove ");
@@ -360,6 +369,11 @@ DCConnection::ReceiveHandler(void * d)
 			{
 				str2.RemoveFirst("$Quit ");
 				me->SendMessage(DC_MSG_CON_QUIT, "nick", str2);
+			}
+			else if(!str2.Compare("<",1)) // Chat message
+			{
+				// TODO, split Sender and message, and send a DC_MSG_CON_CHAT_MSG message
+				// Sender is the text between '<' and '>'
 			}
 		}
 	}
@@ -518,11 +532,12 @@ DCConnection::GenerateKey(BString & lck)
 	for (int i = 0; i < 2048; i++)
 	{
 		if (i == 0)
+			// If it's the first char we gotta XOR with the two last chars and 5
 			c = lck[i] ^ lck[lck.Length() - 1] ^ lck[lck.Length() - 2] ^ 5;
 		else
-			c = lck[i] ^ lck[i - 1];
+			c = lck[i] ^ lck[i - 1]; // XOR with previous char
 		
-		v = c << 4 | c >> 4;
+		v = c << 4 | c >> 4; // Shift some bits around :)
 		
 		if (v == 0 || v == 5 || v == 36 || v == 96 || v == 124 || v == 126)	// escape
 		{
