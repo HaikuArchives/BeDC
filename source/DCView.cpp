@@ -743,6 +743,16 @@ DCView::ParseSendText()
 		fConn->SendData(priv);	
 		LogPrivateChat(user->GetName(), text, false);	
 	}
+	else if(!text.ICompare("/help", 5))
+	{
+		LogSystem("Available commands:");
+		LogSystem("  /help - Show this help text");
+		LogSystem("  /msg <name> <text> - Send a private message");
+	}
+	else if(!text.ICompare("/", 1))
+	{
+		LogError("Unknown command");
+	}
 	else
 	{
 		BString chat = "<";
