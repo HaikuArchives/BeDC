@@ -38,7 +38,36 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define _DC_VIEW_H_
 
 #include <View.h>
+#include <Messenger.h>
 
+class DCSettings;
+class DCConnection;
+
+class BTextView;
+class BTextControl;
+class BColumnListView;
+class BScrollView;
+
+class DCView : public BView
+{
+public:
+							DCView(DCSettings * settings, BMessenger target, BRect pos);
+	virtual					~DCView();
+	
+	
+	virtual void			MessageReceived(BMessage * msg);
+	virtual bool			QuitRequested();
+	
+	void					UpdateSettings(DCSettings * set);
+	
+private:
+	BMessenger				fTarget;
+	DCSettings *			fSettings;
+	
+	BTextView *				fText;
+	BScrollView *			fScrollText;
+	BColumnListView *		fUsers;
+};
 
 
 #endif /* !_DC_VIEW_H_ */

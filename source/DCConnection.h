@@ -37,59 +37,147 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _DC_CONNECTION_H_
 #define _DC_CONNECTION_H_
 
-class BLooper;
-struct conn_info;
+#include <Looper.h>
+#include <String.h>
+#include <Messenger.h>
+#include <OS.h>
 
-int32 receiver(void * data);
-BString *generate_key(BString & lck);
-
-
+// Messages launched by DCConnection
 enum
 {
-	DC_TEXT = 'dctx',
-	DC_PRIV_MSG = 'dcpr',
-	DC_USER_CONNECTED ='dcuc',
-	DC_USER_DISCONNECTED ='dcud',
-	DC_DISCONNECTED_FROM_SERVER = 'dcfs',
-	DC_USER_CONNECT = 'dcum',
-	DC_NEED_PASS = 'dcnp'
+	DC_MSG_CON_CONNECTING = 'DMcc',		// Connect in progress
+	DC_MSG_CON_CONNECTED = 'DMcC',		// Connected!
+	DC_MSG_CON_CONNECT_ERROR = 'DMCe',	// Connection error
+	DC_MSG_CON_DISCONNECTED = 'DMDc',	// Disconnected
+	DC_MSG_CON_SEND_ERROR = 'DMsE',		// Error sending!??!
+	DC_MSG_CON_RECV_ERROR = 'DMrE',		// Receive error?!?
+	
+	// Hub messages
+	// -------------------------------------------------------
+	// Got the hub name
+	//	'name'		BString 	--> the name
+	DC_MSG_CON_HUB_NAME = 'cHNM',
+	// The nick sent to the server was invalid
+	//	'nick'		BString		--> bad nick
+	DC_MSG_CON_VALIDATE_DENIED = 'cHVD',
+	// The server requested a password
+	DC_MSG_CON_GET_PASS = 'chGP',
+	// The specified password was bad, server closes the connection
+	DC_MSG_CON_BAD_PASS = 'chBP',
+	// A new user has connected
+	//	'nick'		BString		--> user nick
+	DC_MSG_CON_USER_CONNECTED = 'chUC',
+	// You are an op
+	DC_MSG_CON_YOU_ARE_OP = 'chAO',
+	// Got the list of users
+	//	'list'		BString		--> Unparsed list of users
+	DC_MSG_CON_GOT_NICK_LIST = 'chNL',
+	// Got the list of ops
+	//	'list'		BString		--> Unparsed list of ops
+	DC_MSG_CON_GOT_OP_LIST = 'chOL',
+	// Private message!
+	//	'from'		BString		--> From user
+	//	'text'		BString		--> body of message
+	DC_MSG_CON_PRIV_MSG = 'chPM',
+	// User asked to be connected to
+	//	'nick'		BString		--> User nick
+	//	'ip'		BString		--> User ip
+	//	'port'		int32		--> User port
+	DC_MSG_CON_CONNECT_TO_ME = 'chCM',
+	// User from another hub asked to be connected to
+	//	'nick'		BString		--> User nick
+	//	'ip'		BString		--> User ip
+	//	'port'		int32		--> User port
+	//	'sip'		BString		--> User's server ip
+	//	'sport'		int32		--> Users's server port
+	DC_MSG_CON_MULTI_CONNECT_TO_ME = 'chMM',
+	// User asked to have a $ConnectToMe command sent to them
+	// because they are firewalled.
+	//	'nick'		BString		--> User to connect to
+	DC_MSG_CON_REV_CONNECT_TO_ME = 'chRC',
+	// The server is redirecting us
+	//	'ip'		BString		--> Address of new server
+	DC_MSG_CON_FORCE_MOVE = 'chFM',
+	// User has disconnected
+	//	'nick'		BString		--> User's nick
+	DC_MSG_CON_QUIT = 'chCQ'
 };
-
-class DCConnection 
+	
+class DCConnection : public BLooper
 {
 public:
-						DCConnection(const char * host=NULL, int port = 411);
-						~DCConnection();
-						
-	void 				Connect(const char * host, int port = 411);
-	void 				Disconnect();
-	bool 				IsConnected() { return fConnected; }
+						// If a host is specified, it will automatically begin connecting
+						DCConnection(BMessenger target, const BString & host = "", int port = 411);
+	virtual				~DCConnection();
 	
-	void 				SetNick(const char * in_nick);
-	void 				SetConn(const char * in_conn) { fConn->SetTo(in_conn); }
+	void				Connect(const BString & host, int port = 411);
+	void				Disconnect();
+	bool				IsConnected() { return fConnected; }
 	
-	const char *		GetNick() { return fNick->String(); }
-	const char *		GetConn() { return fConn->String(); }
+	void				SetNick(const BString & nick);
+	void				SetDescription(const BString & desc) { fDesc = desc; }
+	void				SetEmail(const BString & email) { fEmail = email; }
+	void				SetSpeed(const BString & speed) { fSpeed = speed; }
+	void				SetSharedSize(uint32 size) { fSharedSize = size; }
 	
-	void 				SetMessageTarget(BLooper * looper);
-	int32 				SendRawData(const char * command);
-	int32 				SendData(const char * command);
+	BString				GetNick() const { return fNick; }
+	BString				GetDescription() const { return fDesc; }
+	BString				GetEmail() const { return fEmail; }
+	BString				GetSpeed() const { return fSpeed; }
+	uint32				GetSharedSize() const { return fSharedSize; }
+	
+	void				SendRawData(const BString & data);
+	void				SendData(const BString & data);	// converts to Windows encoding
+	
+	virtual void		MessageReceived(BMessage * msg);
+	
+	static BString		GenerateKey(BString & lock);
+
+	// Protocol implementation
+	void				SendNickListRequest();
+	// If 'version' is "", then the default is used.
+	void				SendVersion(const BString & version = "");
+	// Send our info the the server
+	void				SendMyInfo();
+	// Send the server a password upon request
+	void				SendPassword(const BString & passwd);
+	// Ask the server for info about a user
+	void				GetUserInfo(const BString & userNick);
+	// Ask the remote user to send me a $ConnectToMe message because
+	// I'm firewalled
+	void				SendConnectRequest(const BString & userNick);
+	// TODO: Launch search ($Search/$MultiSearch)
+	
 private:
-	bool 				fConnected /*connected*/;
-	BString *			fNick /*nick*/;
-	BString *			fConn /*fConn*/;
-	int 				fConnection /*connection*/;
-	BLooper *			fMsgTarget /*msgTarget*/;
-	thread_id 			fThreadID /*thid*/;
-	conn_info *			fConnInfo /*cinfo*/;
+	bool				fConnected;
+	// My info
+	BString				fNick;
+	BString				fDesc;
+	BString				fEmail;
+	BString				fSpeed;
+	uint32				fSharedSize;
+	
+	int					fSocket;
+	BMessenger			fTarget;
+	thread_id			fThreadID;
+	// For connecting
+	BString				fHost;
+	int					fPort;
+	
+	void				InternalConnect();
+	
+	void				LockReceived(BString str);
+	void				HelloReceived(BString str);
+	void				ToReceived(BString str);
+	void				ConnectToMeReceived(BString str);
+	void				MultiConnectToMeReceived(BString str);
+
+	void				ValidateNick();
+	// Name CAN be NULL
+	void				SendMessage(uint32 cmd, const char * name = NULL, const BString & str = "");
+	
+	static int32		ReceiveHandler(void * data);
 };
 
-struct conn_info
-{
-		BLooper	**		target;
-		int				conn;
-		BString	*		nick;
-		DCConnection *	conn_obj;
-};
 
 #endif /* !_DC_CONNECTION_H_ */

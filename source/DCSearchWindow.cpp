@@ -56,7 +56,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCApp.h"
 #include "DCWindow.h"
 #include "DCSearchView.h" 
-#include "DCConnection.h"
+//#include "DCConnection.h"
 #include "DCClientConnection.h"
 #include "DCSettings.h"
 #include "DCSearchWindow.h"

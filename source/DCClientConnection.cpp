@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* Client/client comm prototype, don't use it yet, it will change */
 
-
+#if 0
 #include <stdio.h>
 //#include <unistd.h>
 #include <stdlib.h>
@@ -244,3 +244,4 @@ int32 clientReceiver(void *data)
 	}
 	return(0);
 }
+#endif

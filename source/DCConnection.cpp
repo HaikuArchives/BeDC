@@ -33,396 +33,562 @@ TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
 */
 
-
-#include <stdio.h>
 #include <unistd.h>
-
-#include <OS.h>
-#include <Looper.h>
-#include <Message.h>
-#include <String.h>
-#include <UTF8.h>
+#include <stdlib.h>
 
 #include "DCConnection.h"
 #include "DCNetSetup.h"
+#include "DCStrings.h"
 
-DCConnection::DCConnection(const char * host, int port)
+// Internal messages
+enum
 {
+	DCC_CONNECT = 'dCCc',	// Connect
+	DCC_SEND = 'dCCs',		// Send some data
+};
+
+DCConnection::DCConnection(BMessenger target, const BString & host, int port)
+	: BLooper("dcconnection", B_NORMAL_PRIORITY)
+{
+	fThreadID = -1;
 	fConnected = false;
-	fThreadID = 0;
-	fConnection = 0;
-	fNick = new BString("Anonymous");
-	fConn = new BString("56Kbps");
-	fMsgTarget = NULL;
-	fConnInfo = new conn_info;
-	if(host != NULL)
+	fSocket = -1;
+	fTarget = target;
+	fNick = "";
+	
+	Run();	// start the looper
+	
+	if (host != "")
 		Connect(host, port);
 }
 
 DCConnection::~DCConnection()
 {
 	Disconnect();
-	delete fNick;
-	delete fConnInfo;
 }
 
-
-/* TODO: Move this to own thread? (So it doesn't block for redrawing) */
-void DCConnection::Connect(const char *host,int port)
+void
+DCConnection::Disconnect()
 {
-	printf("DCConnection::Connect()\n");
-	sockaddr_in sock_addr;
-	memset(&sock_addr,0,sizeof(sock_addr));
-	
-	sock_addr.sin_family = AF_INET;
-	sock_addr.sin_port=htons(port);
-	/*Gets adress*/
-	hostent *host_addr = gethostbyname(host);
-	if(host_addr)
+	if (fThreadID >= 0)
 	{
-		sock_addr.sin_addr = *((in_addr *)(host_addr->h_addr_list[0]));
-		fConnection = socket(AF_INET, SOCK_STREAM, 0);
-		if(connect(fConnection,(sockaddr*)&sock_addr,sizeof(sock_addr)) >=0 )
-		{
-			memset(fConnInfo,0,sizeof(fConnInfo));
-			fConnInfo->target = &fMsgTarget;
-			fConnInfo->conn = fConnection;
-			fConnInfo->nick = fNick;
-			fConnInfo->conn_obj = this; 
-			fThreadID = spawn_thread(receiver,"receiver",B_NORMAL_PRIORITY,fConnInfo);
-			resume_thread(fThreadID);
-			fConnected = true;
-		}
-		else
-			printf("Connection failed!\n");
+		kill_thread(fThreadID);
+		fThreadID = -1;
 	}
-	else
-		printf("Address not found!\n");
-	
-}
-
-void DCConnection::Disconnect()
-{
-#ifdef NETSERVER_BUILD	
-	closesocket(fConnection);
+	if (fSocket >= 0)
+	{
+#ifdef NETSERVER_BUILD
+		closesocket(fSocket);
 #else
-	close(fConnection);
+		close(fSocket);
 #endif
-	kill_thread(fThreadID);
+		fSocket = -1;
+	}
 	fConnected = false;
 }
 
-void DCConnection::SetNick(const char *in_fNick)
+void
+DCConnection::Connect(const BString & host, int port)
 {
-	fNick->SetTo(in_fNick);
-	if(fConnected)
+	if (!fConnected)
 	{
-		/* TODO: Check what happens when you change fNick while fConnected */
-		//BString tmp("ValidateNick ");
-		//tmp.Append(*fNick);
-		//tmp.Append("|");
-		//SendData(tmp.String());
+		fHost = host;
+		fPort = port;
+		BMessage msg(DCC_CONNECT);
+		PostMessage(&msg);
 	}
 }
-int32 DCConnection::SendRawData(const char *command)
-{
-	BString toSend(command);
-	printf("Sending: %s\n",toSend.String());
-	return send(fConnection,toSend.String(),toSend.Length(),0);
 
+void
+DCConnection::SetNick(const BString & nick)
+{
+	fNick = nick;
+	// TODO, send nick to server
 }
 
-int32 DCConnection::SendData(const char *command)
+void
+DCConnection::SendRawData(const BString & data)
 {
-	BString toSend(command);
-	printf("Sending: %s\n",toSend.String());
-	int32 length = toSend.Length();
-	char convertedbuffer[length+1]; 
-	memset(convertedbuffer,0,length+1);
-	char *stringData = toSend.LockBuffer(length+1);
-	stringData[length] = 0;
-	convert_from_utf8(B_MS_WINDOWS_CONVERSION,stringData,&length,convertedbuffer,&length,0);
-	toSend.UnlockBuffer(length+1);
-	return send(fConnection,convertedbuffer,length,0);
+	if (fConnected)
+	{
+		BMessage msg(DCC_SEND);
+		msg.AddString("data", data);
+		PostMessage(&msg);
+	}
+}
+
+void
+DCConnection::SendData(const BString & data)
+{
+	if (fConnected)
+	{
+		BMessage msg(DCC_SEND);
+		msg.AddString("data", DCMS(data.String()));
+		PostMessage(&msg);
+	}
+}
+
+void
+DCConnection::MessageReceived(BMessage * msg)
+{
+	switch (msg->what)
+	{
+		case DCC_SEND:
+		{
+			BString str;
+			if (msg->FindString("data", &str) == B_OK)
+			{
+				if (send(fSocket, str.String(), str.Length(), 0) < 0)
+					fTarget.SendMessage(DC_MSG_CON_SEND_ERROR);
+			}
+			break;
+		}
+		
+		case DCC_CONNECT:
+		{
+			InternalConnect();
+			break;
+		}
+		
+		default:
+			BLooper::MessageReceived(msg);
+			break;
+	}
+}
+
+void
+DCConnection::InternalConnect()
+{
+	// Notify our target
+	fTarget.SendMessage(DC_MSG_CON_CONNECTING);
 	
-}
-
-void DCConnection::SetMessageTarget(BLooper *looper)
-{
-	fMsgTarget = looper;
-}
-
-int32 receiver(void *data)
-{
-	conn_info *fConnInfo;
-	fConnInfo = (conn_info*)data;
-	int32 R_BUF_SIZE = /*4095*/512;
-	int32 R_CONV_SIZE = R_BUF_SIZE*2; /* UTF-8 does two bytes for extended chars, doesn't it? */
-	char recvBuffer[R_BUF_SIZE+1];
-	char convertedbuffer[R_CONV_SIZE+1];
-	BString bstr1, bstr2;
-	BMessage *msg = NULL;
-	printf("We're in our thread\n");
-	while(true)
+	sockaddr_in sockAddr;
+	
+	memset(&sockAddr, 0, sizeof(sockAddr));
+	
+	sockAddr.sin_family = AF_INET;
+	sockAddr.sin_port = htons(fPort);
+	hostent * hostAddr = gethostbyname(fHost.String());
+	if (hostAddr)
 	{
-		memset(recvBuffer,0,R_BUF_SIZE+1);
-		memset(convertedbuffer,0,R_CONV_SIZE+1);
-		int bufread;
-#ifdef  NETSERVER_BUILD
-		if((bufread = recv(fConnInfo->conn,recvBuffer,R_BUF_SIZE,0)) < 0)
+		sockAddr.sin_addr = *((in_addr *)(hostAddr->h_addr_list[0]));
+		fSocket = socket(AF_INET, SOCK_STREAM, 0);
+		if (fSocket >= 0)
 		{
-			if(bufread != -1)     /* On net_server recv returns -1 when we send chat text, dunno why... */
-				exit_thread(-1);  /* But the socket is still good to go, so we just ignore it and go on */
-		}
-#else
-		if((bufread = recv(fConnInfo->conn,recvBuffer,R_BUF_SIZE,0)) < 0)
-				exit_thread(-1);  /* BONE only gives us errors when something is wrong */
-#endif				
-		else
-		{
-			convert_to_utf8(B_MS_WINDOWS_CONVERSION,recvBuffer,&R_BUF_SIZE,convertedbuffer,&R_CONV_SIZE,0);
-			printf("RCvd: %s\n",convertedbuffer);
-			bstr1.SetTo(convertedbuffer);
-			while(bstr1[bstr1.Length()-1] != '|') /*We haven't got the full command, let's get some more */
+			if (connect(fSocket, (sockaddr *)&sockAddr, sizeof(sockAddr)) >= 0)
 			{
-				memset(recvBuffer,0,R_BUF_SIZE+1);
-				memset(convertedbuffer,0,R_CONV_SIZE+1);
-#ifdef  NETSERVER_BUILD
-				if((bufread = recv(fConnInfo->conn,recvBuffer,R_BUF_SIZE,0)) < 0)
+				fThreadID = spawn_thread(DCConnection::ReceiveHandler, "dcc_receiver",
+										 B_NORMAL_PRIORITY, this);
+				if (fThreadID >= 0)
 				{
-					if(bufread != -1)     
-						exit_thread(-1);
-				}  
-#else
-				if((bufread = recv(fConnInfo->conn,recvBuffer,R_BUF_SIZE,0)) < 0)
-						exit_thread(-1);  
-#endif
-				else
-				{
-					convert_to_utf8(B_MS_WINDOWS_CONVERSION,recvBuffer,&R_BUF_SIZE,convertedbuffer,&R_CONV_SIZE,0);
-					printf("RCvd: %s\n",convertedbuffer);
-					bstr1.Append(convertedbuffer); /* Append it to the end of the buffer */
+					resume_thread(fThreadID);
+					fTarget.SendMessage(DC_MSG_CON_CONNECTED);
+					fConnected = true;
+					return;
 				}
-			}
-			bstr2.SetTo("");
-			int i;
-			while((i=bstr1.FindFirst("|")) != B_ERROR)
-			{
-				bstr2.SetTo("");
-				bstr1.MoveInto(bstr2,0,i);
-				bstr1.Remove(0,1);
-				
-				if(!bstr2.Compare("$Lock ",6))
-				{
-					bstr2.RemoveFirst("$Lock "); /* Remove "$Lock "*/
-					int j = bstr2.FindFirst(" ");
-					bstr2.Remove(j,bstr2.Length()-j); /* Remove everything after the first space */
-					
-					/* Generate the key */
-					BString *bstr3 = generate_key(bstr2);
-					
-					/* Put together the key string and send it*/
-					bstr2.SetTo("$Key ");
-					bstr2.Append(*bstr3);
-					bstr2.Append("|");
-					(fConnInfo->conn_obj)->SendRawData(bstr2.String()); /* No charset conversion on the key */
-					delete bstr3;
-					
-					/* Send our fNick */
-					bstr2.SetTo("$ValidateNick ");
-					bstr2.Append((fConnInfo->conn_obj)->GetNick());
-					bstr2.Append("|");
-					(fConnInfo->conn_obj)->SendData(bstr2.String());
-				}
-				else if(!bstr2.Compare("$HubName ",9))
-				{
-					// We got the hubname
-				}
-				else if(!bstr2.Compare("$Hello ",7))
-				{
-					/* Someone entered the hub */
-					/* Upload our info and get the fNicklist if it's us that's connecting. */
-					/* If it's someone else we add them to the list                       */
-					bstr2.RemoveFirst("$Hello ");
-					if(!bstr2.Compare(*fConnInfo->nick))
-					{
-						(fConnInfo->conn_obj)->SendData("$Version 1,0091|");
-						(fConnInfo->conn_obj)->SendData("$GetNickList|");
-						bstr2.SetTo("$MyINFO $ALL ");
-						bstr2.Append(*fConnInfo->nick);
-						bstr2.Append(" Just testing$ $");
-						bstr2.Append((fConnInfo->conn_obj)->GetConn());
-						bstr2.Append((char)1,1);
-						//bstr2.Append("$$0$|");
-						bstr2.Append("$$1048576$|");
-						(fConnInfo->conn_obj)->SendData(bstr2.String());
-					}
-					else
-					{
-						msg = new BMessage(DC_USER_CONNECTED);
-						msg->AddString("fNick",bstr2.String());
-						(*fConnInfo->target)->PostMessage(msg);
-					}
-				}
-				else if(!bstr2.Compare("$Quit ",6))
-				{
-					/* A user disconnects */
-					bstr2.RemoveFirst("$Quit ");
-					msg = new BMessage(DC_USER_DISCONNECTED);
-					msg->AddString("fNick",bstr2.String());
-					(*fConnInfo->target)->PostMessage(msg);
-					
-				}
-				else if(!bstr2.Compare("$NickList ",10))
-				{
-					/* The list of users */
-					BString bstr3;
-					int j;
-					bstr2.RemoveFirst("$NickList ");
-					while((j=bstr2.FindFirst("$$")) != B_ERROR)
-					{
-						bstr3.SetTo("");
-						bstr2.MoveInto(bstr3,0,j);
-						bstr2.Remove(0,2);
-						//printf("Nick: %s\n",bstr3.String());
-						msg = new BMessage(DC_USER_CONNECTED);
-						msg->AddString("fNick",bstr3.String());
-						(*fConnInfo->target)->PostMessage(msg);
-					}
-					
-				}
-				else if(!bstr2.Compare("$OpList ",8))
-				{
-					/* The operators that's online                                  */
-					/* Are sendt when you get the fNicklist, and when an op connects */
-				}
-				else if(!bstr2.Compare("$ValidateDenide ", 16))
-				{
-					/* Oops, couldn't use that fNick */
-					bstr2.RemoveFirst("$ValidateDenide ");
-					bstr2.Prepend("<Client> The fNick \"");
-					bstr2.Append("\" is unavailable. Change fNick and reconnect");
-					msg = new BMessage(DC_TEXT);
-					msg->AddString("thetext",bstr2.String());
-					(*fConnInfo->target)->PostMessage(msg);
-					(fConnInfo->conn_obj)->Disconnect();
-				}
-				else if(!bstr2.Compare("$To: ",5))
-				{
-					/* Private message */
-					bstr2.RemoveFirst("$To: ");
-					/* should only be addressed to us, but we check the fNick anyway */
-					if(!bstr2.Compare(*fConnInfo->nick,fConnInfo->nick->Length())) 
-					{
-						bstr2.RemoveFirst(*fConnInfo->nick);
-						bstr2.RemoveFirst(" From: ");
-						BString bstr3;
-						int count=bstr2.FindFirst(" ");
-						bstr2.MoveInto(bstr3,0,count);
-						bstr2.RemoveFirst(" $");
-						if(bstr2!="") /* We don't want no empty strings */
-						{
-							msg = new BMessage(DC_PRIV_MSG);
-							msg->AddString("fNick",bstr3.String());
-							msg->AddString("thetext",bstr2.String());
-							(*fConnInfo->target)->PostMessage(msg);
-						}
-					}
-				}
-				else if(!bstr2.Compare("$MyINFO ",8))
-				{
-					/* We got user info, do something with it */
-				}
-				else if(!bstr2.Compare("$Search ",8))
-				{
-					/* Someone searches for something */
-				}
-				else if(!bstr2.Compare("$ConnectToMe ",13))
-				{
-#ifdef CLIENT_TO_CLIENT_COMMUNICATION
-					/* Someone wants us to connect to them */
-					bstr2.RemoveFirst("$ConnectToMe ");
-					bstr2.RemoveFirst(*fConnInfo->nick);
-					bstr2.RemoveFirst(" ");
-					msg = new BMessage(DC_USER_CONNECT);
-					msg->AddString("address",bstr2.String());
-					(*fConnInfo->target)->PostMessage(msg);
-#endif
-				}
-				else if(!bstr2.Compare("$RevConnectToMe ",16))
-				{
-					/* Someone in passive mode wants us to give them our */
-					/* host and port, so they can connect to us          */
-				}
-				else if(!bstr2.Compare("$ForceMove ",11))
-				{
-					/* We're being redirected */
-					bstr2.SetTo("<Client> Received redirect request, disconnecting");
-					(fConnInfo->conn_obj)->Disconnect();
-					msg = new BMessage(DC_TEXT);
-					msg->AddString("thetext",bstr2.String());
-					(*fConnInfo->target)->PostMessage(msg);
-				}
-				else if(!bstr2.Compare("$GetPass",8))
-				{
-					msg = new BMessage(DC_NEED_PASS);
-					(*fConnInfo->target)->PostMessage(msg);
-				}
-				else if(!bstr2.Compare("$BadPass",8))
-				{
-					//msg = new BMessage(DC_NEED_PASS);
-					//(*fConnInfo->target)->PostMessage(msg);
-				}
-				else if(!bstr2.Compare("$LogedIn ",9))
-				{
-					/* Wooo, we're logged in as an operator */
-					bstr2.SetTo("<Client> Logged in as operator");
-					msg = new BMessage(DC_TEXT);
-					msg->AddString("thetext",bstr2.String());
-					(*fConnInfo->target)->PostMessage(msg);
-				}
-				else
-				{
-					/* Probably chat text, send it to the BLooper */
-					if(bstr2!="") /* We don't want no empty strings */
-					{
-						msg = new BMessage(DC_TEXT);
-						msg->AddString("thetext",bstr2.String());
-						(*fConnInfo->target)->PostMessage(msg);
-					}
-				}
-				//delete msg;
 			}
 		}
 	}
-	return 0;
+	
+	// Failure
+	fTarget.SendMessage(DC_MSG_CON_CONNECT_ERROR);
 }
 
-BString *generate_key(BString &lck)
+int32
+DCConnection::ReceiveHandler(void * d)
 {
-	BString *key;
-	key= new BString("",2048);
-	char c, v;
-	for(int i=0;i<lck.Length();i++)
+	DCConnection * me = (DCConnection *)d;
+	const int32 BUFFER_SIZE = 512;
+	char recvBuffer[BUFFER_SIZE + 1];
+	BString converted = "";
+	BString str1 = "", str2 = "";
+	
+	while (1)
 	{
-		if(i==0)
+		int amountRead;
+		amountRead = recv(me->fSocket, recvBuffer, BUFFER_SIZE, 0);
+		if (amountRead < 0)
 		{
-			c = lck[i]^lck[lck.Length()-1]^lck[lck.Length()-2]^5;
+#ifdef NETSERVER_BUILD
+			if (amountRead != -1)	// on net_server, we only abort if it's not -1
+			{
+				me->fTarget.SendMessage(DC_MSG_CON_RECV_ERROR);
+				return -1;
+			}
+#else
+			me->fTarget.SendMessage(DC_MSG_CON_RECV_ERROR);
+			return -1;
+#endif
+		}
+		
+		if (amountRead == 0)	// Disconnected
+		{
+			me->Disconnect();
+			me->fTarget.SendMessage(DC_MSG_CON_DISCONNECTED);
+			return -2;
+		}
+		
+		// good :)
+		recvBuffer[amountRead] = 0;
+		str1 = DCUTF8(recvBuffer);
+		while (str1[str1.Length() - 1] != '|')	// we haven't gotten the command yet
+		{
+			amountRead = recv(me->fSocket, recvBuffer, BUFFER_SIZE, 0);
+			if (amountRead < 0)
+			{
+#ifdef NETSERVER_BUILD
+				if (amountRead != -1)	// on net_server, we only abort if it's not -1
+				{
+					me->fTarget.SendMessage(DC_MSG_CON_RECV_ERROR);
+					return -1;
+				}
+#else
+				me->fTarget.SendMessage(DC_MSG_CON_RECV_ERROR);
+				return -1;
+#endif
+			}
+			
+			if (amountRead == 0)	// Disconnected
+			{
+				me->Disconnect();
+				me->fTarget.SendMessage(DC_MSG_CON_DISCONNECTED);
+				return -2;
+			}
+			
+			recvBuffer[amountRead] = 0;
+			converted = DCUTF8(recvBuffer);
+			str1.Append(converted);
+		}
+		
+		// got a command, figure out what it is
+		int i = 0;
+		while ((i = str1.FindFirst("|")) != B_ERROR)
+		{
+			str2 = "";
+			str1.MoveInto(str2, 0, i);
+			str1.Remove(0, 1);;
+			
+			if (!str2.Compare("$Lock ", 6))
+			{
+				me->LockReceived(str2);
+			}
+			else if (!str2.Compare("$HubName ", 9))
+			{
+				str2.RemoveFirst("$HubName ");
+				me->SendMessage(DC_MSG_CON_HUB_NAME, "name", str2);
+			}
+			else if (!str2.Compare("$ValidateDenide ", 16))
+			{
+				str2.RemoveFirst("$ValidateDenide ");
+				me->SendMessage(DC_MSG_CON_VALIDATE_DENIED, "nick", str2);
+			}
+			else if (!str2.Compare("$GetPass", 8))	// Password request
+			{
+				me->SendMessage(DC_MSG_CON_GET_PASS);
+			}
+			else if (!str2.Compare("$BadPass", 8))
+			{
+				me->SendMessage(DC_MSG_CON_BAD_PASS);
+			}
+			else if (!str2.Compare("$Hello ", 7))
+			{
+				me->HelloReceived(str2);
+			}
+			else if (!str2.Compare("$LogedIn ", 9))
+			{
+				str2.RemoveFirst("$LogedIn ");
+				me->SendMessage(DC_MSG_CON_YOU_ARE_OP);
+			}
+			else if (!str2.Compare("$MyINFO ", 8))
+			{
+				// TODO: Do we want to handle this?
+			}
+			else if (!str2.Compare("$NickList ", 10))
+			{
+				str2.RemoveFirst("$NickList ");
+				me->SendMessage(DC_MSG_CON_GOT_NICK_LIST, "list", str2);
+			}
+			else if (!str2.Compare("$OpList ", 8))
+			{
+				str2.RemoveFirst("$OpList ");
+				me->SendMessage(DC_MSG_CON_GOT_OP_LIST, "list", str2);
+			}
+			else if (!str2.Compare("$To: ", 5))
+			{
+				me->ToReceived(str2);
+			}
+			else if (!str2.Compare("$ConnectToMe ", 13))
+			{
+				me->ConnectToMeReceived(str2);
+			}
+			else if (!str2.Compare("$MultiConnectToMe ", 19))
+			{
+				me->MultiConnectToMeReceived(str2);
+			}
+			else if (!str2.Compare("$RevConnectToMe ", 16))
+			{
+				str2.RemoveFirst("$RevConnectToMe ");
+				str2.Remove(0, str2.FindFirst(" ") + 1);	// remove our name + space
+				me->SendMessage(DC_MSG_CON_REV_CONNECT_TO_ME, "nick", str2);
+			}
+			else if (!str2.Compare("$Search ", 8))	// A query request
+			{
+				// TODO
+			}
+			else if (!str2.Compare("$SR ", 4))	// Search results
+			{
+				// TODO
+			}
+			else if (!str2.Compare("$ForceMove ", 11))
+			{
+				me->Disconnect();
+				str2.RemoveFirst("$ForceMove ");
+				me->SendMessage(DC_MSG_CON_DISCONNECTED);
+				me->SendMessage(DC_MSG_CON_FORCE_MOVE, "ip", str2);
+			}
+			else if (!str2.Compare("$Quit ", 6))
+			{
+				str2.RemoveFirst("$Quit ");
+				me->SendMessage(DC_MSG_CON_QUIT, "nick", str2);
+			}
+		}
+	}
+}
+
+void
+DCConnection::MultiConnectToMeReceived(BString str)
+{
+	BString nick, ip, sip, tmp;
+	int32 port, sport;
+	int32 i;
+	
+	str.RemoveFirst("$MultiConnectToMe ");
+	
+	i = str.FindFirst(" ");
+	str.MoveInto(nick, 0, i);
+	str.RemoveFirst(" ");
+	
+	i = str.FindFirst(":");
+	str.MoveInto(ip, 0, i);
+	str.RemoveFirst(":");
+	
+	i = str.FindFirst(" ");
+	str.MoveInto(tmp, 0, i);
+	str.RemoveFirst(" ");
+	port = atoi(tmp.String());
+	
+	i = str.FindFirst(":");
+	str.MoveInto(sip, 0, i);
+	str.RemoveFirst(":");
+	
+	sport = atoi(str.String());
+	
+	
+	BMessage msg(DC_MSG_CON_CONNECT_TO_ME);
+	msg.AddString("nick", nick);
+	msg.AddString("ip", ip);
+	msg.AddInt32("port", port);
+	msg.AddString("sip", sip);
+	msg.AddInt32("sport", sport);
+	
+	fTarget.SendMessage(&msg);
+}
+
+void
+DCConnection::ConnectToMeReceived(BString str)
+{
+	BString nick, ip;
+	int32 port;
+	int32 i;
+	
+	str.RemoveFirst("$ConnectToMe ");
+	i = str.FindFirst(" ");
+	str.MoveInto(nick, 0, i);
+	str.RemoveFirst(" ");
+	i = str.FindFirst(":");
+	str.MoveInto(ip, 0, i);
+	str.RemoveFirst(":");
+	port = atoi(str.String());
+	
+	BMessage msg(DC_MSG_CON_CONNECT_TO_ME);
+	msg.AddString("nick", nick);
+	msg.AddString("ip", ip);
+	msg.AddInt32("port", port);
+	fTarget.SendMessage(&msg);
+}
+
+void
+DCConnection::ToReceived(BString str)
+{
+	// Private message
+	str.RemoveFirst("$To: ");
+	// This should be sent to us only... but just in case (paranoid)
+	if (!str.Compare(fNick, fNick.Length()))
+	{
+		str.RemoveFirst(fNick);
+		str.RemoveFirst(" From: ");
+		
+		BString from;
+		str.MoveInto(from, 0, str.FindFirst(" "));
+		str.RemoveFirst(" $");
+		str.RemoveFirst(from);
+		str.RemoveFirst(" ");
+		if (str != "")	// Check to see if we have a message
+		{
+			BMessage msg(DC_MSG_CON_PRIV_MSG);
+			msg.AddString("from", from);
+			msg.AddString("text", str);
+			fTarget.SendMessage(&msg);
+		}
+	}
+}
+
+void
+DCConnection::HelloReceived(BString str)
+{
+	// Someone just entered the hub
+	// If it's us, identify ourselves ;)
+	str.RemoveFirst("$Hello ");
+	if (str.Compare(fNick) == 0)	// it's us 
+	{
+		SendVersion();
+		SendNickListRequest();
+		SendMyInfo();
+	}
+	else
+	{
+		SendMessage(DC_MSG_CON_USER_CONNECTED, "nick", str);
+	}
+}
+
+void
+DCConnection::LockReceived(BString str)
+{
+	str.RemoveFirst("$Lock ");
+	int j = str.FindFirst(" ");
+	// Remove everything after the first space
+	str.Remove(j, str.Length() - j);
+	
+	BString key = DCConnection::GenerateKey(str);
+	// Parse the key, and send it
+	str = "$Key ";
+	str += key;
+	str += "|";
+	SendRawData(str);
+	
+	// Also, send our nick too
+	ValidateNick();
+}
+
+// Just a helper
+void
+DCConnection::SendMessage(uint32 cmd, const char * name, const BString & str)
+{
+	BMessage msg(cmd);
+	if (name)
+		msg.AddString(name, str);
+	fTarget.SendMessage(&msg);
+}
+
+void
+DCConnection::ValidateNick()
+{
+	BString str = "$ValidateNick ";
+	str += fNick;
+	str += "|";
+	SendData(str);
+}
+
+BString
+DCConnection::GenerateKey(BString & lck)
+{
+	BString key("", 2048);
+	char c, v;
+	
+	for (int i = 0; i < 2048; i++)
+	{
+		if (i == 0)
+			c = lck[i] ^ lck[lck.Length() - 1] ^ lck[lck.Length() - 2] ^ 5;
+		else
+			c = lck[i] ^ lck[i - 1];
+		
+		v = c << 4 | c >> 4;
+		
+		if (v == 0 || v == 5 || v == 36 || v == 96 || v == 124 || v == 126)	// escape
+		{
+			char buf[11];
+			memset(buf, 0, sizeof(buf));
+			sprintf(buf, "/%%DCN%03d%%/", v);
+			key.Append(buf);
 		}
 		else
 		{
-			c = lck[i]^lck[i-1];
+			key.Append(v, 1);
 		}
-		v = (c<<4|c>>4);
-		if ((v==0)||(v==5)||(v==36)||(v==96)||(v==124)||(v==126)) /* chars we must escape */
-		{
-				char sbuf[11];
-				memset(sbuf,0,sizeof(sbuf));
-				sprintf(sbuf,"/%%DCN%03d%%/",v);
-				key->Append(sbuf);
-		}
-		else
-			key->Append(v,1);
 	}
 	return key;
+}
+
+void
+DCConnection::SendNickListRequest()
+{
+	SendRawData("$GetNickList|");
+}
+
+void
+DCConnection::SendVersion(const BString & version)
+{
+	BString v("$Version ");
+	v.Append((version == "") ? "1,0091" : version);
+	v += "|";
+	SendRawData(v);	
+}
+
+void
+DCConnection::SendMyInfo()
+{
+	BString send = "$MyINFO $ALL ";
+	send += fNick;
+	send += " ";
+	send += fDesc;
+	send += "$ $";
+	send += fSpeed;
+	send.Append((char)1, 1);
+	send += "$";
+	send += fEmail;
+	send += "$";
+	send << fSharedSize;
+	send += "$|";
+	SendData(send);
+}
+
+void
+DCConnection::SendPassword(const BString & passwd)
+{
+	BString send = "$MyPass ";
+	send += passwd;
+	send += "|";
+	SendData(send);
+}
+
+void
+DCConnection::GetUserInfo(const BString & userNick)
+{
+	BString send = "$GetINFO ";
+	send += userNick;
+	send += " ";
+	send += fNick;
+	send += "|";
+	SendData(send);
+}
+
+void
+DCConnection::SendConnectRequest(const BString & userNick)
+{
+	BString send = "$RevConnectToMe ";
+	send += userNick;
+	send += " ";
+	send += fNick;
+	send += "|";
+	SendData(send);
 }

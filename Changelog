@@ -1,4 +1,5 @@
 *0.1-alpha5
+	- Added the Prefs window, with a "General" item.
 	- Added Search window and som menu items (raftking)
 	- Got the latest ColumnListView source from Vision CVS, which fixes
 	  several NASTY, system-locking, bugs in the list view (VitViper)

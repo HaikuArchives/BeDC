@@ -145,3 +145,22 @@ DCUTF8(const char * str)
 	delete [] convStr;
 	return ret;
 }
+
+// Convert UTF8 to MS encoding
+BString
+DCMS(const char * str)
+{
+	BString ret(str);
+	int srcSize = strlen(str) + 1;
+	char * convBuffer = new char[srcSize];
+	
+	memset(convBuffer, 0, srcSize);
+	if (convert_from_utf8(B_MS_WINDOWS_CONVERSION, str, (int32 *)&srcSize, convBuffer, (int32 *)&srcSize, 0) == B_OK)
+	{
+		printf("Converted to MS\n");
+		ret.SetTo(convBuffer);
+	}
+	
+	delete [] convBuffer;
+	return ret;	
+}
