@@ -83,7 +83,14 @@ const char * DC_STR_ENGLISH[STR_NUM] =
 	"Passive (behind a firewall)",
 	"IP",
 	"Port",
-	
+	"Colors",
+	"System Label",
+	"Text",
+	"Error Label",
+	"Remote Nick",
+	"Local Nick",
+	"Private Text",
+		
 	// "Name" is reused
 	"Speed",
 	"Description",
@@ -97,6 +104,7 @@ const char * DC_STR_ENGLISH[STR_NUM] =
 	"Error",
 	"Users",
 	"Language",
+	"Revert",
 	
 	"Please choose a nick name in Edit->Preferences.",
 	
@@ -180,6 +188,13 @@ const char * DC_STR_SWEDISH[STR_NUM] =
 	"Passiv (Jag är bakom brandvägg)",
 	"IP",
 	"Port",
+	"Colors",	// TRANSLATE
+	"System Label",	// TRANSLATE
+	"Text",	// TRANSLATE
+	"Error Label",	// TRANSLATE
+	"Remote Nick",	// TRANSLATE
+	"Local Nick",	// TRANSLATE
+	"Private Text",	// TRANSLATE
 	
 	// "Name" is reused
 	"Uppkoppling",
@@ -194,7 +209,8 @@ const char * DC_STR_SWEDISH[STR_NUM] =
 	"Fel",
 	"Användare",
 	"Språk",
-	
+	"Revert",		// TRANSLATE
+
 	"Vargod välj ett nytt Nickname i Redigera->Inställningar.",
 	
 	"System: ",
@@ -274,6 +290,13 @@ const char * DC_STR_FINNISH[STR_NUM] =
 	"Passiivinen (palomuurin takana)",
 	"IP",
 	"Portti",
+	"Colors",	// TRANSLATE
+	"System Label",	// TRANSLATE
+	"Text",	// TRANSLATE
+	"Error Label",	// TRANSLATE
+	"Remote Nick",	// TRANSLATE
+	"Local Nick",	// TRANSLATE
+	"Private Text",	// TRANSLATE
 	
 	// "Name" is reused
 	"Nopeus",
@@ -288,6 +311,7 @@ const char * DC_STR_FINNISH[STR_NUM] =
 	"Virhe",
 	"Käyttäjiä",
 	"Kieli",
+	"Revert",		// TRANSLATE
 	
 	"Ole hyvä ja valitse nimi valikosta Muokkaa->Asetukset.",
 	
@@ -367,6 +391,13 @@ const char * DC_STR_GERMAN[STR_NUM] =
 	"Passive (hinter einer Firewall)",
 	"IP",
 	"Port",
+	"Colors",	// TRANSLATE
+	"System Label",	// TRANSLATE
+	"Text",	// TRANSLATE
+	"Error Label",	// TRANSLATE
+	"Remote Nick",	// TRANSLATE
+	"Local Nick",	// TRANSLATE
+	"Private Text",	// TRANSLATE
 	
 	// "Name" is reused
 	"Geschwindigkeit",
@@ -380,6 +411,7 @@ const char * DC_STR_GERMAN[STR_NUM] =
 	"Abbrechen",
 	"Fehler",
 	"Benutzer",
+	"Revert",		// TRANSLATE
 	
 	"Bitte wählen Sie einen Namen im Menu Bearbeiten->Einstellungen.",
 	
@@ -460,6 +492,13 @@ const char * DC_STR_NORWEGIAN[STR_NUM] =
 	"Passiv (bak brannmur)",
 	"IP",
 	"Port",
+	"Colors",	// TRANSLATE
+	"System Label",	// TRANSLATE
+	"Text",	// TRANSLATE
+	"Error Label",	// TRANSLATE
+	"Remote Nick",	// TRANSLATE
+	"Local Nick",	// TRANSLATE
+	"Private Text",	// TRANSLATE
 	
 	// "Name" is reused
 	"Speed",
@@ -474,7 +513,8 @@ const char * DC_STR_NORWEGIAN[STR_NUM] =
 	"Feil",
 	"Brukere",
 	"Språk",
-	
+	"Revert",		// TRANSLATE
+
 	"Velg et nick i Edit->Instillinger.",
 	
 	"System: ",
@@ -553,6 +593,13 @@ const char * DC_STR_POLISH[STR_NUM] =
 	"Pasywny (za firewallem)",
 	"IP",
 	"Port",
+	"Colors",	// TRANSLATE
+	"System Label",	// TRANSLATE
+	"Text",	// TRANSLATE
+	"Error Label",	// TRANSLATE
+	"Remote Nick",	// TRANSLATE
+	"Local Nick",	// TRANSLATE
+	"Private Text",	// TRANSLATE
 	
 	// "Name" is reused
 	"Łącze",
@@ -567,6 +614,7 @@ const char * DC_STR_POLISH[STR_NUM] =
 	"Błąd",
 	"Użytkownicy",
 	"Język",
+	"Revert",		// TRANSLATE
 	
 	"Wpisz ksywkę w  Edycja -> Ustawienia.",
 	
@@ -605,6 +653,99 @@ const char DC_KEY_POLISH[KEY_NUM] =
 	'H'		// Hubs
 };
 
+//////////////////////////////////////////////////////
+// RUSSIAN
+//////////////////////////////////////////////////////
+const char * DC_STR_RUSSIAN[STR_NUM] =
+{
+	"Узлы", //"Hubs",
+	"Соединение", //"Connect",
+	"Обновить", //"Refresh",
+	"Следующие 50", //"Next 50",
+	"Предыдущие 50", //"Previous 50",
+	
+	"Имя", //"Name",
+	"Адрес", //"Address",
+	"Описание", //"Description",
+	"Пользователи", //"Users",
+	
+	"В спячке", //"Idle.",
+	"Соединяюсь...", //"Connecting...",
+	"Есть соединение, получаю список серверов", //"Connected, retreiving server list...",
+	"Ошибка соединения", //"Error connecting.",
+	"Ошибка посылки запроса", //"Error sending request.",
+	"Ошибка приема данных", //"Error receiving data.",
+	"Число серверов", //"Number of servers: ",
+	
+	"Файл", //"File",
+	"О программе", //"About",
+	"Закрыть", //"Close",
+	"Правка", //"Edit",
+	"Настройки", //"Preferences",
+	"Окна", //"Windows",
+	"Показать узлы", //"Show Hubs",
+	
+	"Настройки", //"Preferences",
+	"Общие", //"General",
+	"Персональные данные", //"Personal Information",
+	"Параметры соединения", //"Connection Settings",
+	"Псевдоним (обязательно!)", //"Nick (Required)",
+	"Адрес e-mail", //"E-Mail",
+	"Описание", //"Description",
+	"Соединение", //"Connection",
+	"Активное", //"Active",
+	"Пассивное (за файрволлом)", //"Passive (behind a firewall)",
+	"IP", //"IP",
+	"Порт", //"Port",
+	
+	// "", //"Name" is reused
+	"Скорость", //"Speed",
+	"Описание", //"Description",
+	"Адрес e-mail", //"E-Mail",
+	"Разделяемые файлы", //"Shared",
+	"Беседка", //"Chat:",
+	"Закрыть", //"Close", 
+	
+	"Да", //"OK",
+	"Отмена", //"Cancel",
+	"Ошибка", //"Error",
+	"Пользователи", //"Users",
+	"Language", //"Language",
+	
+	"", //"Please choose a nick name in Edit->Preferences.",
+	
+	"Система: ", //"System: ",
+	"Ошибка: ", //"Error: ",
+	"Соединяюсь с ", //"Connecting to ",
+	"", //"Connected.",
+	"Соединение с сервером не удалось", //"Connection to server failed!",
+	"Повторяю попытку соединения с сервером...", //"Trying to reconnect to server...",
+	"Соединение с сервером разорвано", //"Disconnected from server.",
+	"Ваш псевдоним уже занят, используйте другой", //"Your nick is already in use, please choose another.",
+	"Вошел пользователь %", //"User %s has logged in.",
+	"Пользователь % вышел", //"User %s has logged out.",	// the user name is prepended to this string
+	"Перенаправление на ", //Redirecting to ",
+	"Нет места на узле", "Hub is full.",
+	"Нет такого пользователя", "User not found!",
+	"Неизвестная команда", "Unknown command.",
+	
+	// START /help
+	"Доступные команды:\n"
+	"\t\t\t/close - Закрыть соединение.\n"
+	"\t\t\t/help - Показать эту справку.\n"
+	"\t\t\t/msg <name> <text> - Послать личное сообщение.\n"
+	"\t\t\t/quit - Выйти из BDC",
+	// END /help
+};
+
+const char DC_KEY_RUSSIAN[KEY_NUM] =
+{
+	'A',	// About
+	'W',	// Close
+	'P',	// Prefs
+	'H'		// Hubs
+};
+
 
 const char ** DC_STR_USE = 0;	// Set to the current language in use
 const char * DC_KEY_USE = 0;	// Set to the current key set in use
@@ -616,7 +757,8 @@ const char * DC_LANGUAGES[DC_LANG_NUM] =
 	"suomi",
 	"Deutsch",
 	"Norsk",
-	"polski"
+	"polski",
+	"Русский"	// I hope Copy+Paste worked ;)
 };
 
 int gCurrentLanguage = -1;
@@ -676,6 +818,14 @@ DCSetLanguage(int lang)
 		{
 			DC_STR_USE = DC_STR_POLISH;
 			DC_KEY_USE = DC_KEY_POLISH;
+			break;
+		}
+		
+		case DC_LANG_RUSSIAN:
+		{
+			DC_STR_USE = DC_STR_RUSSIAN;
+			DC_KEY_USE = DC_KEY_RUSSIAN;
+			break;
 		}
 		
 		default:

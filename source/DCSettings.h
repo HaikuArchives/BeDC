@@ -41,6 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Rect.h>
 #include <Point.h>
 #include <String.h>
+#include <GraphicsDefs.h>	// rgb_color
 
 #define DCS_WINDOW_RECT 		"window_rect"
 #define DCS_HUB_RECT			"hub_rect"
@@ -53,6 +54,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define DCS_PREFS_PORT			"prefs_port"
 #define DCS_PREFS_IP			"prefs_ip"
 #define DCS_LANGUAGE			"language"
+#define DCS_COL_SYSTEM			"col_system"
+#define DCS_COL_TEXT			"col_text"
+#define DCS_COL_ERROR			"col_error"
+#define DCS_COL_REMOTE_NICK		"col_remote_nick"
+#define DCS_COL_LOCAL_NICK		"col_local_nick"
+#define DCS_COL_PRIVATE_TEXT	"col_private_text"
+
 
 class DCSettings : public BMessage
 {
@@ -71,16 +79,20 @@ public:
 	void				SetPoint(const char * name, const BPoint & point);
 	void				SetBool(const char * name, bool val);
 	void				SetInt(const char * name, int32 val);
+	void				SetColor(const char * name, const rgb_color & col);
 	
 	status_t 			GetRect(const char *name, BRect *rect);
 	status_t 			GetString(const char *name, BString *string);
 	status_t			GetPoint(const char * name, BPoint * point);
 	status_t			GetBool(const char * name, bool & val);
 	status_t			GetInt(const char * name, int32 & val);
+	status_t			GetColor(const char * name, rgb_color & col);
 	
 	// Quick helpers
 	BString 			GetString(const char * name)
 		{ BString ret; GetString(name, &ret); return ret; }
+	rgb_color			GetColor(const char * name)
+		{ rgb_color ret = { 0, 0, 0, 255 }; GetColor(name, ret); return ret; }
 };
 
 #endif /* !_DC_SETTINGS_H_ */

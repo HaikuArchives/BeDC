@@ -149,3 +149,25 @@ DCSettings::SetInt(const char * name, int32 val)
 	else
 		AddInt32(name, val);
 }
+
+void
+DCSettings::SetColor(const char * name, const rgb_color & col)
+{
+	const void * temp = NULL;
+	ssize_t size = 0;
+	if (FindData(name, B_ANY_TYPE, &temp, &size) == B_OK)
+		RemoveData(name);
+	AddData(name, B_ANY_TYPE, (const void *)&col, sizeof(col));
+}
+
+status_t
+DCSettings::GetColor(const char * name, rgb_color & col)
+{
+	rgb_color * ret = NULL;
+	ssize_t numBytes = 0;
+	status_t status = FindData(name, B_ANY_TYPE, (const void **)&ret, &numBytes);
+	if (status != B_OK)
+		return B_ERROR;
+	col = *ret;
+	return B_OK;
+}

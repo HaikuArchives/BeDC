@@ -49,24 +49,38 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <MenuItem.h>
 #include <RadioButton.h>
 #include <Alert.h>
+#include <ColorControl.h>
 
 enum
 {
 	DCP_OK = 'dPoK',
 	DCP_CANCEL = B_QUIT_REQUESTED,
-	DCP_ACTIVE = 'dPaC',		// Active radio button
-	DCP_PASSIVE = 'dPpC',		// Passive radio button
-	DCP_OPTION_CHANGED = 'dPoC'	// Option changed
+	DCP_ACTIVE = 'dPaC',			// Active radio button
+	DCP_PASSIVE = 'dPpC',			// Passive radio button
+	DCP_OPTION_CHANGED = 'dPoC',	// Option changed
+	
+	DCP_REVERT_COLOR = 'dPrC',
+	DCP_COLOR_UPDATE = 'dPcU',
+	DCP_NEW_COLOR = 'dPnC'
 };
 
 DCPrefs::DCPrefs(BMessenger target, BPoint pos)
-	: BWindow(BRect(pos.x, pos.y, pos.x + 450, pos.y + 335), DCStr(STR_PREFS_TITLE), 
+	: BWindow(BRect(pos.x, pos.y, pos.x + 525, pos.y + 335), DCStr(STR_PREFS_TITLE), 
 			  B_TITLED_WINDOW, B_NOT_RESIZABLE | B_ASYNCHRONOUS_CONTROLS | B_NOT_ZOOMABLE)
 {
 	fTarget = target;
 	fSettings = NULL;
 	fOKPressed = false;
 	InitGUI();
+	
+	// Load the colors
+	fColorCache[0] = dc_app->GetColor(DC_COLOR_SYSTEM);
+	fColorCache[1] = dc_app->GetColor(DC_COLOR_TEXT);
+	fColorCache[2] = dc_app->GetColor(DC_COLOR_ERROR);
+	fColorCache[3] = dc_app->GetColor(DC_COLOR_REMOTE_NICK);
+	fColorCache[4] = dc_app->GetColor(DC_COLOR_LOCAL_NICK);
+	fColorCache[5] = dc_app->GetColor(DC_COLOR_PRIVATE_TEXT);
+	fColorIndex = -1;
 }
 
 DCPrefs::~DCPrefs()
@@ -79,6 +93,55 @@ DCPrefs::MessageReceived(BMessage * msg)
 {
 	switch (msg->what)
 	{
+		case DCP_REVERT_COLOR:
+		{
+			if (fColorIndex >= 0)
+			{
+				switch (fColorIndex)
+				{
+					// The dc_app has the old colors...
+					case 0:
+						fColorCache[0] = dc_app->GetColor(DC_COLOR_SYSTEM);
+						break;
+					case 1:
+						fColorCache[1] = dc_app->GetColor(DC_COLOR_TEXT);
+						break;
+					case 2:
+						fColorCache[2] = dc_app->GetColor(DC_COLOR_ERROR);
+						break;
+					case 3:
+						fColorCache[3] = dc_app->GetColor(DC_COLOR_REMOTE_NICK);
+						break;
+					case 4:
+						fColorCache[4] = dc_app->GetColor(DC_COLOR_LOCAL_NICK);
+						break;
+					case 5:
+						fColorCache[5] = dc_app->GetColor(DC_COLOR_PRIVATE_TEXT);
+						break;
+				}
+				UpdateColorPreview(true);
+			}
+			break;
+		}
+		
+		case DCP_COLOR_UPDATE:
+		{
+			if (fColorIndex >= 0)
+			{
+				fColorCache[fColorIndex] = fPicker->ValueAsColor();
+				UpdateColorPreview();
+			}
+			break;
+		}
+		
+		case DCP_NEW_COLOR:
+		{
+			fColorIndex = fColorMenu->IndexOf(fColorMenu->FindMarked());
+			//fPicker->SetValue(fColorCache[fColorIndex]);
+			UpdateColorPreview(true);
+			break;
+		}
+		
 		case DCP_OK:
 		{
 			fOKPressed = true;
@@ -104,14 +167,21 @@ DCPrefs::MessageReceived(BMessage * msg)
 		
 		case DCP_OPTION_CHANGED:
 		{
-			if (fOptions->CurrentSelection() == 0)
-			{
-				fGeneral->Show();
-			}
-			else
-			{
+			if (!fGeneral->IsHidden())
 				fGeneral->Hide();
+			if (!fColors->IsHidden())
+				fColors->Hide();
+			
+			switch (fOptions->CurrentSelection())
+			{
+				case 0:
+					fGeneral->Show();
+					break;
+				case 1:
+					fColors->Show();
+					break;
 			}
+			
 			break;
 		}
 		
@@ -139,6 +209,15 @@ DCPrefs::QuitRequested()
 		fSettings->SetBool(DCS_PREFS_ACTIVE, (fActive->Value() == 0) ? false : true);
 		fSettings->SetString(DCS_PREFS_PORT, fPort->Text());
 		fSettings->SetString(DCS_PREFS_IP, fIP->Text());
+		
+		// We set the colors directly to the settings message
+		fSettings->SetColor(DCS_COL_SYSTEM, fColorCache[0]);
+		fSettings->SetColor(DCS_COL_TEXT, fColorCache[1]);
+		fSettings->SetColor(DCS_COL_ERROR, fColorCache[2]);
+		fSettings->SetColor(DCS_COL_REMOTE_NICK, fColorCache[3]);
+		fSettings->SetColor(DCS_COL_LOCAL_NICK, fColorCache[4]);
+		fSettings->SetColor(DCS_COL_PRIVATE_TEXT, fColorCache[5]);
+		
 		msg.AddMessage("prefs", fSettings);
 	}
 	fTarget.SendMessage(&msg);
@@ -244,6 +323,9 @@ DCPrefs::InitGUI()
 	fOptions->AddItem(
 		new BStringItem(DCStr(STR_PREFS_GENERAL))
 	);
+	fOptions->AddItem(
+		new BStringItem(DCStr(STR_PREFS_COLORS))
+	);
 	fOptions->SetSelectionMessage(new BMessage(DCP_OPTION_CHANGED));
 	
 	BRect bounds = fContainer->Bounds();
@@ -325,9 +407,51 @@ DCPrefs::InitGUI()
 									DCStr(STR_PREFS_GENERAL_PASSIVE), new BMessage(DCP_PASSIVE))
 	);
 	
+	// Create the Colors view
+	fColors = new BView(bounds, "colors_view", B_FOLLOW_NONE, B_WILL_DRAW);
+	fColors->SetViewColor(216, 216, 216);
+	
+	// Add the color picker
+	fColorMenu = new BPopUpMenu("");
+	fColorMenu->AddItem(new BMenuItem(DCStr(STR_PREFS_COLORS_SYSTEM), new BMessage(DCP_NEW_COLOR)));
+	fColorMenu->AddItem(new BMenuItem(DCStr(STR_PREFS_COLORS_TEXT), new BMessage(DCP_NEW_COLOR)));
+	fColorMenu->AddItem(new BMenuItem(DCStr(STR_PREFS_COLORS_ERROR), new BMessage(DCP_NEW_COLOR)));
+	fColorMenu->AddItem(new BMenuItem(DCStr(STR_PREFS_COLORS_REMOTE_NICK), new BMessage(DCP_NEW_COLOR)));
+	fColorMenu->AddItem(new BMenuItem(DCStr(STR_PREFS_COLORS_LOCAL_NICK), new BMessage(DCP_NEW_COLOR)));
+	fColorMenu->AddItem(new BMenuItem(DCStr(STR_PREFS_COLORS_PRIVATE_TEXT), new BMessage(DCP_NEW_COLOR)));
+	
+	fColors->AddChild(
+		fColorList = new BMenuField(BRect(5, 5, 150, 25), "color_list", 
+									DCStr(STR_PREFS_COLORS), fColorMenu)
+	);
+	fColorList->SetDivider(fColorList->StringWidth(DCStr(STR_PREFS_COLORS)) + 10);
+	
+	// Preview view
+	fColors->AddChild(
+		fColorPreview = new BView(BRect(150, 5, fColors->Bounds().Width() - 5, 
+								  fColorList->Bounds().Height() + 5), "color_preview",
+								  B_FOLLOW_NONE, B_WILL_DRAW)
+	);
+	fColorPreview->SetViewColor(216, 216, 216);
+	
+	// Picker
+	fColors->AddChild(
+		fPicker = new BColorControl(BPoint(5, fColorList->Bounds().Height() + 10), B_CELLS_32x8, 10, "colors_picker", 
+									new BMessage(DCP_COLOR_UPDATE))
+	);
+	
+	fColors->AddChild(
+		fRevertColor = new BButton(BRect(fColors->Bounds().Width() - 75, 
+								   fPicker->Frame().bottom + 7, fColors->Bounds().Width() - 5,
+								   fPicker->Frame().bottom + 27), "color_revert", 
+								   DCStr(STR_REVERT), new BMessage(DCP_REVERT_COLOR))
+	);
+	
 	// Add all to container
 	fContainer->AddChild(fGeneral);
+	fContainer->AddChild(fColors);
 	fGeneral->Hide();
+	fColors->Hide();
 	
 	// Buttons
 	int middle = (int)Bounds().Width() >> 1;
@@ -349,6 +473,7 @@ DCPrefs::UpdateLanguage()
 {
 	// Options list
 	((BStringItem *)fOptions->ItemAt(0))->SetText(DCStr(STR_PREFS_GENERAL));
+	((BStringItem *)fOptions->ItemAt(1))->SetText(DCStr(STR_PREFS_COLORS));
 	
 	// Personal info
 	fGeneralPersonal->SetLabel(DCStr(STR_PREFS_GENERAL_PERSONAL));
@@ -364,5 +489,23 @@ DCPrefs::UpdateLanguage()
 	fPort->SetLabel(DCStr(STR_PREFS_GENERAL_PORT));
 	fPassive->SetLabel(DCStr(STR_PREFS_GENERAL_PASSIVE));
 	
+	fRevertColor->SetLabel(DCStr(STR_REVERT));
+	fColorMenu->ItemAt(0)->SetLabel(DCStr(STR_PREFS_COLORS_SYSTEM));
+	fColorMenu->ItemAt(1)->SetLabel(DCStr(STR_PREFS_COLORS_TEXT));
+	fColorMenu->ItemAt(2)->SetLabel(DCStr(STR_PREFS_COLORS_ERROR));
+	fColorMenu->ItemAt(3)->SetLabel(DCStr(STR_PREFS_COLORS_REMOTE_NICK));
+	fColorMenu->ItemAt(4)->SetLabel(DCStr(STR_PREFS_COLORS_LOCAL_NICK));
+	fColorMenu->ItemAt(5)->SetLabel(DCStr(STR_PREFS_COLORS_PRIVATE_TEXT));
+	
 	SetTitle(DCStr(STR_PREFS_TITLE));
+}
+
+void
+DCPrefs::UpdateColorPreview(bool setPicker)
+{
+	if (setPicker)
+		fPicker->SetValue(fColorCache[fColorIndex]);
+	
+	fColorPreview->SetViewColor(fColorCache[fColorIndex]);
+	fColorPreview->Invalidate();
 }

@@ -239,36 +239,42 @@ DCApp::GetColor(int c)
 		case DC_COLOR_SYSTEM:
 		{
 			rgb_color r = { 0, 0, 127, 255 };
+			fSettings->GetColor(DCS_COL_SYSTEM, r);
 			return r;
 		}
 			
 		case DC_COLOR_TEXT:
 		{
 			rgb_color r = { 0, 0, 0, 255 };
+			fSettings->GetColor(DCS_COL_TEXT, r);
 			return r;
 		}
 		
 		case DC_COLOR_ERROR:
 		{
 			rgb_color r = { 127, 0, 0, 255 };
+			fSettings->GetColor(DCS_COL_ERROR, r);
 			return r;
 		}
 		
 		case DC_COLOR_REMOTE_NICK:
 		{
 			rgb_color r = { 0, 0, 0, 255 };
+			fSettings->GetColor(DCS_COL_REMOTE_NICK, r);
 			return r;
 		}
 		
 		case DC_COLOR_LOCAL_NICK:
 		{
 			rgb_color r = { 0, 127, 0, 255 };
+			fSettings->GetColor(DCS_COL_LOCAL_NICK, r);
 			return r;
 		}
 		
 		case DC_COLOR_PRIVATE_TEXT:
 		{
 			rgb_color r = { 255, 61, 255, 255 };
+			fSettings->GetColor(DCS_COL_PRIVATE_TEXT, r);
 			return r;
 		}
 		

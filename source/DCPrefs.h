@@ -39,6 +39,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Messenger.h>
 #include <Point.h>
 
+#include "DCApp.h"
+
 class BView;
 class BListView;
 class BScrollView;
@@ -48,6 +50,7 @@ class BTextControl;
 class BMenuField;
 class BPopUpMenu;
 class BRadioButton;
+class BColorControl;
 
 class DCSettings;
 
@@ -96,11 +99,22 @@ private:
 		BRadioButton *	fPassive;
 		BTextControl *	fIP;
 		BTextControl *	fPort;
-		
+	
+	// Color settings
+	BView *				fColors;
+		BColorControl *	fPicker;
+		BMenuField *	fColorList;
+		BPopUpMenu *	fColorMenu;
+		BButton *		fRevertColor;
+		BView *			fColorPreview;
+		rgb_color		fColorCache[DC_COLOR_NUM];	// we cache our colors
+		int32			fColorIndex;
+
 	DCSettings *		fSettings;	// a COPY of the original settings
 	
 	void				InitGUI();
 	void				UpdateLanguage();
+	void				UpdateColorPreview(bool setPicker = false);
 };
 
 
