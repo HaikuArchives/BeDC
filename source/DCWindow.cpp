@@ -115,8 +115,8 @@ DCWindow::DCWindow(BRect frame)
 	fMenubar->AddItem(menu);
 	
 	menu = new BMenu("Windows");
-	item = new BMenuItem("Show hub list",NULL);
-	item->SetEnabled(false);
+	item = new BMenuItem("Show hub list", new BMessage(DC_SHOW_HUB_LIST);
+	//item->SetEnabled(false);	// 20021205, VV
 	menu->AddItem(item);
 	item = new BMenuItem("Show search window", new BMessage(DC_SEARCH_WINDOW), 'S');
 	//item->SetEnabled(false);
