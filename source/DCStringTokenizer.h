@@ -32,69 +32,28 @@ AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
 */
-#include "DCStrings.h"
+#ifndef _DC_STRING_TOKENIZER_H_
+#define _DC_STRING_TOKENIZER_H_
 
-#include <UTF8.h>
+#include <String.h>
 
-#include <string.h>
-#include <stdio.h>
+#include <list>
+using std::list;
 
-// This is the implementation of internationalization... 
-// If you want your own language to be implemented, translate the
-// english strings to your language, and send it my way :)
-const char * DC_STR_ENGLISH[STR_NUM] =
+typedef list<BString> DCTokens;
+
+// A simple tokenizer that generates tokens based on a single char
+class DCStringTokenizer
 {
-	"Hubs",
-	"Connect",
-	"Refresh",
-	"Next 50",
-	"Previous 50",
-	"Name",
-	"Address",
-	"Description",
-	"Users",
-	"Idle",
-	"Connected, retreiving server list",
-	"Error connecting",
-	"Error sending request",
-	"Error receiving data",
-	"Number of servers: "
+public:
+					DCStringTokenizer(const BString & str, char token);
+					~DCStringTokenizer() {}
+					
+	DCTokens &		GetTokenList() { return fTokens; }
+	int				GetListSize() const { return fTokens.size(); }
+	
+private:
+	DCTokens		fTokens;
 };
 
-const char ** DC_STR_USE = 0;	// Set to the current language in use
-
-const char * 
-DCStr(int str)
-{
-	return DC_STR_USE[str];	// invalid index will cause a CRASH
-}
-
-void
-DCSetLanguage(int lang)
-{
-	switch (lang)
-	{
-		case DC_LANG_ENGLISH:
-			DC_STR_USE = DC_STR_ENGLISH;
-			break;
-			
-		default:
-			break;
-	};
-}
-
-BString
-DCUTF8(const char * str)
-{
-	BString ret(str);
-	int32 srcSize = strlen(str) + 1;
-	int32 convSize = srcSize * 2 + 4 /* 4 for padding... just in case */;
-	char * convStr = new char[convSize + 1];
-	
-	if (convert_to_utf8(B_MS_WINDOWS_CONVERSION, str, &srcSize, convStr, &convSize, NULL) == B_OK)
-	{
-		ret.SetTo(convStr);
-	}
-	delete [] convStr;
-	return ret;
-}
+#endif // _DC_STRING_TOKENIZER_H_

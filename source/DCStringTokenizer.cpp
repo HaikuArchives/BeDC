@@ -32,69 +32,24 @@ AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
 */
-#include "DCStrings.h"
+#include "DCStringTokenizer.h"
 
-#include <UTF8.h>
-
-#include <string.h>
-#include <stdio.h>
-
-// This is the implementation of internationalization... 
-// If you want your own language to be implemented, translate the
-// english strings to your language, and send it my way :)
-const char * DC_STR_ENGLISH[STR_NUM] =
+DCStringTokenizer::DCStringTokenizer(const BString & str, char token)
 {
-	"Hubs",
-	"Connect",
-	"Refresh",
-	"Next 50",
-	"Previous 50",
-	"Name",
-	"Address",
-	"Description",
-	"Users",
-	"Idle",
-	"Connected, retreiving server list",
-	"Error connecting",
-	"Error sending request",
-	"Error receiving data",
-	"Number of servers: "
-};
-
-const char ** DC_STR_USE = 0;	// Set to the current language in use
-
-const char * 
-DCStr(int str)
-{
-	return DC_STR_USE[str];	// invalid index will cause a CRASH
-}
-
-void
-DCSetLanguage(int lang)
-{
-	switch (lang)
-	{
-		case DC_LANG_ENGLISH:
-			DC_STR_USE = DC_STR_ENGLISH;
-			break;
-			
-		default:
-			break;
-	};
-}
-
-BString
-DCUTF8(const char * str)
-{
-	BString ret(str);
-	int32 srcSize = strlen(str) + 1;
-	int32 convSize = srcSize * 2 + 4 /* 4 for padding... just in case */;
-	char * convStr = new char[convSize + 1];
+	BString temp = str;
 	
-	if (convert_to_utf8(B_MS_WINDOWS_CONVERSION, str, &srcSize, convStr, &convSize, NULL) == B_OK)
+	int32 i = 0, j = 0;
+	while ((i = str.FindFirst(token, j)) != B_ERROR)
 	{
-		ret.SetTo(convStr);
+		BString cpy;
+		str.CopyInto(cpy, j, i - j);
+		fTokens.push_back(cpy);
+		j = i + 1;
 	}
-	delete [] convStr;
-	return ret;
+	if (j < temp.Length())
+	{
+		BString cpy;
+		temp.CopyInto(cpy, j, temp.Length() - j);
+		fTokens.push_back(cpy);
+	}
 }

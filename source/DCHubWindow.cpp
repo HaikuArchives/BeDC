@@ -91,6 +91,12 @@ DCHubWindow::MessageReceived(BMessage * msg)
 {
 	switch (msg->what)
 	{
+		case HUB_CONNECT:
+		{
+			// TODO: Launch message
+			break;
+		}
+		
 		case HUB_REFRESH:
 		{
 			if (!fList)
@@ -136,28 +142,45 @@ DCHubWindow::MessageReceived(BMessage * msg)
 		{
 			printf("Got disconnection message\n");
 			HandleDisconnect();
-			fList->Lock();
-			fList->Quit();
-			fList->EmptyHubList(fHubs);
-			fList = NULL;
+			CleanUpConnection();
 			break;
 		}
 		
 		case DC_MSG_HTTP_CONNECT_ERROR:
+		{
 			fStatus->SetText(DCStr(STR_STATUS_CONNECT_ERROR));
+			CleanUpConnection();
 			break;
+		}
 			
 		case DC_MSG_HTTP_SEND_ERROR:
+		{
 			fStatus->SetText(DCStr(STR_STATUS_SEND_ERROR));
+			CleanUpConnection();
 			break;
+		}
 			
 		case DC_MSG_HTTP_RECV_ERROR:
+		{
 			fStatus->SetText(DCStr(STR_STATUS_RECV_ERROR));
+			CleanUpConnection();
 			break;
+		}
 			
 		default:
 			BWindow::MessageReceived(msg);
 			break;
+	}
+}
+
+void
+DCHubWindow::CleanUpConnection()
+{
+	if (fList)
+	{
+		fList->Lock();
+		fList->Quit();
+		fList = NULL;
 	}
 }
 

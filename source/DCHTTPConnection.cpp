@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCHTTPConnection.h"
 #include "DCNetSetup.h"
 #include "DCStrings.h"
+#include "DCStringTokenizer.h"
 
 #include <unistd.h>
 #include <stdio.h>
@@ -260,46 +261,23 @@ DCHTTPConnection::ParseIntoHubList()
 	uint32 users;
 	BString item;
 	
+	EmptyHubList(&fHubs);
 	printf("ParseIntoHubList(): %d\n", (int)fLines.size());
 	for (i = fLines.begin(); i != fLines.end(); i++)
 	{
 		printf("Parsing item [%s]...\n", (*i).String());
-		int32 offset, offset2;
 		BString tmpUsers;
-		
 		item = (*i);
 
-		offset = 0;
-		offset2 = item.FindFirst("|", offset);
-		if (offset2 == B_ERROR)
+		DCStringTokenizer tok(item, '|');
+		if (tok.GetListSize() < 4)
 			continue;
-		
-		item.CopyInto(name, offset, offset2 - offset);
-		
-		// Now for the server
-		offset = offset2 + 1;
-		offset2 = item.FindFirst("|", offset);
-		if (offset2 == B_ERROR)
-			continue;
-		item.CopyInto(server, offset, offset2 - offset);
-		
-		// Now for the description
-		offset = offset2 + 1;
-		offset2 = item.FindFirst("|", offset);
-		if (offset2 == B_ERROR)
-			continue;
-		item.CopyInto(desc, offset, offset2 - offset);
-		
-		// Now, the number of users
-		offset = offset2 + 1;
-		offset2 = item.FindFirst("|", offset);
-		if (offset2 == B_ERROR)
-			continue;
-		item.CopyInto(tmpUsers, offset, offset2 - offset);
+		DCTokens::iterator iter = tok.GetTokenList().begin();
+		name = *iter++;
+		server = *iter++;
+		desc = *iter++;
+		tmpUsers = *iter++;
 		users = atoi(tmpUsers.String());
-		
-		printf("\tName: %s\n\tServer: %s\n\tDescription: %s\n\t# of users: %ld\n", 
-				name.String(), server.String(), desc.String(), users);
 		
 		// Make sure we have a semi-valid server
 		if (server == "")
@@ -310,7 +288,11 @@ DCHTTPConnection::ParseIntoHubList()
 		// Insert into hub list
 		Hub * hub = new Hub(DCUTF8(name.String()), DCUTF8(server.String()), DCUTF8(desc.String()), users);
 		if (hub)
-			fHubs.insert(fHubs.end(), hub);
+		{
+			printf("Inserting: [%s] [%s] [%s] [%d]\n", hub->fName.String(), hub->fServer.String(), 
+					hub->fDesc.String(), hub->fUsers);
+			fHubs.push_back(hub);
+		}
 	}
 }
 

@@ -105,6 +105,7 @@ private:
 	void				HandleDisconnect();
 	void				RestoreList();
 	void				ListSomeItems();
+	void				CleanUpConnection();
 };
 
 #endif	// _DC_HUB_WINDOW_H_
