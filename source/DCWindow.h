@@ -39,6 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class DCView;
 class DCConnection;
+class BMenu;
 
 enum {
 	DC_INIT_WINDOW = 'dciw'
