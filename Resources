@@ -1,0 +1,21 @@
+There are some other opensource DC-clients we can look at. But all I've found 
+are released under the GPL, so we can't use any code directly, since BeDC is 
+released under the BSD license. But we can look at the code to see how they 
+have done things, and look at their comments, documentation, etc. (And it's 
+better to do it yourself anyway ;-))
+
+Links:
+
+Official Direct Connect client:
+<http://www.neo-modus.com/>
+
+Other projects:
+DCTC - Direct Connect Text Client (Linux/C): <http://ac2i.tzo.com/dctc/>
+DC++ (Windows/C++(MFC)): <http://sourceforge.net/projects/dcplusplus/>
+Open Direct Connect (Windows/VB): <http://sourceforge.net/projects/odc/>
+JavaDC (Multiplatform/Java): <http://javadc.sourceforge.net/>
+openDCd - OpenSource Direct Connect Server (Linux/Windows / delphi/kylix) <http://opendcd.sourceforge.net/> (The page also has links to other clients)
+
+Protocol spec:
+Written by the openDCd people: <http://prdownloads.sourceforge.net/opendcd/directconnect.txt> (The client-server communication looks complete and correct, but the client-client one has some things missing)
+The DCTC source also looks well documented.

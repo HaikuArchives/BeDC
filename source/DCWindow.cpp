@@ -354,6 +354,11 @@ void DCWindow::MessageReceived(BMessage *message)
 			{
 				nick = ((BStringItem*)theView->NickList()->ItemAt(index))->Text();
 				printf("Got nick: %s\n",nick.String());
+				nick.Prepend(" ");
+				nick.Prepend(theConnection->GetNick());
+				nick.Prepend("$RevConnectToMe ");
+				nick.Append("|");
+				theConnection->SendData(nick.String());
 			}
 #endif
 			break;
@@ -437,8 +442,10 @@ void DCWindow::MessageReceived(BMessage *message)
 			int colonindex = rvcdstring.FindFirst(":");
 			rvcdstring.MoveInto(tmpstr,0,colonindex);
 			rvcdstring.RemoveFirst(":");
-			DCClientConnection dccc;
-			dccc.Connect(tmpstr.String(),atoi(rvcdstring.String()));
+			DCClientConnection *dccc = new DCClientConnection();
+			dccc->SetNick(theConnection->GetNick());
+			printf("Tralalala: %s\n",dccc->GetNick());
+			dccc->Connect(tmpstr.String(),atoi(rvcdstring.String()));
 #endif
 			break;
 		}

@@ -34,8 +34,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 
-//#include <stdio.h>
+/* Client/client comm prototype, don't use it yet, it will change */
+
+
+#include <stdio.h>
 //#include <unistd.h>
+#include <stdlib.h>
 
 #ifdef NETSERVER_BUILD 
 #include <netdb.h>
@@ -49,12 +53,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #include <OS.h>
+#include <File.h>
 //#include <Looper.h>
 //#include <Message.h>
 #include <String.h>
 
 #include "DCClientConnection.h"
 #include "DCConnection.h" /* For the keygen */
+#include "DCHuffman.h"
 
 int32 clientReceiver(void *data);
 
@@ -63,7 +69,8 @@ DCClientConnection::DCClientConnection()
 	connected = false;
 	thid = -1;
 	nick = new BString;
-	direction = DC_UPLOAD_DIR;
+	//direction = DC_UPLOAD_DIR;
+	direction = DC_DOWNLOAD_DIR;
 	conn_socket = -1;
 }
 
@@ -92,12 +99,11 @@ void DCClientConnection::Connect(const char *host,int port)
 			cinfo->target = &msgTarget;
 			cinfo->conn = conn_socket;
 			cinfo->nick = nick;
-			cinfo->conn_obj = this;*/ 
-			thid = spawn_thread(clientReceiver,"receiver",B_NORMAL_PRIORITY,this);
+			cinfo->conn_obj = this;*/
+			printf(">%d<\n",conn_socket);
+			thid = spawn_thread(clientReceiver,"client_receiver",B_NORMAL_PRIORITY,this);
 			resume_thread(thid);
 			connected = true;
-			char recvBuffer[4096];
-			memset(recvBuffer,0,4096);
 		}
 		else
 			printf("Connection failed!\n");
@@ -111,21 +117,28 @@ int32 clientReceiver(void *data)
 {
 	DCClientConnection *theconn;
 	theconn = (DCClientConnection*)data;
-	char recvBuffer[4096];
+	char recvBuffer[1024];
 	BString bstr1, bstr2;
+	printf(">%s<\n",theconn->GetNick());
+	printf(">%d<\n",theconn->GetSocket());
 	while(true)
 	{
-		memset(recvBuffer,0,4096);
-		if(recv(theconn->GetSocket(),recvBuffer,4095,0) <= 0)
+		printf("In the loop\n");
+		memset(recvBuffer,0,1024);
+		status_t what;
+		if((what=recv(theconn->GetSocket(),recvBuffer,1023,0)) <= 0)
+		{
+			//printf("Damn.... %d\n",what);
 			exit_thread(-1);
+		}
 		else
 		{
 			printf("RCvd: %s\n",recvBuffer);
 			bstr1.SetTo(recvBuffer);
 			while(bstr1[bstr1.Length()-1] != '|') /*We haven't got the full command, let's get some more */
 			{
-				memset(recvBuffer,0,4096);
-				if(recv(theconn->GetSocket(),recvBuffer,4095,0) <= 0)
+				memset(recvBuffer,0,1024);
+				if(recv(theconn->GetSocket(),recvBuffer,1023,0) <= 0)
 					exit_thread(-1);
 				else
 				{
@@ -159,15 +172,15 @@ int32 clientReceiver(void *data)
 					bstr2.Append("|");
 					send(theconn->GetSocket(),bstr2.String(),bstr2.Length(),0);
 					delete bstr3;
-					bstr2.SetTo("$Lock iamjusttesting thisout|");
-					send(theconn->GetSocket(),bstr2.String(),bstr2.Length(),0);
+						bstr2.SetTo("$Lock iamjusttesting thisout|");
+						send(theconn->GetSocket(),bstr2.String(),bstr2.Length(),0);
 				}
 				else if(!bstr2.Compare("$Key ",5))
 				{
-					bstr2.SetTo("$MyNick ");
-					bstr2.Append(theconn->GetNick());
-					bstr2.Append("|");
-					send(theconn->GetSocket(),bstr2.String(),bstr2.Length(),0);
+						bstr2.SetTo("$MyNick ");
+						bstr2.Append(theconn->GetNick());
+						bstr2.Append("|");
+						send(theconn->GetSocket(),bstr2.String(),bstr2.Length(),0);
 				}
 				else if(!bstr2.Compare("$Direction ",11))
 				{
@@ -176,6 +189,12 @@ int32 clientReceiver(void *data)
 					else if(theconn->GetDirection() == DC_DOWNLOAD_DIR)
 						bstr2.SetTo("$Direction Download 9876|");
 					send(theconn->GetSocket(),bstr2.String(),bstr2.Length(),0);
+					if(theconn->GetDirection() == DC_DOWNLOAD_DIR)
+					{
+						//bstr2.SetTo("$Get MyList.DcLst$1|");
+						bstr2.SetTo("$Get Diverse\\mirc591t.exe$1|");
+						send(theconn->GetSocket(),bstr2.String(),bstr2.Length(),0);
+					}
 				}
 				else if(!bstr2.Compare("$Get MyList.DcLst$1",19))
 				{
@@ -186,6 +205,32 @@ int32 clientReceiver(void *data)
 				}
 				else if(!bstr2.Compare("$Send",5))
 				{
+					//bstr2.SetTo("Empty\\empty|");
+					//send(theconn,bstr2.String(),bstr2.Length(),0);
+				}
+				else if(!bstr2.Compare("$FileLength ",12))
+				{
+					bstr2.RemoveFirst("$FileLength ");
+					int length = atoi(bstr2.String());
+					bstr2.SetTo("$Send|");
+					send(theconn->GetSocket(),bstr2.String(),bstr2.Length(),0);
+					BFile file;
+					//file.SetTo("/tmp/DCList",B_READ_WRITE|B_CREATE_FILE);
+					file.SetTo("/boot/home/Desktop/mirc591t.exe",B_READ_WRITE|B_CREATE_FILE);
+					char buf[1024];
+					memset(buf,0,1024);
+					int read;
+					while(true)
+					{
+						read=recv(theconn->GetSocket(),buf,1023,0);
+						file.Write(buf,read);
+						length -= read;
+						if(length <= 0) break;
+					}
+					printf("Ok...\n");
+					file.Seek(0,SEEK_SET);
+					//DCHuffman huf;
+					//huf.Decode(&file,NULL);
 					//bstr2.SetTo("Empty\\empty|");
 					//send(theconn,bstr2.String(),bstr2.Length(),0);
 				}
