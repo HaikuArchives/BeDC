@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <unistd.h>
 #include <stdio.h>
+#include <ctype.h>
 
 const int DC_HTTP_RECV_BUFFER = 512;
 
@@ -62,6 +63,7 @@ DCHTTPConnection::DCHTTPConnection(BMessenger target)
 DCHTTPConnection::~DCHTTPConnection()
 {
 	Disconnect();
+	EmptyHubList();
 }
 
 void
@@ -176,10 +178,17 @@ DCHTTPConnection::ReceiveHandler(void * data)
 		if (amountRead == 0)	// that's it, our connection has been dropped by the server
 		{
 			printf("Disconnected from server\n");
+			// reset thread manually so it doesn't get killed
+			// since it will be free auto-magically by the OS
+			http->fThreadID = -1;
+			// Now cleanup the socket
 			http->Disconnect();
+			// Parse the lines into a hub list
+			http->ParseIntoHubList();
+			http->fLines.clear();	// empty the lines list to free memory
+			// Notify our target
 			http->fTarget.SendMessage(DC_MSG_HTTP_DISCONNECTED);
 			return 0;	// success
-			// TODO: notify our window of the great news :)
 		}
 		
 		recvBuffer[amountRead] = 0;		// NULL-terminate
@@ -234,5 +243,70 @@ DCHTTPConnection::MessageReceived(BMessage * msg)
 		
 		default:
 			BLooper::MessageReceived(msg);			
+	}
+}
+
+void
+DCHTTPConnection::EmptyHubList()
+{
+	while (fHubs.begin() != fHubs.end())
+	{
+		list<Hub *>::iterator i = fHubs.begin();
+		delete (*i);	// free the item
+		fHubs.erase(i);
+	}
+}
+
+void
+DCHTTPConnection::ParseIntoHubList()
+{
+	list<BString>::iterator i;
+	BString name, server, desc;
+	uint32 users;
+	BString item;
+	
+	for (i = fLines.begin(); i != fLines.end(); i++)
+	{
+		int32 offset, offset2;
+		BString tmpUsers;
+		
+		item = (*i);
+
+		offset = 0;
+		offset2 = item.FindFirst("|", offset);
+		if (offset2 == B_ERROR)
+			continue;
+		
+		item.CopyInto(name, offset, offset2 - offset);
+		
+		// Now for the server
+		offset = offset2 + 1;
+		offset2 = item.FindFirst("|", offset);
+		if (offset2 == B_ERROR)
+			continue;
+		item.CopyInto(server, offset, offset2 - offset);
+		
+		// Now for the description
+		offset = offset2 + 1;
+		offset2 = item.FindFirst("|", offset);
+		if (offset2 == B_ERROR)
+			continue;
+		item.CopyInto(desc, offset, offset2 - offset);
+		
+		// Now, the number of users
+		offset = offset2 + 1;
+		offset2 = item.FindFirst("|", offset);
+		if (offset2 == B_ERROR)
+			continue;
+		item.CopyInto(tmpUsers, offset, offset2 - offset);
+		users = atoi(tmpUsers.String());
+		
+		printf("\tName: %s\n\tServer: %s\n\tDescription: %s\n\t# of users: %d\n", 
+				name.String(), server.String(), desc.String(), users);
+				
+		// Insert into hub list
+		Hub * hub = new Hub(name, server, desc, users);
+		if (hub)
+			fHubs.insert(fHubs.end(), hub);
 	}
 }

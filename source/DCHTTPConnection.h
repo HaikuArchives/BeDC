@@ -57,6 +57,16 @@ enum
 class DCHTTPConnection : public BLooper
 {
 public:
+	struct Hub
+	{
+						Hub(BString name, BString server, BString desc, uint32 users) 
+							{ fName = name; fServer = server; fDesc = desc; fUsers = users; }
+		BString			fName;		// Name of server
+		BString			fServer;	// IP/domain of server
+		BString			fDesc;		// Description of server
+		uint32			fUsers;		// # of users on the server
+	};
+
 						DCHTTPConnection(BMessenger target);		// Constructor... pass the target of it's messages
 						~DCHTTPConnection();	// Destructor... closes the connection if still running
 	
@@ -67,9 +77,10 @@ public:
 	bool				IsRunning() const { return (fThreadID != -1 && fSocket != -1) ? true : false; }
 	// You get a pointer to the list. ONLY call this method once
 	// you've been notified that the connection has been disconnected
-	list<BString> *		GetLines() { return &fLines; }
+	list<Hub *> *		GetHubs() { return &fHubs; }
 	BString				GetServer() const { return fServer; }
 	BString				GetFile() const { return fFile; }
+	void				EmptyHubList();
 	
 	// this method posts a message to the internal thread telling it to send
 	// the text
@@ -78,6 +89,7 @@ public:
 	virtual void		MessageReceived(BMessage * msg);
 	
 private:
+	list<Hub *>			fHubs;
 	list<BString>		fLines;	// The config file is a set of lies
 	BString				fServer;
 	BString				fFile;
@@ -86,6 +98,7 @@ private:
 	BMessenger			fTarget;
 	
 	void				InternalConnect();
+	void				ParseIntoHubList();
 	
 	static int32		ReceiveHandler(void *);
 };

@@ -20,7 +20,8 @@
 
 class BScrollBar;
 
-namespace BPrivate {
+namespace BPrivate 
+{
 
 class OutlineView;
 class TitleView;
@@ -34,14 +35,16 @@ class BRow;
 class BColumn;
 class BColumnListView;
 
-enum LatchType {
+enum LatchType 
+{
 	B_NO_LATCH,
 	B_OPEN_LATCH,
 	B_PRESSED_LATCH,
 	B_CLOSED_LATCH
 };
 
-typedef enum {
+typedef enum 
+{
 	B_ALLOW_COLUMN_NONE = 0,
 	B_ALLOW_COLUMN_MOVE = 1,
 	B_ALLOW_COLUMN_RESIZE = 2,
@@ -49,7 +52,8 @@ typedef enum {
 	B_ALLOW_COLUMN_REMOVE = 8,
 } column_flags;
 
-enum ColumnListViewColor {
+enum ColumnListViewColor 
+{
 	B_COLOR_BACKGROUND			=  0,
 	B_COLOR_TEXT				=  1,
 	B_COLOR_ROW_DIVIDER			=  2,
@@ -66,7 +70,8 @@ enum ColumnListViewColor {
 	B_COLOR_TOTAL				= 12
 };
 
-enum ColumnListViewFont {
+enum ColumnListViewFont 
+{
 	B_FONT_ROW					=  0,
 	B_FONT_HEADER				=  1,
 	
@@ -75,7 +80,8 @@ enum ColumnListViewFont {
 
 
 // A single row/column intersection in the list.
-class BField {
+class BField 
+{
 public:
 						BField();
 	virtual				~BField();
@@ -85,7 +91,8 @@ public:
 // for each column in the list, associated by their "logical field"
 // index.  Hierarchies are formed by adding other BRow objects as
 // a parent of a row, using the AddRow() function in BColumnListView().
-class BRow {
+class BRow 
+{
 public:
 						BRow(float height = 16.0);
 	virtual 			~BRow();
