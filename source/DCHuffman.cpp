@@ -53,12 +53,14 @@ DCHuffman::~DCHuffman()
 
 }
 
-void DCHuffman::Encode(BFile *infile, BFile *outfile)
+void 
+DCHuffman::Encode(BFile * infile, BFile * outfile)
 {
 
 }
 
-void DCHuffman::Decode(BFile *infile, BFile *outfile)
+void 
+DCHuffman::Decode(BFile * infile, BFile * outfile)
 {
 	off_t filesize;
 	infile->GetSize(&filesize);
