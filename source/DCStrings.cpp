@@ -90,9 +90,13 @@ const char * DC_STR_ENGLISH[STR_NUM] =
 	"E-Mail",
 	"Shared",
 	"Chat:",
+	"Close", 
 	
 	"OK",
 	"Cancel",
+	"Error",
+	
+	"Please choose a nick name in Edit->Preferences.",
 	
 	"System: ",
 	"Error: ",
@@ -102,7 +106,11 @@ const char * DC_STR_ENGLISH[STR_NUM] =
 	"Trying to reconnect to server...",
 	"Disconnected from server.",
 	"Your nick is already in use, please choose another.",
-	"User %s has logged in."
+	"User %s has logged in.",
+	" has logged out.",	// the user name is prepended to this string
+	"Redirecting to ",
+	"Hub is full.",
+	"User not found!"
 };
 
 // If you want different key shortcuts then the defaults for english,
@@ -174,7 +182,6 @@ DCMS(const char * str)
 	memset(convBuffer, 0, srcSize);
 	if (convert_from_utf8(B_MS_WINDOWS_CONVERSION, str, (int32 *)&srcSize, convBuffer, (int32 *)&srcSize, 0) == B_OK)
 	{
-		printf("Converted to MS\n");
 		ret.SetTo(convBuffer);
 	}
 	

@@ -97,7 +97,6 @@ DCHTTPConnection::Connect(const BString & optServer, const BString & optFile)
 void
 DCHTTPConnection::InternalConnect()
 {
-	printf("Connectiong to server %s on port 80\n", fServer.String());
 	
 	sockaddr_in sockAddr;
 	memset(&sockAddr, 0, sizeof(sockAddr));
@@ -119,23 +118,20 @@ DCHTTPConnection::InternalConnect()
 				if (fThreadID >= 0)
 				{
 					resume_thread(fThreadID);
-					printf("Connection established\n");
 					fTarget.SendMessage(DC_MSG_HTTP_CONNECTED);
 					return;
 				}
 			}
 		}
 	}
-	printf("Connection failed!\n");
-	Disconnect();	// failed... cleanup
 	fTarget.SendMessage(DC_MSG_HTTP_CONNECT_ERROR);
+	Disconnect();	// failed... cleanup
 	return;
 }
 
 void
 DCHTTPConnection::Send(const BString & text)
 {
-	printf("DCHTTPConnect::Send: %s\n", text.String());
 	BMessage msg(DC_HTTP_MSG_SEND);
 	msg.AddString("text", text);
 	PostMessage(&msg);
@@ -157,16 +153,13 @@ DCHTTPConnection::ReceiveHandler(void * data)
 		{
 			if (amountRead != -1)
 			{
-				printf("Disconnecting... failed in ReceiveHandler()\n");
 				http->Disconnect();	// clean up.. we're done
 				return -1;
 			}
 		}
 #else
-		printf("going into recv()\n");
 		if ((amountRead = recv(http->fSocket, recvBuffer, DC_HTTP_RECV_BUFFER, 0)) < 0)
 		{
-			printf("Disconnecting... failed in ReceiveHandler()\n");
 			http->Disconnect();
 			http->fTarget.SendMessage(DC_MSG_HTTP_RECV_ERROR);
 			return -1;
@@ -175,7 +168,6 @@ DCHTTPConnection::ReceiveHandler(void * data)
 		
 		if (amountRead == 0)	// that's it, our connection has been dropped by the server
 		{
-			printf("Disconnected from server\n");
 			// reset thread manually so it doesn't get killed
 			// since it will be free auto-magically by the OS
 			http->fThreadID = -1;
@@ -196,7 +188,6 @@ DCHTTPConnection::ReceiveHandler(void * data)
 		{
 			BString insert;
 			socketBuffer.MoveInto(insert, 0, i);
-			printf("Inserting HTTP: [ %s ]\n", insert.String());
 			socketBuffer.RemoveFirst("\r\n");
 			http->fLines.push_back(insert);
 		}
@@ -210,7 +201,6 @@ DCHTTPConnection::MessageReceived(BMessage * msg)
 	{
 		case DC_HTTP_MSG_SEND:
 		{
-			printf("DC_HTTP_MSG_SEND\n");
 			if (fSocket >= 0)
 			{
 				BString text;
@@ -218,8 +208,6 @@ DCHTTPConnection::MessageReceived(BMessage * msg)
 				{
 					if (send(fSocket, text.String(), text.Length(), 0) <= 0)
 						fTarget.SendMessage(DC_MSG_HTTP_SEND_ERROR);
-					else
-						printf("Sent...\n");
 				}
 			}
 			break;
@@ -227,7 +215,6 @@ DCHTTPConnection::MessageReceived(BMessage * msg)
 		
 		case DC_HTTP_MSG_CONNECT:
 		{
-			printf("DC_HTTP_MSG_CONNECT\n");
 			InternalConnect();
 			break;
 		}
@@ -258,10 +245,8 @@ DCHTTPConnection::ParseIntoHubList()
 	BString item;
 	
 	EmptyHubList(&fHubs);
-	printf("ParseIntoHubList(): %d\n", (int)fLines.size());
 	for (i = fLines.begin(); i != fLines.end(); i++)
 	{
-		printf("Parsing item [%s]...\n", (*i).String());
 		BString tmpUsers;
 		item = (*i);
 

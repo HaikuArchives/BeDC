@@ -42,6 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Message.h>
 #include <Messenger.h>
 #include <File.h>
+#include <Alert.h>
 
 #include "DCApp.h"
 #include "DCWindow.h"
@@ -98,7 +99,9 @@ DCApp::MessageReceived(BMessage * msg)
 				MergeDifferences((DCSettings *)prefs);
 			else
 				delete prefs;
-
+				
+			if (fWindow)
+				fWindow->PostMessage(DC_MSG_APP_NEW_SETTINGS);
 			break;
 		}
 		
@@ -138,7 +141,6 @@ DCApp::MessageReceived(BMessage * msg)
 			fWindow = NULL;
 			if (fHubWindow == NULL)	// no hub window either?
 			{
-				printf("Hub window is null\n");
 				PostMessage(B_QUIT_REQUESTED);
 			}
 			break;
@@ -255,10 +257,22 @@ DCApp::GetColor(int c)
 			return r;
 		}
 		
+		case DC_COLOR_PRIVATE_TEXT:
+		{
+			rgb_color r = { 255, 61, 255, 255 };
+			return r;
+		}
+		
 		default:
 		{	// Shut the compiler up (warning)
 			rgb_color r = { 0, 0, 0, 255 };
 			return r;
 		}
 	}
+}
+
+void
+DCApp::AboutRequested()
+{
+	//((new BAlert("", DC_WINDOW_TITLE
 }

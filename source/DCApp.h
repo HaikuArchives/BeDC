@@ -61,7 +61,10 @@ enum
 	// message is passed on to the window
 	DC_MSG_APP_OPEN_NEW_HUB = 'aOnH',
 	// Sent this message to the app to open up the prefs window
-	DC_MSG_APP_SHOW_PREFS = 'aOpF'
+	DC_MSG_APP_SHOW_PREFS = 'aOpF',
+	// The app sends this to our window to tell it to
+	// update it's settings
+	DC_MSG_APP_NEW_SETTINGS = 'aOgC'
 };
 
 
@@ -72,8 +75,12 @@ enum
 	DC_COLOR_TEXT,
 	DC_COLOR_ERROR,
 	DC_COLOR_REMOTE_NICK,
-	DC_COLOR_LOCAL_NICK
+	DC_COLOR_LOCAL_NICK,
+	DC_COLOR_PRIVATE_TEXT
 };
+
+#define DC_APP_VERSION "0.50"
+#define DC_APP_NAME "DirectConnect for BeOS"
 
 class DCApp : public BApplication
 {
@@ -82,6 +89,7 @@ public:
 	virtual					~DCApp();
 						
 	virtual bool 			QuitRequested();
+	virtual void			AboutRequested();
 	virtual void			MessageReceived(BMessage * msg);
 	virtual void			ReadyToRun();
 	

@@ -47,6 +47,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <PopUpMenu.h>
 #include <MenuItem.h>
 #include <RadioButton.h>
+#include <Alert.h>
 
 enum
 {

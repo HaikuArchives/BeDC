@@ -76,6 +76,10 @@ public:
 	status_t			GetPoint(const char * name, BPoint * point);
 	status_t			GetBool(const char * name, bool & val);
 	status_t			GetInt(const char * name, int32 & val);
+	
+	// Quick helpers
+	BString 			GetString(const char * name)
+		{ BString ret; GetString(name, &ret); return ret; }
 };
 
 #endif /* !_DC_SETTINGS_H_ */

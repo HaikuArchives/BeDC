@@ -48,7 +48,11 @@ class DCStatusBar : public BView
 {
 public:
 						DCStatusBar(BRect frame, int32 height, int32 style);
+						~DCStatusBar() {}
+
 	virtual void		Draw(BRect frame);
+	
+	void				AddField(const BString & value);
 	
 private:
 	int32 				fStyle;

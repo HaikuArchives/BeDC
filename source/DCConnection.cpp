@@ -38,13 +38,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <errno.h>
 
-// TEST
-#ifdef NETSERVER_BUILD
-#include <net/socket.h>
-#else
-#include <sys/select.h>
-#endif
-
 #include "DCConnection.h"
 #include "DCNetSetup.h"
 #include "DCStrings.h"
@@ -127,7 +120,6 @@ DCConnection::Connect(const BString & host, int port)
 {
 	if (!fConnected)
 	{
-		printf("Launching DCC_CONNECT\n");
 		fHost = host;
 		fPort = port;
 		BMessage msg(DCC_CONNECT);
@@ -138,10 +130,10 @@ DCConnection::Connect(const BString & host, int port)
 void
 DCConnection::SetNick(const BString & nick)
 {
-	fNick = nick;
-	// TODO, send nick to server
-	// Dunno if the server handles a nick change while connected...
-	// I think it doesn't so you have to reconnect, but don't quite remember
+	// If you are already connected to a hub, you
+	// cannot change your nick until you reconnect.
+	if (!fConnected)
+		fNick = nick;
 }
 
 void
@@ -173,20 +165,13 @@ DCConnection::MessageReceived(BMessage * msg)
 	{
 		case DCC_SEND:
 		{
-			printf("Got DCC_SEND\n");
 			BString str;
 			if (msg->FindString("data", &str) == B_OK)
 			{
-/*				if (send(fSocket, str.String(), str.Length(), 0) < 0)
-					fTarget.SendMessage(DC_MSG_CON_SEND_ERROR);
-				else
-					printf("Sent\n");*/
 				if (LockList())
 				{
-					printf("Acquired sem\n");
 					BString * strp = new BString(str);
 					fToSend.AddItem(strp, fToSend.CountItems());
-					printf("Unlocking\n");
 					UnlockList();
 				}
 			}
@@ -195,7 +180,6 @@ DCConnection::MessageReceived(BMessage * msg)
 		
 		case DCC_CONNECT:
 		{
-			printf("DCC: Got connect message\n");
 			InternalConnect();
 			break;
 		}
@@ -209,7 +193,6 @@ DCConnection::MessageReceived(BMessage * msg)
 void
 DCConnection::InternalConnect()
 {
-	printf("Internalconnect()\n");
 	// Notify our target
 	fTarget.SendMessage(DC_MSG_CON_CONNECTING);
 	
@@ -233,10 +216,7 @@ DCConnection::InternalConnect()
 										 B_NORMAL_PRIORITY, this);
 				if (fThreadID >= 0)
 				{
-					if (SetNonBlocking(false) == B_ERROR)
-						debugger("Could not set non-blocking socket IO\n");
 					resume_thread(fThreadID);
-					printf("DCC: Connected!\n");
 					fTarget.SendMessage(DC_MSG_CON_CONNECTED);
 					fConnected = true;
 					return;
@@ -245,7 +225,6 @@ DCConnection::InternalConnect()
 		}
 	}
 	
-	printf("DCC: Error connecting!\n");
 	// Failure
 	fTarget.SendMessage(DC_MSG_CON_CONNECT_ERROR);
 }
@@ -276,7 +255,6 @@ DCConnection::ReceiveHandler(void * d)
 		ret = me->Reader(str2);
 		if (ret == 0)	// disconenct
 		{
-			printf("Got disconnect from Reader()\n");
 			me->SendMessage(DC_MSG_CON_DISCONNECTED);
 			me->Disconnect();
 			return -1;
@@ -299,7 +277,6 @@ DCConnection::ReceiveHandler(void * d)
 			str1.MoveInto(str2, 0, i);
 			str1.Remove(0, 1);;
 			
-			printf("DCC: Got command [ %s ]\n", str2.String());
 			if (!str2.Compare("$Lock ", 6))
 			{
 				me->LockReceived(str2);
@@ -377,15 +354,19 @@ DCConnection::ReceiveHandler(void * d)
 			}
 			else if (!str2.Compare("$ForceMove ", 11)) // They don't want us here :(
 			{
-				me->Disconnect();
-				str2.RemoveFirst("$ForceMove ");
-				me->SendMessage(DC_MSG_CON_DISCONNECTED);
+				str2.RemoveFirst("$ForceMove");	
+				str2.RemoveFirst(" ");	// This is separate in case we have a force move w/out a server
 				me->SendMessage(DC_MSG_CON_FORCE_MOVE, "ip", str2);
+				me->Disconnect();
 			}
 			else if (!str2.Compare("$Quit ", 6))
 			{
 				str2.RemoveFirst("$Quit ");
 				me->SendMessage(DC_MSG_CON_QUIT, "nick", str2);
+			}
+			else if (!str2.Compare("$HubIsFull", 10))
+			{
+				me->SendMessage(DC_MSG_HUB_IS_FULL);
 			}
 			else if(!str2.Compare("<",1)) // Chat message
 			{
@@ -398,7 +379,6 @@ DCConnection::ReceiveHandler(void * d)
 				
 				BMessage msg(DC_MSG_CON_CHAT_MSG);
 				msg.AddString("nick", name);
-				printf("Str2 == %s+++\n", str2.String());
 				msg.AddString("text", str2);
 				me->fTarget.SendMessage(&msg);
 			}
@@ -408,12 +388,19 @@ DCConnection::ReceiveHandler(void * d)
 			// All the chat text I've seen has been private or has had a nick
 			// Also, none of the protocol specs I've seen has had it iirc 
 			//  --Ghostride
+			// It does happen. Pay attention to the debug output in Terminal VERY
+			// carefully ;) The specs say that ANYTHING that doesn't start with a $
+			// is chat.
 			{
-				BMessage msg(DC_MSG_CON_CHAT_MSG);
-				msg.AddString("chat", str2);
-				me->fTarget.SendMessage(&msg);
+				me->TrimString(str2);
+				if (str2 != "")	// if we actually have text
+				{
+					me->SendMessage(DC_MSG_CON_CHAT_MSG, "chat", str2);
+				}
 			}
 		}
+		// Don't hog CPU, sleep 1/2 sec
+		snooze(500000);
 	}
 }
 
@@ -432,12 +419,13 @@ DCConnection::Sender()
 	BString * str = fToSend.ItemAt(0);	// first Item
 	int i = 0;
 	int totalSent = 0;
+	SetNonBlocking(false);
 	while (true)
 	{
 		i = send(fSocket, str->String(), str->Length(), 0);
-		printf("Sent: %d\n", i);
 		if (i <= 0)
 		{
+			SetNonBlocking(true);
 			UnlockList();
 			if (errno == EWOULDBLOCK)
 			{
@@ -489,7 +477,6 @@ DCConnection::Reader(BString & ret)
 			}
 			else if (errno == ENOTCONN)
 			{
-				printf("\t\tReader: Not connected anymore\n");
 			}
 			return r == 0 ? 0 : -1;	// return -1 for error, and 0 for disconnect
 		}
@@ -575,9 +562,9 @@ DCConnection::ToReceived(BString str)
 		
 		BString from;
 		str.MoveInto(from, 0, str.FindFirst(" "));
-		str.RemoveFirst(" $");
+		str.RemoveFirst(" $<");
 		str.RemoveFirst(from);
-		str.RemoveFirst(" ");
+		str.RemoveFirst("> ");
 		if (str != "")	// Check to see if we have a message
 		{
 			BMessage msg(DC_MSG_CON_PRIV_MSG);
@@ -593,11 +580,9 @@ DCConnection::HelloReceived(BString str)
 {
 	// Someone just entered the hub
 	// If it's us, identify ourselves ;)
-	printf("Got hello\n");
 	str.RemoveFirst("$Hello ");
 	if (str.Compare(fNick) == 0)	// it's us 
 	{
-		printf("It's just me :)\n");
 		SendVersion();
 		SendNickListRequest();
 		SendMyInfo();
@@ -611,7 +596,6 @@ DCConnection::HelloReceived(BString str)
 void
 DCConnection::LockReceived(BString str)
 {
-	printf("\t\tGOT $Lock\n");
 	str.RemoveFirst("$Lock ");
 	int32 i = str.FindFirst(" ");
 	str.Remove(i, str.Length() - i);
@@ -646,7 +630,6 @@ DCConnection::SendMessage(uint32 cmd, const char * name, const BString & str)
 void
 DCConnection::ValidateNick()
 {
-	printf("Validating Nick (%s)\n",fNick.String());
 	BString str = "$ValidateNick ";
 	str += fNick;
 	str += "|";
@@ -755,7 +738,7 @@ void
 DCConnection::MyInfoReceived(BString str)
 {
 	BString nick, desc, speed, email, tmp;
-	uint64 size;
+	int64 size;
 	str.RemoveFirst("$MyINFO $ALL ");
 	str.MoveInto(nick, 0, str.FindFirst(" "));
 	str.RemoveFirst(" ");
@@ -766,15 +749,14 @@ DCConnection::MyInfoReceived(BString str)
 	str.MoveInto(email, 0, str.FindFirst("$"));
 	str.RemoveFirst("$");
 	str.MoveInto(tmp, 0, str.FindFirst("$"));
-	size = (uint64)atoll(tmp.String());
-	printf("Read size: %s\t%Ld\n", tmp.String(), size);
+	size = atoll(tmp.String());
 	
 	BMessage msg(DC_MSG_CON_USER_INFO);
 	msg.AddString("nick", nick);
 	msg.AddString("desc", desc);
 	msg.AddString("speed", speed);
 	msg.AddString("email", email);
-	msg.AddInt64("size", (int32)size);
+	msg.AddInt64("size", (int64)size);
 	fTarget.SendMessage(&msg);
 }
 
@@ -786,4 +768,13 @@ DCConnection::EmptyList()
 		BString * item = fToSend.RemoveItemAt(0);
 		delete item;
 	}
+}
+
+void
+DCConnection::TrimString(BString & str)
+{
+	while (str[0] == ' ')
+		str.Remove(0, 1);
+	while (str[str.Length() - 1] == ' ')
+		str.Remove(str.Length() - 1, 1);
 }

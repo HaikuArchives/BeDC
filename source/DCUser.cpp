@@ -86,31 +86,28 @@ DCUser::CreateRow(BColumnListView * list)
 BString
 DCUser::GetSharedString() const
 {
-	int64 size = fShared;
-	
+	double size = (double)fShared;
 	BString str;
 	BString append = " bytes";
 	
 	if (size >= 1024)	// more than a kB shared
 	{
-		size = size / 1024;
-		printf("Size is now: %Ld kb\n", size);
+		size /= 1024.0;
+		
 		append = " kB";
 		if (size >= 1024)	// more than a MB now shared
 		{
-			size = size / 1024;
-		printf("Size is now: %Ld mb\n", size);
+			size /= 1024.0;
 			append = " MB";
 			if (size >= 1024)	// more than a GB shared
 			{
-				size = size / 1024;
-		printf("Size is now: %Ld gb\n", size);
+				size /= 1024.0;
 				append = " GB";
 			}
 		}
 	}
 
-	str << size;
+	str << (float)size;
 	str += append;
 	return str;
 }

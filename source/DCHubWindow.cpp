@@ -153,7 +153,6 @@ DCHubWindow::MessageReceived(BMessage * msg)
 		
 		case DC_MSG_HTTP_DISCONNECTED:
 		{
-			printf("Got disconnection message\n");
 			HandleDisconnect();
 			CleanUpConnection();
 			break;

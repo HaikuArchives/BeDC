@@ -119,7 +119,9 @@ enum
 	//	'text'		BString		--> The message
 	//	Or:
 	//	'chat'		BString		--> Just chat text... no nick
-	DC_MSG_CON_CHAT_MSG = 'chCH'
+	DC_MSG_CON_CHAT_MSG = 'chCH',
+	// The hub is full
+	DC_MSG_HUB_IS_FULL = 'chHF'
 };
 	
 class DCConnection : public BLooper
@@ -142,7 +144,7 @@ public:
 	void				SetDescription(const BString & desc) { fDesc = desc; }
 	void				SetEmail(const BString & email) { fEmail = email; }
 	void				SetSpeed(const BString & speed) { fSpeed = speed; }
-	void				SetSharedSize(uint32 size) { fSharedSize = size; }
+	void				SetSharedSize(int64 size) { fSharedSize = size; }
 	void				SetType(int type) { fType = type; }
 	
 	BString				GetNick() const { return fNick; }
@@ -181,7 +183,7 @@ private:
 	BString				fDesc;
 	BString				fEmail;
 	BString				fSpeed;
-	uint32				fSharedSize;
+	int64				fSharedSize;
 	int					fType;
 	
 	typedef BObjectList<BString> StrList;
@@ -212,6 +214,8 @@ private:
 	bool				LockList();
 	void				UnlockList();
 	void				EmptyList();
+	
+	void				TrimString(BString & str);
 	
 	status_t			SetNonBlocking(bool val)
 	{

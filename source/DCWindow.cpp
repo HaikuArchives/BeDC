@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCApp.h"
 #include "DCView.h"
 #include "DCStatusBar.h"
+#include "DCSettings.h"
 
 #include <View.h>
 #include <Message.h>
@@ -45,17 +46,60 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ListView.h>
 #include <ScrollView.h>
 #include <ListItem.h>
+#include <PopUpMenu.h>
+#include <Alert.h>
+#include <TextView.h>
 
 enum
 {
 	// Menu
-	DCW_ABOUT = 'dWaB',
+	DCW_ABOUT = B_ABOUT_REQUESTED,
 	DCW_CLOSE = B_QUIT_REQUESTED,	// heheheh :)
 	DCW_PREFS = 'dWpS',
 	DCW_HUBS = 'dwHs',
 	DCW_HUB_CHANGED = 'dWhC',	// hub list selelction message
+	DCW_CLOSE_HUB = 'dWcH'		// close a hub
 };
 
+class DCWindowListView : public BListView
+{
+public:
+							DCWindowListView(BRect frame, const char * name, list_view_type type = 
+											 B_SINGLE_SELECTION_LIST, uint32 resizeMask = B_FOLLOW_LEFT |
+											 B_FOLLOW_TOP, uint32 flags = B_WILL_DRAW | B_FRAME_EVENTS |
+											 B_NAVIGABLE)
+								: BListView(frame, name, type, resizeMask, flags)
+							{
+							}
+	virtual 				~DCWindowListView() {}
+	
+	virtual void			MouseDown(BPoint where)
+	{
+		BPoint p = where;
+		uint32 buttons;
+		GetMouse(&p, &buttons);
+		if (buttons & B_SECONDARY_MOUSE_BUTTON)
+		{
+			if (CurrentSelection() >= 0)	// don't popup if we're not selected
+			{
+				BPopUpMenu * menu = new BPopUpMenu("popup");
+				menu->AddItem(new BMenuItem(DCStr(STR_VIEW_CLOSE), NULL));
+				
+				ConvertToScreen(&p);
+				if (menu->Go(p, false, false, false))	// aha
+				{
+					Looper()->PostMessage(DCW_CLOSE_HUB);
+				}
+			}
+		}
+		
+		BListView::MouseDown(where);		
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////////
+// DCWindow
+///////////////////////////////////////////////////////////////////////////////////
 DCWindow::DCWindow(BRect pos)
 	: BWindow(pos, DC_WINDOW_TITLE /* i don't think the name can be localized ;) */,
 			  B_TITLED_WINDOW, B_ASYNCHRONOUS_CONTROLS)
@@ -78,6 +122,24 @@ DCWindow::MessageReceived(BMessage * msg)
 {
 	switch (msg->what)
 	{
+		case DCW_CLOSE_HUB:
+		{
+			if (fHubs->CurrentSelection() >= 0)
+			{
+				Container * c = FindItem(fHubs->ItemAt(fHubs->CurrentSelection()));
+				fViewList.RemoveItem(c);
+				c->fView->Disconnect();
+				fHubs->RemoveItem(c->fListItem);
+				fParentView->RemoveChild(c->fView);
+				delete c->fView;
+				delete c->fListItem;
+				delete c;
+				
+				SetTitle(DC_WINDOW_TITLE);
+			}
+			break;
+		}
+		
 		case DC_MSG_APP_OPEN_NEW_HUB:
 		{
 			BString n, a, d;
@@ -88,9 +150,6 @@ DCWindow::MessageReceived(BMessage * msg)
 			break;
 		}
 		
-		case DCW_ABOUT:
-			break;
-			
 		case DCW_PREFS:
 			dc_app->PostMessage(DC_MSG_APP_SHOW_PREFS);
 			break;
@@ -108,7 +167,18 @@ DCWindow::MessageReceived(BMessage * msg)
 			}
 			break;
 		}
-			
+		
+		// Update our settings
+		case DC_MSG_APP_NEW_SETTINGS:
+		{
+			Container * c = NULL;
+			for (int32 i = 0; i < fViewList.CountItems(); i++)
+			{
+				c = fViewList.ItemAt(i);
+				c->fView->UpdateSettings(dc_app->GetSettings());
+			}
+			break;
+		}
 		default:
 			BWindow::MessageReceived(msg);
 			break;
@@ -133,6 +203,13 @@ DCWindow::OpenNewConnection(const BString & name, const BString & addr, const BS
 		return;
 	}
 
+	// Check for a valid nick name
+	if (dc_app->GetSettings()->GetString(DCS_PREFS_NICK) == "")
+	{
+		(new BAlert(DCStr(STR_ERROR), DCStr(STR_ALERT_BAD_NICK), DCStr(STR_OK), NULL, NULL, 
+					B_WIDTH_AS_USUAL, B_IDEA_ALERT))->Go();
+		return;
+	}
 	con = new Container;
 	con->fServerName = name;
 	con->fServerAddr = addr;
@@ -225,6 +302,8 @@ DCWindow::QuitRequested()
 void
 DCWindow::InitGUI()
 {
+	BMenuItem * tmp;
+	
 	// Create all the menus
 	AddChild(
 		fMenuBar = new BMenuBar(BRect(0, 0, Bounds().Width(), 1) /* automagically resized by menubar */,
@@ -235,8 +314,10 @@ DCWindow::InitGUI()
 		fFileMenu = new BMenu(DCStr(STR_MENU_FILE))
 	);
 	fFileMenu->AddItem(
-		new BMenuItem(DCStr(STR_MENU_FILE_ABOUT), new BMessage(DCW_ABOUT), DCKey(KEY_FILE_ABOUT))
+		tmp = new BMenuItem(DCStr(STR_MENU_FILE_ABOUT), new BMessage(DCW_ABOUT), DCKey(KEY_FILE_ABOUT))
 	);
+	tmp->SetTarget(be_app_messenger);
+	
 	fFileMenu->AddItem(
 		new BMenuItem(DCStr(STR_MENU_FILE_CLOSE), new BMessage(DCW_CLOSE), DCKey(KEY_FILE_CLOSE))
 	);
@@ -265,8 +346,8 @@ DCWindow::InitGUI()
 	fParentView->SetViewColor(216, 216, 216);
 	
 	// Hub list
-	fHubs = new BListView(BRect(0, 0, 150, fParentView->Bounds().Height() - 20),
-						  "hub_list", B_SINGLE_SELECTION_LIST, B_FOLLOW_LEFT | B_FOLLOW_TOP_BOTTOM);
+	fHubs = new DCWindowListView(BRect(0, 0, 150, fParentView->Bounds().Height() - 20),
+						  		 "hub_list", B_SINGLE_SELECTION_LIST, B_FOLLOW_LEFT | B_FOLLOW_TOP_BOTTOM);
 	fHubs->SetSelectionMessage(new BMessage(DCW_HUB_CHANGED));
 	
 	fParentView->AddChild(
@@ -278,4 +359,38 @@ DCWindow::InitGUI()
 	fParentView->AddChild(
 		fStatusBar = new DCStatusBar(fParentView->Bounds(), 18, STATUS_VISION_STYLE)
 	);
+}
+
+void
+DCWindow::DispatchMessage(BMessage * msg, BHandler * target)
+{
+	switch (msg->what)
+	{
+		case B_KEY_DOWN:
+		{
+			int8 c;
+			int32 mod;
+			
+			if (msg->FindInt8("byte", &c) == B_OK &&
+				msg->FindInt32("modifiers", &mod) == B_OK)
+			{
+				BTextView * tv = dynamic_cast<BTextView *>(target);
+				if (tv && tv->IsEditable())	// aha our target is a text view....
+				{
+					if (c == B_TAB)	// Eat the tab
+					{
+						if (tv->TextLength() != 0) // but only we have text in the view, and modifiers aren't down
+						{
+							if ((mod & (B_CONTROL_KEY)) == 0)	
+								return;
+						}
+					}
+				}
+			}
+			break;
+		}
+	}
+	
+	// Let the window handle it
+	BWindow::DispatchMessage(msg, target);
 }

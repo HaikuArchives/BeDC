@@ -46,7 +46,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class DCSettings;
 class DCConnection;
 class DCUser;
-class UserResizeSplitView;
+class WrappingTextView;
 
 class BTextView;
 class BTextControl;
@@ -70,6 +70,8 @@ public:
 	void					Connect(const BString & host, int port = 411);
 	void					Disconnect();
 	
+	int32					GetNumUsers() const { return fNumUsers; }
+	
 	static BString			GetConnectionText(int val);
 	
 private:
@@ -77,11 +79,11 @@ private:
 	DCSettings *			fSettings;
 	DCConnection *			fConn;
 	
-	BTextView *				fText;
+	WrappingTextView *		fText;
 	BScrollView *			fScrollText;
 	BColumnListView *		fUsers;
 	BTextControl *			fInput;
-	UserResizeSplitView *	fSplitter;
+	int32					fNumUsers;
 	
 	UserList				fUserList;
 	BString					fHost;	// For reconnect
@@ -92,20 +94,29 @@ private:
 	void					LogSystem(const BString & msg);
 	void					LogError(const BString & msg);
 	void					LogUserLoggedIn(const BString & nick);
+	void					LogUserLoggedOut(const BString & nick);
 	void					LogChatMessage(const BString & nick, const BString & text, bool remote);
+	void					LogPrivateChat(const BString & from, const BString & text, bool remote);
 	
 	void					PrintSystem();	// Print the "Error: " part
 	void					PrintError();	// Print the "System: " part
-	void					PrintText(BString str, bool newLine = true);	// We need the copy of the string
+	void					PrintText(BString str, bool newLine = true, int optColor = -1);	// We need the copy of the string
 	
 	void					ParseNickList(BString list);	// Yes, we need a copy of the list
 	void					CreateNewUser(const BString & nick);
+	void					RemoveUser(const BString & nick);
 	void					EmptyUserList();
 	void					UpdateUser(const BString & nick, const BString & desc, const BString & speed,
 									   const BString & email, int64 size);
-	DCUser *				FindUser(const BString & nick);	// Find user by name
+	DCUser *				FindUser(const BString & nick, bool caseSen = true);	// Find user by name
 	
 	void					SendInfoToServer(bool update = false, bool send = true);
+	void					GetHostAndPort(BString & host, int & port);
+	
+	bool					GetScrollState();
+	void					ScrollToBottom();
+	
+	void					ParseSendText();
 };
 
 

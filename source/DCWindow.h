@@ -47,10 +47,10 @@ class BListView;
 class BScrollView;
 class BStringItem;
 class DCStatusBar;
-
 class DCView;
+class DCWindowListView;	// List view that handles right clicks
 
-#define DC_WINDOW_TITLE "DC4Be"
+#define DC_WINDOW_TITLE DC_APP_NAME
 
 enum
 {
@@ -66,6 +66,7 @@ public:
 	virtual				~DCWindow();
 	
 	virtual void		MessageReceived(BMessage * msg);
+	virtual void		DispatchMessage(BMessage * msg, BHandler * target);
 	virtual bool		QuitRequested();
 	
 private:
@@ -75,7 +76,7 @@ private:
 	BMenu *				fEditMenu;
 	BMenu *				fWindowsMenu;
 	BScrollView *		fScrollHubs;
-	BListView *			fHubs;
+	DCWindowListView *	fHubs;
 	DCStatusBar *		fStatusBar;		// The status bar (Doh..)
 	
 	struct Container
