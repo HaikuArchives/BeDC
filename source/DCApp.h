@@ -69,7 +69,10 @@ enum
 enum
 {
 	DC_COLOR_SYSTEM = 0,
-	DC_COLOR_TEXT
+	DC_COLOR_TEXT,
+	DC_COLOR_ERROR,
+	DC_COLOR_REMOTE_NICK,
+	DC_COLOR_LOCAL_NICK
 };
 
 class DCApp : public BApplication

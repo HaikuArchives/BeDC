@@ -39,7 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 
 DCUser::DCUser(const BString & name, const BString & desc, const BString & email, const BString & speed,
-			   uint32 shared)
+			   int64 shared)
 {
 	fName = name; 
 	fDesc = desc; 
@@ -49,6 +49,15 @@ DCUser::DCUser(const BString & name, const BString & desc, const BString & email
 	
 	fRow = NULL;
 	fList = NULL;
+}
+
+DCUser::~DCUser()
+{
+	if (fRow)
+	{
+		fList->RemoveRow(fRow);
+		delete fRow;
+	}
 }
 
 BRow *
@@ -68,6 +77,8 @@ DCUser::CreateRow(BColumnListView * list)
 		fRow->SetField(new BStringField(fDesc.String()), 2);
 		fRow->SetField(new BStringField(fEmail.String()), 3);
 		fRow->SetField(new BStringField(GetSharedString().String()), 4);
+		list->AddRow(fRow);
+		fList = list;
 	}
 	return fRow;
 }
@@ -75,36 +86,71 @@ DCUser::CreateRow(BColumnListView * list)
 BString
 DCUser::GetSharedString() const
 {
-	double size = (double)fShared;
-	char fmt[20];
+	int64 size = fShared;
 	
 	BString str;
 	BString append = " bytes";
 	
-	if (size >= 1024.0)	// more than a kB shared
+	if (size >= 1024)	// more than a kB shared
 	{
-		size /= 1024.0;
+		size = size / 1024;
+		printf("Size is now: %Ld kb\n", size);
 		append = " kB";
-		if (size >= 1024.0)	// more than a MB now shared
+		if (size >= 1024)	// more than a MB now shared
 		{
-			size /= 1024.0;
+			size = size / 1024;
+		printf("Size is now: %Ld mb\n", size);
 			append = " MB";
-			if (size >= 1024.0)	// more than a GB shared
+			if (size >= 1024)	// more than a GB shared
 			{
-				size /= 1024.0;
+				size = size / 1024;
+		printf("Size is now: %Ld gb\n", size);
 				append = " GB";
 			}
 		}
-	
-		sprintf(fmt, "%.2f", size);
-		str = fmt;
-		str += append;
-		return str;
 	}
-	else
-	{
-		str << fShared;
-		str += " bytes";
-		return str;
-	}
+
+	str << size;
+	str += append;
+	return str;
+}
+
+void
+DCUser::SetName(const BString & s)
+{
+	fName = s;
+	if (fRow)
+		((BStringField *)fRow->GetField(DC_USER_NAME))->SetString(fName.String());
+}
+
+void
+DCUser::SetDesc(const BString & s)
+{
+	fDesc = s;
+	if (fRow)
+		((BStringField *)fRow->GetField(DC_USER_DESC))->SetString(fDesc.String());
+}
+
+void
+DCUser::SetEmail(const BString & s)
+{
+	fEmail = s;
+	if (fRow)
+		((BStringField *)fRow->GetField(DC_USER_EMAIL))->SetString(fEmail.String());
+}
+
+void
+DCUser::SetSpeed(const BString & s)
+{
+	fSpeed = s;
+	if (fRow)
+		((BStringField *)fRow->GetField(DC_USER_SPEED))->SetString(fSpeed.String());
+}
+
+void
+DCUser::SetShared(int64 size)
+{
+	fShared = size;
+	if (fRow)
+		((BStringField *)fRow->GetField(DC_USER_SHARED))->SetString(GetSharedString().String());
 }

@@ -46,6 +46,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class DCSettings;
 class DCConnection;
 class DCUser;
+class UserResizeSplitView;
 
 class BTextView;
 class BTextControl;
@@ -60,7 +61,7 @@ public:
 							DCView(DCSettings * settings, BMessenger target, BRect pos);
 	virtual					~DCView();
 	
-	
+	virtual void			AttachedToWindow();
 	virtual void			MessageReceived(BMessage * msg);
 	virtual bool			QuitRequested();
 	
@@ -80,11 +81,29 @@ private:
 	BScrollView *			fScrollText;
 	BColumnListView *		fUsers;
 	BTextControl *			fInput;
+	UserResizeSplitView *	fSplitter;
 	
 	UserList				fUserList;
+	BString					fHost;	// For reconnect
+	int						fPort;
+	bool					fClosing;	// Are we manually closing the connection?
 	
 	void					InitGUI();
 	void					LogSystem(const BString & msg);
+	void					LogError(const BString & msg);
+	void					LogUserLoggedIn(const BString & nick);
+	void					LogChatMessage(const BString & nick, const BString & text, bool remote);
+	
+	void					PrintSystem();	// Print the "Error: " part
+	void					PrintError();	// Print the "System: " part
+	void					PrintText(BString str, bool newLine = true);	// We need the copy of the string
+	
+	void					ParseNickList(BString list);	// Yes, we need a copy of the list
+	void					CreateNewUser(const BString & nick);
+	void					EmptyUserList();
+	void					UpdateUser(const BString & nick, const BString & desc, const BString & speed,
+									   const BString & email, int64 size);
+	DCUser *				FindUser(const BString & nick);	// Find user by name
 	
 	void					SendInfoToServer(bool update = false);
 };

@@ -35,11 +35,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef NETSERVER_BUILD 
 #include <netdb.h>
 #include <socket.h>
-#endif
-
-#ifdef BONE_BUILD
+#define CLOSE_SOCKET(X) closesocket(X)
+#elif defined(BONE_BUILD)
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#define CLOSE_SOCKET(X) close(X)
 #endif
-

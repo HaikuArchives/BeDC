@@ -57,7 +57,7 @@ enum
 };
 
 DCWindow::DCWindow(BRect pos)
-	: BWindow(pos, "BeDC" /* i don't think the name can be localized ;) */,
+	: BWindow(pos, DC_WINDOW_TITLE /* i don't think the name can be localized ;) */,
 			  B_TITLED_WINDOW, B_ASYNCHRONOUS_CONTROLS)
 {
 	InitGUI();
@@ -151,6 +151,8 @@ DCWindow::OpenNewConnection(const BString & name, const BString & addr, const BS
 	HideAll();
 	// Show our new connection only
 	ShowItem(con->fListItem);
+	
+	// Connect
 	con->fView->Connect(addr);
 	
 	Activate(true);
@@ -192,6 +194,7 @@ DCWindow::HideAll()
 		if (!item->fView->IsHidden())
 			item->fView->Hide();
 	}
+	SetTitle(DC_WINDOW_TITLE);
 }
 
 void
@@ -200,7 +203,14 @@ DCWindow::ShowItem(BListItem * item)
 	// Find our item
 	Container * it = FindItem(item);
 	if (it && it->fView->IsHidden() == true) // Must be hidden... otherwise we don't need to show it
+	{
 		it->fView->Show();
+		
+		BString title = DC_WINDOW_TITLE;
+		title += " - ";
+		title += it->fServerName;
+		SetTitle(title.String());
+	}
 }
 
 bool

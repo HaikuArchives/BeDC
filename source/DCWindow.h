@@ -50,6 +50,8 @@ class DCStatusBar;
 
 class DCView;
 
+#define DC_WINDOW_TITLE "DC4Be"
+
 enum
 {
 	// The window was closed

@@ -166,8 +166,10 @@ DCApp::ShowHubWindow()
 			fHubWindow = new DCHubWindow(BMessenger(this), rect);
 		else
 			fHubWindow = new DCHubWindow(BMessenger(this));
+		fHubWindow->Show();
 	}
-	fHubWindow->Show();
+	else
+		fHubWindow->Activate(true);
 }
 
 void
@@ -232,6 +234,24 @@ DCApp::GetColor(int c)
 		case DC_COLOR_TEXT:
 		{
 			rgb_color r = { 0, 0, 0, 255 };
+			return r;
+		}
+		
+		case DC_COLOR_ERROR:
+		{
+			rgb_color r = { 127, 0, 0, 255 };
+			return r;
+		}
+		
+		case DC_COLOR_REMOTE_NICK:
+		{
+			rgb_color r = { 0, 0, 0, 255 };
+			return r;
+		}
+		
+		case DC_COLOR_LOCAL_NICK:
+		{
+			rgb_color r = { 0, 127, 0, 255 };
 			return r;
 		}
 		

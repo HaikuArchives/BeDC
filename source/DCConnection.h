@@ -42,6 +42,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Messenger.h>
 #include <OS.h>
 
+#include "ObjectList.h"
+
 // Messages launched by DCConnection
 enum
 {
@@ -67,6 +69,13 @@ enum
 	// A new user has connected
 	//	'nick'		BString		--> user nick
 	DC_MSG_CON_USER_CONNECTED = 'chUC',
+	// We got a $MyINFO response
+	//	'nick'		BString		--> User name
+	//	'desc'		BString		--> Description
+	//	'speed'		BString		--> Speed
+	//	'email'		BString		--> email
+	//	'size'		uint32		--> Shared size
+	DC_MSG_CON_USER_INFO = 'chUI',
 	// You are an op
 	DC_MSG_CON_YOU_ARE_OP = 'chAO',
 	// Got the list of users
@@ -102,8 +111,11 @@ enum
 	//	'nick'		BString		--> User's nick
 	DC_MSG_CON_QUIT = 'chCQ',
 	// Chat Message
-	//	'nick'		BString		--> Sender's nic
+	//	Can be:
+	//	'nick'		BString		--> Sender's nick
 	//	'text'		BString		--> The message
+	//	Or:
+	//	'chat'		BString		--> Just chat text... no nick
 	DC_MSG_CON_CHAT_MSG = 'chCH'
 };
 	
@@ -169,6 +181,11 @@ private:
 	uint32				fSharedSize;
 	int					fType;
 	
+	typedef BObjectList<BString> StrList;
+	
+	StrList				fToSend;
+	sem_id				fLocker;
+	
 	int					fSocket;
 	BMessenger			fTarget;
 	thread_id			fThreadID;
@@ -183,12 +200,35 @@ private:
 	void				ToReceived(BString str);
 	void				ConnectToMeReceived(BString str);
 	void				MultiConnectToMeReceived(BString str);
-
+	void				MyInfoReceived(BString str);
+	
 	void				ValidateNick();
 	// Name CAN be NULL
 	void				SendMessage(uint32 cmd, const char * name = NULL, const BString & str = "");
 	
+	bool				LockList();
+	void				UnlockList();
+	void				EmptyList();
+	
+	status_t			SetNonBlocking(bool val)
+	{
+		int flags = fcntl(fSocket, F_GETFL);
+		if (val)
+			flags |= O_NONBLOCK;
+		else
+			flags &= ~O_NONBLOCK;
+		if (fcntl(fSocket, F_SETFL, flags) < 0)
+			return B_ERROR;
+		
+		return B_OK;
+	}
+	
 	static int32		ReceiveHandler(void * data);
+	// If these return 0, the it disconnected
+	// If it returns < 0, than an error occured
+	// Otherwise, it returns the amount read/written
+	int					Sender();
+	int					Reader(BString & ret);
 };
 
 

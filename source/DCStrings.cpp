@@ -95,7 +95,14 @@ const char * DC_STR_ENGLISH[STR_NUM] =
 	"Cancel",
 	
 	"System: ",
-	"Connecting to "
+	"Error: ",
+	"Connecting to ",
+	"Connected.",
+	"Connection to server failed!",
+	"Trying to reconnect to server...",
+	"Disconnected from server.",
+	"Your nick is already in use, please choose another.",
+	"User %s has logged in."
 };
 
 // If you want different key shortcuts then the defaults for english,

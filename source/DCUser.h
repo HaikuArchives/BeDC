@@ -40,6 +40,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class BRow;
 class BColumnListView;
 
+enum
+{
+	DC_USER_NAME,
+	DC_USER_SPEED,
+	DC_USER_DESC,
+	DC_USER_EMAIL,
+	DC_USER_SHARED
+};
+
 // The list view to which this user belongs to, the columns should be like this:
 //	Name, Speed, Desc, Email, Shared
 class DCUser
@@ -47,8 +56,8 @@ class DCUser
 public:
 							DCUser(const BString & name = "", const BString & desc = "",
 								   const BString & email = "", const BString & speed = "",
-								   uint32 shared = 0);
-							~DCUser() {}
+								   int64 shared = 0);
+							~DCUser();
 
 	// Create a row for use with BCLV
 	// Pass NULL to remove from the current list
@@ -58,14 +67,14 @@ public:
 	BString					GetDesc() const { return fDesc; }
 	BString					GetEmail() const { return fEmail; }
 	BString					GetSpeed() const { return fSpeed; }
-	uint32					GetShared() const { return fShared; }
+	int64					GetShared() const { return fShared; }
 	BString					GetSharedString() const;
 	
-	void					SetName(const BString & s) { fName = s; }
-	void					SetDesc(const BString & s) { fDesc = s; }
-	void					SetEmail(const BString & s) { fEmail = s; }
-	void					SetSpeed(const BString & s) { fSpeed = s; }
-	void					SetShared(uint32 size) { fShared = size; }
+	void					SetName(const BString & s);
+	void					SetDesc(const BString & s);
+	void					SetEmail(const BString & s);
+	void					SetSpeed(const BString & s);
+	void					SetShared(int64 size);
 	
 private:
 	BRow * 					fRow;
@@ -75,7 +84,7 @@ private:
 	BString					fDesc;
 	BString					fEmail;
 	BString					fSpeed;
-	uint32					fShared;
+	int64					fShared;
 };
 
 #endif

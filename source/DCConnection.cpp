@@ -36,6 +36,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
+
+// TEST
+#ifdef NETSERVER_BUILD
+#include <net/socket.h>
+#else
+#include <sys/select.h>
+#endif
 
 #include "DCConnection.h"
 #include "DCNetSetup.h"
@@ -45,7 +53,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 enum
 {
 	DCC_CONNECT = 'dCCc',	// Connect
-	DCC_SEND = 'dCCs',		// Send some data
+	DCC_SEND = 'dCCs'		// Send some data
 };
 
 DCConnection::DCConnection(BMessenger target, const BString & host, int port)
@@ -68,6 +76,9 @@ DCConnection::DCConnection(BMessenger target, const BString & host, int port)
 	
 	Run();	// start the looper
 	
+	fLocker = create_sem(1, "dcc_sem");
+	if (fLocker < B_OK)
+		debugger("Couldn't create semaphore!");
 	if (host != "")
 		Connect(host, port);
 }
@@ -75,11 +86,25 @@ DCConnection::DCConnection(BMessenger target, const BString & host, int port)
 DCConnection::~DCConnection()
 {
 	Disconnect();
+	delete_sem(fLocker);
+}
+
+bool
+DCConnection::LockList()
+{
+	return acquire_sem(fLocker) == B_OK ? true : false;
+}
+
+void
+DCConnection::UnlockList()
+{
+	release_sem(fLocker);
 }
 
 void
 DCConnection::Disconnect()
 {
+	fConnected = false;
 	if (fThreadID >= 0)
 	{
 		kill_thread(fThreadID);
@@ -94,7 +119,12 @@ DCConnection::Disconnect()
 #endif
 		fSocket = -1;
 	}
-	fConnected = false;
+	// Clean up our list
+	if (LockList())
+	{
+		EmptyList();
+		UnlockList();
+	}
 }
 
 void
@@ -102,6 +132,7 @@ DCConnection::Connect(const BString & host, int port)
 {
 	if (!fConnected)
 	{
+		printf("Launching DCC_CONNECT\n");
 		fHost = host;
 		fPort = port;
 		BMessage msg(DCC_CONNECT);
@@ -147,17 +178,29 @@ DCConnection::MessageReceived(BMessage * msg)
 	{
 		case DCC_SEND:
 		{
+			printf("Got DCC_SEND\n");
 			BString str;
 			if (msg->FindString("data", &str) == B_OK)
 			{
-				if (send(fSocket, str.String(), str.Length(), 0) < 0)
+/*				if (send(fSocket, str.String(), str.Length(), 0) < 0)
 					fTarget.SendMessage(DC_MSG_CON_SEND_ERROR);
+				else
+					printf("Sent\n");*/
+				if (LockList())
+				{
+					printf("Acquired sem\n");
+					BString * strp = new BString(str);
+					fToSend.AddItem(strp, fToSend.CountItems());
+					printf("Unlocking\n");
+					UnlockList();
+				}
 			}
 			break;
 		}
 		
 		case DCC_CONNECT:
 		{
+			printf("DCC: Got connect message\n");
 			InternalConnect();
 			break;
 		}
@@ -171,6 +214,7 @@ DCConnection::MessageReceived(BMessage * msg)
 void
 DCConnection::InternalConnect()
 {
+	printf("Internalconnect()\n");
 	// Notify our target
 	fTarget.SendMessage(DC_MSG_CON_CONNECTING);
 	
@@ -184,16 +228,20 @@ DCConnection::InternalConnect()
 	if (hostAddr)
 	{
 		sockAddr.sin_addr = *((in_addr *)(hostAddr->h_addr_list[0]));
-		fSocket = socket(AF_INET, SOCK_STREAM, 0);
+		fSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		if (fSocket >= 0)
 		{
+			SetNonBlocking(false);
 			if (connect(fSocket, (sockaddr *)&sockAddr, sizeof(sockAddr)) >= 0)
 			{
 				fThreadID = spawn_thread(DCConnection::ReceiveHandler, "dcc_receiver",
 										 B_NORMAL_PRIORITY, this);
 				if (fThreadID >= 0)
 				{
+					if (SetNonBlocking(true) == B_ERROR)
+						debugger("Could not set non-blocking socket IO\n");
 					resume_thread(fThreadID);
+					printf("DCC: Connected!\n");
 					fTarget.SendMessage(DC_MSG_CON_CONNECTED);
 					fConnected = true;
 					return;
@@ -202,6 +250,7 @@ DCConnection::InternalConnect()
 		}
 	}
 	
+	printf("DCC: Error connecting!\n");
 	// Failure
 	fTarget.SendMessage(DC_MSG_CON_CONNECT_ERROR);
 }
@@ -210,67 +259,41 @@ int32
 DCConnection::ReceiveHandler(void * d)
 {
 	DCConnection * me = (DCConnection *)d;
-	const int32 BUFFER_SIZE = 512;
-	char recvBuffer[BUFFER_SIZE + 1];
-	BString converted = "";
 	BString str1 = "", str2 = "";
 	
 	while (1)
 	{
-		int amountRead;
-		amountRead = recv(me->fSocket, recvBuffer, BUFFER_SIZE, 0);
-		if (amountRead < 0)
+		int ret = me->Sender();
+		if (ret == 0)
 		{
-#ifdef NETSERVER_BUILD
-			if (amountRead != -1)	// on net_server, we only abort if it's not -1
-			{
-				me->fTarget.SendMessage(DC_MSG_CON_RECV_ERROR);
-				return -1;
-			}
-#else
-			me->fTarget.SendMessage(DC_MSG_CON_RECV_ERROR);
-			return -1;
-#endif
-		}
-		
-		if (amountRead == 0)	// Disconnected
-		{
+			me->SendMessage(DC_MSG_CON_DISCONNECTED);
 			me->Disconnect();
-			me->fTarget.SendMessage(DC_MSG_CON_DISCONNECTED);
-			return -2;
+			return -1;
+		}
+		else if (ret < 0)	// failed
+		{
+			me->SendMessage(DC_MSG_CON_SEND_ERROR);
+			me->Disconnect();
+			return -1;
 		}
 		
-		// good :)
-		recvBuffer[amountRead] = 0;
-		str1 = DCUTF8(recvBuffer);
-		while (str1[str1.Length() - 1] != '|')	// we haven't gotten the command yet
+		str2 = "";
+		ret = me->Reader(str2);
+		if (ret == 0)	// disconenct
 		{
-			amountRead = recv(me->fSocket, recvBuffer, BUFFER_SIZE, 0);
-			if (amountRead < 0)
-			{
-#ifdef NETSERVER_BUILD
-				if (amountRead != -1)	// on net_server, we only abort if it's not -1
-				{
-					me->fTarget.SendMessage(DC_MSG_CON_RECV_ERROR);
-					return -1;
-				}
-#else
-				me->fTarget.SendMessage(DC_MSG_CON_RECV_ERROR);
-				return -1;
-#endif
-			}
-			
-			if (amountRead == 0)	// Disconnected
-			{
-				me->Disconnect();
-				me->fTarget.SendMessage(DC_MSG_CON_DISCONNECTED);
-				return -2;
-			}
-			
-			recvBuffer[amountRead] = 0;
-			converted = DCUTF8(recvBuffer);
-			str1.Append(converted);
+			me->SendMessage(DC_MSG_CON_DISCONNECTED);
+			me->Disconnect();
+			return -1;
 		}
+		else if (ret < 0)	// error
+		{
+			me->SendMessage(DC_MSG_CON_RECV_ERROR);
+			me->Disconnect();
+			return -1;
+		}
+		
+		if (str2 != "")	// if str2 == "", then recv() was going to block and we couldn't read anything
+			str1.Append(str2);
 		
 		// got a command, figure out what it is
 		int i = 0;
@@ -280,6 +303,7 @@ DCConnection::ReceiveHandler(void * d)
 			str1.MoveInto(str2, 0, i);
 			str1.Remove(0, 1);;
 			
+			printf("DCC: Got command [ %s ]\n", str2.String());
 			if (!str2.Compare("$Lock ", 6))
 			{
 				me->LockReceived(str2);
@@ -313,10 +337,7 @@ DCConnection::ReceiveHandler(void * d)
 			}
 			else if (!str2.Compare("$MyINFO ", 8))
 			{
-				// TODO: Do we want to handle this?
-				// Yup, It's how we get another clients info (Speed/Description/Share etc)
-				// The Nicklist shows only the nick.
-				// Also, if we send out "$GetINFO", this is the response we get
+				me->MyInfoReceived(str2);
 			}
 			else if (!str2.Compare("$NickList ", 10))
 			{
@@ -381,10 +402,95 @@ DCConnection::ReceiveHandler(void * d)
 				
 				BMessage msg(DC_MSG_CON_CHAT_MSG);
 				msg.AddString("nick", name);
+				printf("Str2 == %s+++\n", str2.String());
 				msg.AddString("text", str2);
 				me->fTarget.SendMessage(&msg);
 			}
+			else	// This is just chat text w/out a name
+			{
+				BMessage msg(DC_MSG_CON_CHAT_MSG);
+				msg.AddString("chat", str2);
+				me->fTarget.SendMessage(&msg);
+			}
 		}
+	}
+}
+
+int
+DCConnection::Sender()
+{
+	// Lock our list
+	if (!LockList())
+		return -2;	// Bah! couldn't get the lock
+	if (fToSend.CountItems() == 0)
+	{
+		// Nothing to send
+		UnlockList();
+		return 1;
+	}
+	BString * str = fToSend.ItemAt(0);	// first Item
+	int i = 0;
+	int totalSent = 0;
+	SetNonBlocking(false);
+	while (true)
+	{
+		i = send(fSocket, str->String(), 30, MSG_WAITALL);
+		if (i <= 0)
+		{
+			UnlockList();
+			SetNonBlocking(true);
+			if (errno == EWOULDBLOCK)
+			{
+				return totalSent == 0 ? 1 : totalSent;	// don't send a disconnect if we weren't able to send anything
+			}
+			return i == 0 ? 0 : -1;	// return -1 on error, 0 on disconnet
+		}
+		totalSent += i;
+		if (i < str->Length())
+		{
+			str->Remove(0, i);
+		}
+		else
+		{
+			delete str;
+			fToSend.RemoveItemAt(0);
+			if (fToSend.CountItems() == 0)
+			{
+				UnlockList();
+				SetNonBlocking(true);
+				return totalSent;
+			}
+			str = fToSend.ItemAt(0);
+		}
+	}
+}
+
+int
+DCConnection::Reader(BString & ret)
+{
+	const int32 BUFFER_SIZE = 1024;
+	char recvBuffer[BUFFER_SIZE + 1];
+	BString converted = "";
+	int r = 0;
+	int totalRead = 0;
+	
+	while (true)
+	{
+		r = recv(fSocket, recvBuffer, BUFFER_SIZE, 0);
+		if (r <= 0)
+		{
+			if (errno == EWOULDBLOCK)
+			{
+				errno = 0;
+				ret = converted;
+				return totalRead == 0 ? 1 : totalRead;
+			}
+			return r == 0 ? 0 : -1;	// return -1 for error, and 0 for disconnect
+		}
+		
+		totalRead += r;
+		recvBuffer[r] = 0;	// null terminate
+		converted.Append(DCUTF8(recvBuffer));
 	}
 }
 
@@ -481,9 +587,11 @@ DCConnection::HelloReceived(BString str)
 {
 	// Someone just entered the hub
 	// If it's us, identify ourselves ;)
+	printf("Got hello\n");
 	str.RemoveFirst("$Hello ");
 	if (str.Compare(fNick) == 0)	// it's us 
 	{
+		printf("It's just me :)\n");
 		SendVersion();
 		SendNickListRequest();
 		SendMyInfo();
@@ -497,6 +605,7 @@ DCConnection::HelloReceived(BString str)
 void
 DCConnection::LockReceived(BString str)
 {
+	printf("\t\tGOT $Lock\n");
 	str.RemoveFirst("$Lock ");
 	int j = str.FindFirst(" ");
 	// Remove everything after the first space
@@ -625,4 +734,41 @@ DCConnection::SendConnectRequest(const BString & userNick)
 	send += fNick;
 	send += "|";
 	SendData(send);
+}
+
+void
+DCConnection::MyInfoReceived(BString str)
+{
+	BString nick, desc, speed, email, tmp;
+	uint64 size;
+	str.RemoveFirst("$MyINFO $ALL ");
+	str.MoveInto(nick, 0, str.FindFirst(" "));
+	str.RemoveFirst(" ");
+	str.MoveInto(desc, 0, str.FindFirst("$"));
+	str.RemoveFirst("$ $");
+	str.MoveInto(speed, 0, str.FindFirst("$") - 1);	// -1 to remove the special char
+	str.Remove(0, 2);
+	str.MoveInto(email, 0, str.FindFirst("$"));
+	str.RemoveFirst("$");
+	str.MoveInto(tmp, 0, str.FindFirst("$"));
+	size = (uint64)atoll(tmp.String());
+	printf("Read size: %s\t%Ld\n", tmp.String(), size);
+	
+	BMessage msg(DC_MSG_CON_USER_INFO);
+	msg.AddString("nick", nick);
+	msg.AddString("desc", desc);
+	msg.AddString("speed", speed);
+	msg.AddString("email", email);
+	msg.AddInt64("size", (int32)size);
+	fTarget.SendMessage(&msg);
+}
+
+void
+DCConnection::EmptyList()
+{
+	while (fToSend.CountItems() > 0)
+	{
+		BString * item = fToSend.RemoveItemAt(0);
+		delete item;
+	}
 }
