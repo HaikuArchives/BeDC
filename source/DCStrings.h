@@ -40,22 +40,50 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // String constants
 enum 
 {
+	// Hub window
 	STR_HUB_WINDOW_TITLE = 0,
+	
+	// Hub window -> Buttons
 	STR_HUB_CONNECT,
 	STR_HUB_REFRESH,
 	STR_HUB_NEXT50,
 	STR_HUB_PREV50,
+	
+	// Hub window -> List view
 	STR_SERVER_NAME,
 	STR_SERVER_ADDR,
 	STR_SERVER_DESC,
 	STR_SERVER_USERS,
+	
+	// Hub window -> Status
 	STR_STATUS_IDLE,
+	STR_STATUS_CONNECTING,
 	STR_STATUS_CONNECTED,
 	STR_STATUS_CONNECT_ERROR,
 	STR_STATUS_SEND_ERROR,
 	STR_STATUS_RECV_ERROR,
 	STR_STATUS_NUM_SERVERS,
+	
+	// Main window -> Menus
+	STR_MENU_FILE,
+	STR_MENU_FILE_ABOUT,
+	STR_MENU_FILE_CLOSE,
+	STR_MENU_EDIT,
+	STR_MENU_EDIT_PREFS,
+	STR_MENU_WINDOWS,
+	STR_MENU_WINDOWS_HUB,
+	
 	STR_NUM	 // Place holder
+};
+
+// Key shortcuts for menu items
+enum
+{
+	KEY_FILE_ABOUT = 0,
+	KEY_FILE_CLOSE,
+	KEY_EDIT_PREFS,
+	KEY_WINDOWS_HUB,
+	KEY_NUM
 };
 
 enum
@@ -65,6 +93,7 @@ enum
 };
 
 const char * DCStr(int);
+char DCKey(int);
 void DCSetLanguage(int);
 BString DCUTF8(const char * str);
 

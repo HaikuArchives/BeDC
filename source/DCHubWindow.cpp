@@ -115,6 +115,7 @@ DCHubWindow::MessageReceived(BMessage * msg)
 				fList = new DCHTTPConnection(BMessenger(this));
 			if (!fList->IsRunning())
 			{
+				fStatus->SetText(DCStr(STR_STATUS_CONNECTING));
 				fList->Run();
 				fList->Connect();
 			}

@@ -49,19 +49,41 @@ const char * DC_STR_ENGLISH[STR_NUM] =
 	"Refresh",
 	"Next 50",
 	"Previous 50",
+	
 	"Name",
 	"Address",
 	"Description",
 	"Users",
-	"Idle",
-	"Connected, retreiving server list",
-	"Error connecting",
-	"Error sending request",
-	"Error receiving data",
-	"Number of servers: "
+	
+	"Idle.",
+	"Connecting...",
+	"Connected, retreiving server list...",
+	"Error connecting.",
+	"Error sending request.",
+	"Error receiving data.",
+	"Number of servers: ",
+	
+	"File",
+	"About",
+	"Close",
+	"Edit",
+	"Preferences",
+	"Windows",
+	"Show Hubs"
+};
+
+// If you want different key shortcuts then the defaults for english,
+// include your own language version of key shortcuts
+const char DC_KEY_ENGLISH[KEY_NUM] =
+{
+	'A',	// About
+	'W',	// Close
+	'P',	// Prefs
+	'H'		// Hubs
 };
 
 const char ** DC_STR_USE = 0;	// Set to the current language in use
+const char * DC_KEY_USE = 0;	// Set to the current key set in use
 
 const char * 
 DCStr(int str)
@@ -75,12 +97,21 @@ DCSetLanguage(int lang)
 	switch (lang)
 	{
 		case DC_LANG_ENGLISH:
+		{
 			DC_STR_USE = DC_STR_ENGLISH;
+			DC_KEY_USE = DC_KEY_ENGLISH;
 			break;
+		}
 			
 		default:
 			break;
 	};
+}
+
+char
+DCKey(int key)
+{
+	return DC_KEY_USE[key];
 }
 
 BString

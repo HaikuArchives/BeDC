@@ -38,6 +38,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <View.h>
 #include <Message.h>
+#include <MenuBar.h>
+#include <MenuItem.h>
+#include <ListView.h>
+#include <ScrollView.h>
+
+enum
+{
+	// Menu
+	DCW_ABOUT = 'dWaB',
+	DCW_CLOSE = B_QUIT_REQUESTED,	// heheheh :)
+	DCW_PREFS = 'dWpS',
+	DCW_HUBS = 'dwHs',
+	DCW_HUB_CHANGED = 'dWhC',	// hub list selelction message
+};
 
 DCWindow::DCWindow(BRect pos)
 	: BWindow(pos, "BeDC" /* i don't think the name can be localized ;) */,
@@ -73,8 +87,53 @@ DCWindow::QuitRequested()
 void
 DCWindow::InitGUI()
 {
+	// Create all the menus
 	AddChild(
-		fParentView = new BView(Bounds(), "parent_view", B_FOLLOW_ALL, B_WILL_DRAW)
+		fMenuBar = new BMenuBar(BRect(0, 0, Bounds().Width(), 1) /* automagically resized by menubar */,
+								"menubar_title")
+	);
+	// File menu
+	fMenuBar->AddItem(
+		fFileMenu = new BMenu(DCStr(STR_MENU_FILE))
+	);
+	fFileMenu->AddItem(
+		new BMenuItem(DCStr(STR_MENU_FILE_ABOUT), new BMessage(DCW_ABOUT), DCKey(KEY_FILE_ABOUT))
+	);
+	fFileMenu->AddItem(
+		new BMenuItem(DCStr(STR_MENU_FILE_CLOSE), new BMessage(DCW_CLOSE), DCKey(KEY_FILE_CLOSE))
+	);
+	
+	// Edit menu
+	fMenuBar->AddItem(
+		fEditMenu = new BMenu(DCStr(STR_MENU_EDIT))
+	);
+	fEditMenu->AddItem(
+		new BMenuItem(DCStr(STR_MENU_EDIT_PREFS), new BMessage(DCW_PREFS), DCKey(KEY_EDIT_PREFS))
+	);
+	
+	// Windows menu
+	fMenuBar->AddItem(
+		fWindowsMenu = new BMenu(DCStr(STR_MENU_WINDOWS))
+	);
+	fWindowsMenu->AddItem(
+		new BMenuItem(DCStr(STR_MENU_WINDOWS_HUB), new BMessage(DCW_HUBS), DCKey(KEY_WINDOWS_HUB))
+	);
+	
+	// Main ugly, grey view ;)
+	AddChild(
+		fParentView = new BView(BRect(0, fMenuBar->Bounds().Height(), Bounds().Width(),
+								Bounds().Height()), "parent_view", B_FOLLOW_ALL, B_WILL_DRAW)
 	);
 	fParentView->SetViewColor(216, 216, 216);
+	
+	// Hub list
+	fHubs = new BListView(BRect(0, 0, 150, fParentView->Bounds().Height() - 20),
+						  "hub_list", B_SINGLE_SELECTION_LIST, B_FOLLOW_LEFT | B_FOLLOW_TOP_BOTTOM);
+	fHubs->SetSelectionMessage(new BMessage(DCW_HUB_CHANGED));
+	
+	fParentView->AddChild(
+		fScrollHubs = new BScrollView("scoll_hub_list", fHubs, B_FOLLOW_LEFT | B_FOLLOW_TOP_BOTTOM, 0,
+									  false, true, B_FANCY_BORDER)
+	);
+	fScrollHubs->SetViewColor(216, 216, 216);
 }

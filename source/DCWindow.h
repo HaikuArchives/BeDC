@@ -39,6 +39,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Window.h>
 
 class BView;
+class BMenuBar;
+class BMenu;
+class BListView;
+class BScrollView;
 
 enum
 {
@@ -50,7 +54,7 @@ enum
 class DCWindow : public BWindow
 {
 public:
-						DCWindow(BRect pos = BRect(30, 70, 630, 430));
+						DCWindow(BRect pos = BRect(30, 70, 730, 530));
 	virtual				~DCWindow();
 	
 	virtual void		MessageReceived(BMessage * msg);
@@ -58,6 +62,12 @@ public:
 	
 private:
 	BView *				fParentView;	// The main view everything gets slapped into
+	BMenuBar *			fMenuBar;
+	BMenu *				fFileMenu;
+	BMenu *				fEditMenu;
+	BMenu *				fWindowsMenu;
+	BScrollView *		fScrollHubs;
+	BListView *			fHubs;
 	
 	void				InitGUI();
 };

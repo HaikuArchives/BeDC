@@ -37,34 +37,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _DC_VIEW_H
 #define _DC_VIEW_H_
 
-class DCView : public BView
-{
-public :
-						DCView(BRect frame);
-						~DCView();
-	
-	virtual void 		Draw(BRect updaterect);
-	
-	BTextView * 		Output() { return outView; }
-	BTextView * 		InputView() { return inCtrl->TextView(); }
-	BScrollView * 		OutScroll() { return outScrollView; }
-	BListView * 		NickList() { return nickList; }
-	
-	const char * 		GetNick() { return nickCtrl->TextView()->Text(); }
-	BTextView * 		NickView() { return nickCtrl->TextView(); }
-	BTextView * 		ServerView() { return serverCtrl->TextView(); }
-	const char * 		GetServer() { return serverCtrl->TextView()->Text(); }
+#include <View.h>
 
-protected :
-	BTextControl * 		nickCtrl;
-	BTextControl * 		serverCtrl;
-	BButton *			connBtn;
-	BTextView *			outView;
-	BScrollView *		outScrollView;
-	BListView *			nickList;
-	BScrollView *		nickScrollView;
-	BTextControl *		inCtrl;
-	BButton *			sendBtn;
-};
+
 
 #endif /* !_DC_VIEW_H_ */
