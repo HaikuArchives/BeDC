@@ -1,22 +1,23 @@
 *0.1-alpha5
+	- Added Search window and som menu items (raftking)
 	- Got the latest ColumnListView source from Vision CVS, which fixes
-	  several NASTY, system-locking, bugs in the list view
-	- Totally reworked some code, including implementing the hub window.
+	  several NASTY, system-locking, bugs in the list view (VitViper)
+	- Totally reworked some code, including implementing the hub window. (VitViper)
 *0.1-alpha4
-	-Started on huffman en/decoding
-	-Started on client-client comm
-	-Now using makefile
-	-Changed settings-stuff, should work now
-	-BeDC now uses the correct charset
-	-BeDC has moved to sourceforge
-	-Fixed(?) net_server problem
+	-Started on huffman en/decoding (Ghostride)
+	-Started on client-client comm (Ghostride)
+	-Now using makefile (Ghostride)
+	-Changed settings-stuff, should work now (Ghostride)
+	-BeDC now uses the correct charset (Ghostride)
+	-BeDC has moved to sourceforge (Ghostride)
+	-Fixed(?) net_server problem (Ghostride)
 
 *0.1-alpha3:
-	-Added menubar
-	-Added saving of settings
+	-Added menubar (Ghostride)
+	-Added saving of settings (Ghostride)
 
 *0.1-alpha2:
-	-Fixed wrapping in the output text view
+	-Fixed wrapping in the output text view (Ghostride)
 
 *0.1-alpha1:
-	-First public release, chatting kinda works
+	-First public release, chatting kinda works (Ghostride)

@@ -5,9 +5,7 @@ Copyright (C) 2002 The BeDC team
 Introduction:
 BeDC is a BeOS file sharing client compatible with the Direct Connect protocol.
 Currently only chatting works, not filesharing/downloading. The program is in a very early alpha stage,
-so expect it to crash and behave strange :) The program doesn't download the hub list from NeoModus (yet), so you
-have to get the address of the hub you're connceting to from from a windows client or something. You could also read
-the "How to find DC Hubs.txt" file, and download the hub list with your web browser.
+so expect it to crash and behave strange :) 
 
 License:
 The license is in the included LICENSE file
