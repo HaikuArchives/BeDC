@@ -181,7 +181,7 @@ void DCWindow::MessageReceived(BMessage *message)
 		case DC_INIT_WINDOW :
 		{
 			Init();
-			theView->InputView()->MakeFocus();
+			//theView->InputView()->MakeFocus();
 			break;
 		}
 		

@@ -2,6 +2,7 @@
 	-Changed settings-stuff
 	-BeDC now uses the correct charset
 	-BeDC has moved to sourceforge
+	-"Fixed" net_server problem
 
 *0.1-alpha3:
 	-Added menubar

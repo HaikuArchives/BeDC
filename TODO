@@ -5,7 +5,6 @@ Features:
 Bug fixes:
 * Sometimes the text in the output view becomes garbled
 * Crashes on exit sometimes, have something to do with the settings...
-* People doesn't get the net_server version to display anything in the output window, find out why and fix (I haven't been able to reproduce this)
 
 Misc stuff:
 * Make a user interface that doesn't suck

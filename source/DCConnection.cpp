@@ -167,18 +167,28 @@ int32 receiver(void *data)
 {
 	conn_info *cinfo;
 	cinfo = (conn_info*)data;
-	int32 R_BUF_SIZE = 4095;
-	int32 R_CONV_SIZE = 8191; /* UTF-8 does two bytes for extended chars, doesn't it? */
+	int32 R_BUF_SIZE = /*4095*/512;
+	int32 R_CONV_SIZE = R_BUF_SIZE*2; /* UTF-8 does two bytes for extended chars, doesn't it? */
 	char recvBuffer[R_BUF_SIZE+1];
 	char convertedbuffer[R_CONV_SIZE+1];
 	BString bstr1, bstr2;
 	BMessage *msg = NULL;
+	printf("We're in our thread\n");
 	while(true)
 	{
 		memset(recvBuffer,0,R_BUF_SIZE+1);
 		memset(convertedbuffer,0,R_CONV_SIZE+1);
-		if(recv(cinfo->conn,recvBuffer,R_BUF_SIZE,0) <= 0)
-			exit_thread(-1);
+		int bufread;
+#ifdef  NETSERVER_BUILD
+		if((bufread = recv(cinfo->conn,recvBuffer,R_BUF_SIZE,0)) < 0)
+		{
+			if(bufread != -1)     /* On net_server recv returns -1 when we send chat text, dunno why... */
+				exit_thread(-1);  /* But the socket is still good to go, so we just ignore it and go on */
+		}
+#else
+		if((bufread = recv(cinfo->conn,recvBuffer,R_BUF_SIZE,0)) < 0)
+				exit_thread(-1);  /* BONE only gives us errors when something is wrong */
+#endif				
 		else
 		{
 			convert_to_utf8(B_MS_WINDOWS_CONVERSION,recvBuffer,&R_BUF_SIZE,convertedbuffer,&R_CONV_SIZE,0);
@@ -188,8 +198,16 @@ int32 receiver(void *data)
 			{
 				memset(recvBuffer,0,R_BUF_SIZE+1);
 				memset(convertedbuffer,0,R_CONV_SIZE+1);
-				if(recv(cinfo->conn,recvBuffer,R_BUF_SIZE,0) <= 0)
-					exit_thread(-1);
+#ifdef  NETSERVER_BUILD
+				if((bufread = recv(cinfo->conn,recvBuffer,R_BUF_SIZE,0)) < 0)
+				{
+					if(bufread != -1)     
+						exit_thread(-1);
+				}  
+#else
+				if((bufread = recv(cinfo->conn,recvBuffer,R_BUF_SIZE,0)) < 0)
+						exit_thread(-1);  
+#endif
 				else
 				{
 					convert_to_utf8(B_MS_WINDOWS_CONVERSION,recvBuffer,&R_BUF_SIZE,convertedbuffer,&R_CONV_SIZE,0);
