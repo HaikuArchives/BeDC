@@ -616,7 +616,7 @@ const char * DC_LANGUAGES[DC_LANG_NUM] =
 	"suomi",
 	"Deutsch",
 	"Norsk",
-	"Polish"	// TODO
+	"polski"
 };
 
 int gCurrentLanguage = -1;

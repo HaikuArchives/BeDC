@@ -97,23 +97,6 @@ void
 DCConnection::Disconnect()
 {
 	fConnected = false;
-	if (fThreadID >= 0)
-	{
-/*#ifdef BONE_BUILD
-		kill_thread(fThreadID);
-		fThreadID = -1;
-#else*/
-		int32 junk = 0;
-		wait_for_thread(fThreadID, &junk);
-//#endif
-	}
-/*#ifdef BONE_BUILD	
-	if (fSocket >= 0)
-	{
-		CLOSE_SOCKET(fSocket);
-		fSocket = -1;
-	}
-#endif*/
 	// Clean up our list
 	if (LockList())
 	{
@@ -245,6 +228,9 @@ DCConnection::ReceiveHandler(void * d)
 	while (me->fConnected)
 	{
 		int ret = me->Sender();
+		if (!me->fConnected)	// paranoia check
+			break;
+			
 		if (ret == 0)
 		{
 			me->SendMessage(DC_MSG_CON_DISCONNECTED);
@@ -262,7 +248,10 @@ DCConnection::ReceiveHandler(void * d)
 		
 		str2 = "";
 		ret = me->Reader(str2);
-		if (ret == 0)	// disconenct
+		if (!me->fConnected)	// paranoia check
+			break;
+			
+		if (ret == 0)	// disconnect
 		{
 			me->SendMessage(DC_MSG_CON_DISCONNECTED);
 			//me->Disconnect();
@@ -368,7 +357,6 @@ DCConnection::ReceiveHandler(void * d)
 				str2.RemoveFirst("$ForceMove");	
 				str2.RemoveFirst(" ");	// This is separate in case we have a force move w/out a server
 				me->SendMessage(DC_MSG_CON_FORCE_MOVE, "ip", str2);
-				me->Disconnect();
 			}
 			else if (!str2.Compare("$Quit ", 6))
 			{
@@ -431,13 +419,12 @@ DCConnection::Sender()
 	BString * str = fToSend.ItemAt(0);	// first Item
 	int i = 0;
 	int totalSent = 0;
-	//SetNonBlocking(false);
+
 	while (fConnected)
 	{
 		i = send(fSocket, str->String(), str->Length(), 0);
 		if (i <= 0)
 		{
-			//SetNonBlocking(true);
 			UnlockList();
 			// Probably won't happen (blocking IO)
 			if (errno == EWOULDBLOCK)
@@ -464,6 +451,7 @@ DCConnection::Sender()
 			str = fToSend.ItemAt(0);
 		}
 	}
+	UnlockList();	// hehe, dead-lock issue here ;)
 	return -1;
 }
 
@@ -476,13 +464,8 @@ DCConnection::Reader(BString & ret)
 	int r = 0;
 	int totalRead = 0;
 	
-/*#ifdef BONE_BUILD
-	if (SetNonBlocking(true) == B_ERROR)
-		printf("ERROR SETTING NON_BLOCK!\n");
-#endif*/
 	while (fConnected)
 	{
-//#ifdef NETSERVER_BUILD	
 		fd_set set;
 		FD_ZERO(&set);
 		FD_SET(fSocket, &set);
@@ -509,13 +492,10 @@ DCConnection::Reader(BString & ret)
 		{
 			return -1;
 		}
-//#endif
+
 		r = recv(fSocket, recvBuffer, BUFFER_SIZE, 0);
 		if (r <= 0)
 		{
-/*#ifdef BONE_BUILD			
-			SetNonBlocking(false);
-#endif*/
 			// This probably won't happen... (blocking IO)
 			if (errno == EWOULDBLOCK)
 			{
@@ -529,11 +509,6 @@ DCConnection::Reader(BString & ret)
 		totalRead += r;
 		recvBuffer[r] = 0;	// null terminate
 		converted.Append(DCUTF8(recvBuffer));
-/*#ifdef NETSERVER_BUILD	// net_server is fucked up ('scuse the language)
-		printf("Buffer so far: [%s]\n", converted.String());
-		ret = converted;
-		return totalRead;
-#endif		*/
 	}
 	
 	return -1;
