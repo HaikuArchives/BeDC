@@ -34,58 +34,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 
-#ifndef _DC_CONNECTION_H_
-#define _DC_CONNECTION_H_
+#ifndef _DC_SETTINGS_H_
+#define _DC_SETTINGS_H_
 
-class BLooper;
-struct conn_info;
+class BMessage;
 
-int32 receiver(void *data);
-BString *generate_key(BString &lck);
-
-
-enum
-{
-	DC_TEXT = 'dctx',
-	DC_PRIV_MSG = 'dcpr',
-	DC_USER_CONNECTED ='dcuc',
-	DC_USER_DISCONNECTED ='dcud',
-	DC_DISCONNECTED_FROM_SERVER = 'dcfs',
-	DC_USER_CONNECT = 'dcum',
-	DC_NEED_PASS = 'dcnp'
-};
-
-class DCConnection 
+class DCSettings : public BMessage
 {
 	public:
-		DCConnection(const char *host=NULL,int port = 411);
-		~DCConnection();
-		void Connect(const char *host,int port = 411);
-		void Disconnect();
-		bool IsConnected()  {return connected;};
-		void SetNick(const char *in_nick);
-		void SetConn(const char *in_conn) {myconn->SetTo(in_conn);};
-		const char *GetNick() { return nick->String();};
-		const char *GetConn() { return myconn->String();};
-		void SetMessageTarget(BLooper *looper);
-		int32 SendRawData(const char *command);
-		int32 SendData(const char *command);
-	private:
-		bool connected;
-		BString *nick;
-		BString *myconn;
-		int connection;
-		BLooper *msgTarget;
-		thread_id thid;
-		conn_info *cinfo;
+		DCSettings();
+		void LoadSettings();
+		void SaveSettings();
+		void SetString(const char *name, const char *nick);
+		status_t GetString(const char *name, BString *string);
+
 };
 
-struct conn_info
-{
-		BLooper			**target;
-		int				conn;
-		BString			*nick;
-		DCConnection 	*conn_obj;
-};
-
-#endif /* !_DC_CONNECTION_H_ */
+#endif /* !_DC_SETTINGS_H_ */

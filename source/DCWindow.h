@@ -40,6 +40,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class DCView;
 class DCConnection;
 
+enum {
+	DC_INIT_WINDOW = 'dciw'
+};
+
 class DCWindow : public BWindow
 {
 	public:
@@ -50,9 +54,11 @@ class DCWindow : public BWindow
 		virtual void DispatchMessage(BMessage * msg, BHandler * target);
 		virtual void MessageReceived(BMessage *message);
 	private:
+		void Init();
 		DCView *theView;
 		DCConnection *theConnection;
 		BMenuBar *menubar;
+		BMenu *connmenu;
 };
 
 #endif /* !_DC_WINDOW_H_ */

@@ -34,58 +34,45 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 
-#ifndef _DC_CONNECTION_H_
-#define _DC_CONNECTION_H_
+#include <stdio.h>
 
-class BLooper;
-struct conn_info;
+#include <Message.h>
+#include <File.h>
+#include <String.h>
 
-int32 receiver(void *data);
-BString *generate_key(BString &lck);
+#include "DCSettings.h"
 
 
-enum
+DCSettings::DCSettings()
 {
-	DC_TEXT = 'dctx',
-	DC_PRIV_MSG = 'dcpr',
-	DC_USER_CONNECTED ='dcuc',
-	DC_USER_DISCONNECTED ='dcud',
-	DC_DISCONNECTED_FROM_SERVER = 'dcfs',
-	DC_USER_CONNECT = 'dcum',
-	DC_NEED_PASS = 'dcnp'
-};
+}
 
-class DCConnection 
+void DCSettings::LoadSettings()
 {
-	public:
-		DCConnection(const char *host=NULL,int port = 411);
-		~DCConnection();
-		void Connect(const char *host,int port = 411);
-		void Disconnect();
-		bool IsConnected()  {return connected;};
-		void SetNick(const char *in_nick);
-		void SetConn(const char *in_conn) {myconn->SetTo(in_conn);};
-		const char *GetNick() { return nick->String();};
-		const char *GetConn() { return myconn->String();};
-		void SetMessageTarget(BLooper *looper);
-		int32 SendRawData(const char *command);
-		int32 SendData(const char *command);
-	private:
-		bool connected;
-		BString *nick;
-		BString *myconn;
-		int connection;
-		BLooper *msgTarget;
-		thread_id thid;
-		conn_info *cinfo;
-};
+	BFile settingsfile;
+	if(settingsfile.SetTo("/boot/home/config/settings/vegardw/BeDC/BeDC-Settings",B_READ_ONLY)==B_OK)
+	{
+		Unflatten(&settingsfile);
+	}
+}
 
-struct conn_info
+void DCSettings::SaveSettings()
 {
-		BLooper			**target;
-		int				conn;
-		BString			*nick;
-		DCConnection 	*conn_obj;
-};
+	BFile settingsfile;
+	if(settingsfile.SetTo("/boot/home/config/settings/vegardw/BeDC/BeDC-Settings",B_WRITE_ONLY|B_CREATE_FILE)==B_OK)
+		Flatten(&settingsfile);
+}
 
-#endif /* !_DC_CONNECTION_H_ */
+status_t DCSettings::GetString(const char *name, BString *string)
+{
+	return FindString(name,string);
+}
+
+void DCSettings::SetString(const char *name, const char *string)
+{
+	BString tmp;
+	if((FindString(name,&tmp))==B_OK)
+		ReplaceString(name,string);
+	else
+		AddString(name,string);
+}

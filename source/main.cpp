@@ -33,6 +33,7 @@ TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
 */
 
+class DCApp *dc_app;
 
 #include <Application.h>
 
@@ -40,6 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 int main(int argc, char **argv)
 {
-	new DCApp();
-	be_app->Run();
+	dc_app = new DCApp();
+	dc_app->Run();
+	delete dc_app;
 }

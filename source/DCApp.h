@@ -37,8 +37,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _DC_APP_H_
 #define _DC_APP_H_
 
+extern class DCApp *dc_app;
+
 class DCWindow;
-class BMessage;
+class DCSettings;
  
 class DCApp : public BApplication
 {
@@ -46,13 +48,10 @@ class DCApp : public BApplication
 		DCApp();
 		~DCApp();
 		virtual bool QuitRequested(void);
-		void LoadSettings();
-		void SaveSettings();
-		BMessage *SettingsMessage() { return theSettings;};
-	
+		DCSettings *GetSettings() {return theSettings;};
 protected:
 		DCWindow *theWindow;
-		BMessage *theSettings;
+		DCSettings *theSettings;
 };
 
 

@@ -135,12 +135,26 @@ void DCConnection::SetNick(const char *in_nick)
 		//SendData(tmp.String());
 	}
 }
+int32 DCConnection::SendRawData(const char *command)
+{
+	BString toSend(command);
+	printf("Sending: %s\n",toSend.String());
+	return send(connection,toSend.String(),toSend.Length(),0);
+
+}
 
 int32 DCConnection::SendData(const char *command)
 {
 	BString toSend(command);
 	printf("Sending: %s\n",toSend.String());
-	return send(connection,toSend.String(),toSend.Length(),0);
+	int32 length = toSend.Length();
+	char convertedbuffer[length+1]; 
+	memset(convertedbuffer,0,length+1);
+	char *stringData = toSend.LockBuffer(length+1);
+	stringData[length] = 0;
+	convert_from_utf8(B_MS_WINDOWS_CONVERSION,stringData,&length,convertedbuffer,&length,0);
+	toSend.UnlockBuffer(length+1);
+	return send(connection,convertedbuffer,length,0);
 	
 }
 
@@ -204,7 +218,7 @@ int32 receiver(void *data)
 					bstr2.SetTo("$Key ");
 					bstr2.Append(*bstr3);
 					bstr2.Append("|");
-					(cinfo->conn_obj)->SendData(bstr2.String());
+					(cinfo->conn_obj)->SendRawData(bstr2.String()); /* No charset conversion on the key */
 					delete bstr3;
 					
 					/* Send our nick */
@@ -232,7 +246,8 @@ int32 receiver(void *data)
 						bstr2.Append(" Just testing$ $");
 						bstr2.Append((cinfo->conn_obj)->GetConn());
 						bstr2.Append((char)1,1);
-						bstr2.Append("$$0$|");
+						//bstr2.Append("$$0$|");
+						bstr2.Append("$$1048576$|");
 						(cinfo->conn_obj)->SendData(bstr2.String());
 					}
 					else

@@ -58,12 +58,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCView.h" 
 #include "DCConnection.h"
 #include "DCClientConnection.h"
+#include "DCSettings.h"
 
 DCWindow::DCWindow(BRect frame)
 : BWindow(frame,"BeDC",B_TITLED_WINDOW,B_NOT_ZOOMABLE)
 {
 	BRect b = Bounds();
-	BMenu *menu, *submenu, *connmenu;
+	BMenu *menu, *submenu;
 	BMenuItem *item;
 	BString tmp;
 	
@@ -129,60 +130,45 @@ DCWindow::DCWindow(BRect frame)
 	theConnection = new DCConnection;
 	theConnection->SetMessageTarget(this);
 	
-	
-	if((((DCApp *)be_app)->SettingsMessage()->FindString("nick",&tmp))==B_OK)
+	Show();
+	PostMessage(DC_INIT_WINDOW);
+}
+ 
+void DCWindow::Init()
+{
+	BString tmp;
+	if((dc_app->GetSettings()->GetString("nick",&tmp))==B_OK)
 	{
 		theView->NickView()->SetText(tmp.String());
 		theConnection->SetNick(tmp.String());
 		theView->NickView()->Invalidate();
 	}
-	if((((DCApp *)be_app)->SettingsMessage()->FindString("server",&tmp))==B_OK)
+	if((dc_app->GetSettings()->GetString("server",&tmp))==B_OK)
 	{
 		theView->ServerView()->SetText(tmp.String());
 		theView->ServerView()->Invalidate();
 	}
 	
-	if((((DCApp *)be_app)->SettingsMessage()->FindString("connection",&tmp))==B_OK)
+	if((dc_app->GetSettings()->GetString("connection",&tmp))==B_OK)
 	{
 		theConnection->SetConn(tmp.String());
-		Lock();
 		for(int i=0;i<connmenu->CountItems();i++)
 		{
 			if(!tmp.Compare(connmenu->ItemAt(i)->Label()))
 				connmenu->ItemAt(i)->SetMarked(true);
-		}
-		Unlock();	
+		}	
 	}
-	
-	//theView->InputView()->MakeFocus(); /* Crashes on first char I type */
-	
 }
- 
+
 DCWindow::~DCWindow()
 {
-	theConnection->Disconnect();
 	delete theConnection;
 }
 
 bool DCWindow::QuitRequested()
 {
-	BString tmp;
-	
-	if((((DCApp *)be_app)->SettingsMessage()->FindString("nick",&tmp))==B_OK)
-		((DCApp *)be_app)->SettingsMessage()->ReplaceString("nick",theView->GetNick());
-	else
-		((DCApp *)be_app)->SettingsMessage()->AddString("nick",theView->GetNick());
-	
-	if((((DCApp *)be_app)->SettingsMessage()->FindString("server",&tmp))==B_OK)
-		((DCApp *)be_app)->SettingsMessage()->ReplaceString("server",theView->GetServer());
-	else
-		((DCApp *)be_app)->SettingsMessage()->AddString("server",theView->GetServer());
-	
-	if((((DCApp *)be_app)->SettingsMessage()->FindString("connection",&tmp))==B_OK)
-		((DCApp *)be_app)->SettingsMessage()->ReplaceString("connection",theConnection->GetConn());
-	else
-		((DCApp *)be_app)->SettingsMessage()->AddString("connection",theConnection->GetConn());
-	
+	printf("DCWindow::QuitRequested\n");
+	theConnection->Disconnect();
 	be_app->PostMessage(B_QUIT_REQUESTED);
 	return true;
 }
@@ -192,6 +178,13 @@ void DCWindow::MessageReceived(BMessage *message)
 	BTextControl *ptr;
 	switch(message->what)
 	{
+		case DC_INIT_WINDOW :
+		{
+			Init();
+			theView->InputView()->MakeFocus();
+			break;
+		}
+		
 		/* The following messages are sendt by the view, */
 		/* the user has done something                   */
 		
@@ -201,7 +194,8 @@ void DCWindow::MessageReceived(BMessage *message)
 			message->FindPointer("source",(void**)&menuitm);
 			if((menuitm))
 			{
-				theConnection->SetConn(menuitm->Label());	
+				theConnection->SetConn(menuitm->Label());
+				dc_app->GetSettings()->SetString("connection",menuitm->Label());	
 			}
 			break;
 		}
@@ -216,6 +210,7 @@ void DCWindow::MessageReceived(BMessage *message)
 				theView->NickList()->RemoveItems(0,theView->NickList()->CountItems());
 				theConnection->Connect(theView->GetServer(),411);
 			}
+			dc_app->GetSettings()->SetString("nick",ptr->TextView()->Text());
 			break;
 		}
 		case DC_SERVER_CHANGE: /* Server Changed */
@@ -228,6 +223,7 @@ void DCWindow::MessageReceived(BMessage *message)
 				theConnection->Disconnect();
 				theView->NickList()->RemoveItems(0,theView->NickList()->CountItems());
 			}
+			dc_app->GetSettings()->SetString("server",ptr->TextView()->Text());
 			theConnection->Connect(ptr->TextView()->Text(),411);
 			break;
 		}

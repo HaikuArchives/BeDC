@@ -41,41 +41,27 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Rect.h>
 #include <Message.h>
 #include <File.h>
+
 #include "DCApp.h"
 #include "DCWindow.h"
+#include "DCSettings.h"
 
 
 DCApp::DCApp()
 : BApplication("application/x-vnd.vegardw-BeDC")
 {
-	theSettings = new BMessage;
-	LoadSettings();
-	theWindow = new DCWindow(BRect(50,50,600,500));
-	theWindow->Show();	
+	theSettings = new DCSettings;
+	theSettings->LoadSettings();
+	theWindow = new DCWindow(BRect(50,50,600,500));	
 }
 
 DCApp::~DCApp()
 {
+	delete theSettings;
 }
 
 bool DCApp::QuitRequested()
 {
-	SaveSettings();
+	theSettings->SaveSettings();
 	return true;
-}
-
-void DCApp::LoadSettings()
-{
-	BFile settingsfile;
-	if(settingsfile.SetTo("/boot/home/config/settings/vegardw/BeDC/BeDC-Settings",B_READ_ONLY)==B_OK)
-	{
-		theSettings->Unflatten(&settingsfile);
-	}
-}
-
-void DCApp::SaveSettings()
-{
-	BFile settingsfile;
-	if(settingsfile.SetTo("/boot/home/config/settings/vegardw/BeDC/BeDC-Settings",B_WRITE_ONLY|B_CREATE_FILE)==B_OK)
-		theSettings->Flatten(&settingsfile);
 }
