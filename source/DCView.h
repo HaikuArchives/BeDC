@@ -39,28 +39,32 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class DCView : public BView
 {
-	public :
-		DCView(BRect frame);
-		~DCView();
-		virtual void Draw(BRect updaterect);
-		BTextView* Output() {return outView;};
-		BTextView* InputView() {return inCtrl->TextView();};
-		BScrollView* OutScroll() {return outScrollView;};
-		BListView *NickList() {return nickList;};
-		const char* GetNick() {return nickCtrl->TextView()->Text();};
-		BTextView *NickView() {return nickCtrl->TextView();};
-		BTextView *ServerView() {return serverCtrl->TextView();};
-		const char* GetServer() {return serverCtrl->TextView()->Text();};
-	protected :
-		BTextControl *nickCtrl;
-		BTextControl *serverCtrl;
-		BButton *connBtn;
-		BTextView *outView;
-		BScrollView *outScrollView;
-		BListView *nickList;
-		BScrollView *nickScrollView;
-		BTextControl *inCtrl;
-		BButton *sendBtn;
+public :
+						DCView(BRect frame);
+						~DCView();
+	
+	virtual void 		Draw(BRect updaterect);
+	
+	BTextView * 		Output() { return outView; }
+	BTextView * 		InputView() { return inCtrl->TextView(); }
+	BScrollView * 		OutScroll() { return outScrollView; }
+	BListView * 		NickList() { return nickList; }
+	
+	const char * 		GetNick() { return nickCtrl->TextView()->Text(); }
+	BTextView * 		NickView() { return nickCtrl->TextView(); }
+	BTextView * 		ServerView() { return serverCtrl->TextView(); }
+	const char * 		GetServer() { return serverCtrl->TextView()->Text(); }
+
+protected :
+	BTextControl * 		nickCtrl;
+	BTextControl * 		serverCtrl;
+	BButton *			connBtn;
+	BTextView *			outView;
+	BScrollView *		outScrollView;
+	BListView *			nickList;
+	BScrollView *		nickScrollView;
+	BTextControl *		inCtrl;
+	BButton *			sendBtn;
 };
 
 #endif /* !_DC_VIEW_H_ */
