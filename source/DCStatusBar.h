@@ -32,69 +32,27 @@ AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
 */
-#ifndef _DC_WINDOW_H_
-#define _DC_WINDOW_H_
 
-#include "ObjectList.h"
+#ifndef _DC_STATUS_BAR_H_
+#define _DC_STATUS_BAR_H_
 
-#include <Window.h>
-#include <String.h>
-
-class BView;
-class BMenuBar;
-class BMenu;
-class BListView;
-class BScrollView;
-class BStringItem;
-class DCStatusBar;
-
-class DCView;
+#include <View.h>
 
 enum
 {
-	// The window was closed
-	//	'rect'	BRect	--> The position of the window
-	DC_MSG_WINDOW_CLOSED = 'msWC'
+	STATUS_VISION_STYLE,  // Looks like the Vision Status View
+	STATUS_WINDOZE_STYLE  // Looks like a Windows Status Bar
 };
 
-class DCWindow : public BWindow
+class DCStatusBar : public BView
 {
 public:
-						DCWindow(BRect pos = BRect(30, 70, 730, 530));
-	virtual				~DCWindow();
-	
-	virtual void		MessageReceived(BMessage * msg);
-	virtual bool		QuitRequested();
+					DCStatusBar(BRect frame, int32 height, int32 style);
+	virtual void	Draw(BRect frame);
 	
 private:
-	BView *				fParentView;	// The main view everything gets slapped into
-	BMenuBar *			fMenuBar;
-	BMenu *				fFileMenu;
-	BMenu *				fEditMenu;
-	BMenu *				fWindowsMenu;
-	BScrollView *		fScrollHubs;
-	BListView *			fHubs;
-	DCStatusBar *		fStatusBar;		// The status bar (Doh..)
-	
-	struct Container
-	{
-		BString 		fServerName;
-		BString 		fServerAddr;
-		BString 		fServerDesc;
-		DCView *		fView;
-		BStringItem *	fListItem;
-	};
-	typedef BObjectList<Container> ViewList;
-	
-	ViewList			fViewList;
-	
-	void				InitGUI();
-	void				OpenNewConnection(const BString & name, const BString & addr,
-										  const BString & desc);
-	void				HideAll();
-	void				ShowItem(BListItem * item);
-	Container *			FindItem(BListItem * item);
-	Container *			FindItem(const BString & name);	// find item by server name
+	int32 			fStyle;	// Style
 };
 
-#endif	// _DC_WINDOW_H_
+
+#endif /* !_DC_STATUS_BAR_H_ */

@@ -32,69 +32,38 @@ AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
 */
-#ifndef _DC_WINDOW_H_
-#define _DC_WINDOW_H_
 
-#include "ObjectList.h"
+#include "DCStatusBar.h"
 
-#include <Window.h>
-#include <String.h>
-
-class BView;
-class BMenuBar;
-class BMenu;
-class BListView;
-class BScrollView;
-class BStringItem;
-class DCStatusBar;
-
-class DCView;
-
-enum
+DCStatusBar::DCStatusBar(BRect frame, int32 height, int32 style)
+	:	BView(BRect (frame.left, frame.bottom - height, frame.right, frame.bottom),
+			"statusbar",B_FOLLOW_LEFT_RIGHT | B_FOLLOW_BOTTOM,B_WILL_DRAW),
+		fStyle(style)
 {
-	// The window was closed
-	//	'rect'	BRect	--> The position of the window
-	DC_MSG_WINDOW_CLOSED = 'msWC'
-};
+	SetViewColor(216, 216, 216);
+}
 
-class DCWindow : public BWindow
+void DCStatusBar::Draw(BRect frame)
 {
-public:
-						DCWindow(BRect pos = BRect(30, 70, 730, 530));
-	virtual				~DCWindow();
-	
-	virtual void		MessageReceived(BMessage * msg);
-	virtual bool		QuitRequested();
-	
-private:
-	BView *				fParentView;	// The main view everything gets slapped into
-	BMenuBar *			fMenuBar;
-	BMenu *				fFileMenu;
-	BMenu *				fEditMenu;
-	BMenu *				fWindowsMenu;
-	BScrollView *		fScrollHubs;
-	BListView *			fHubs;
-	DCStatusBar *		fStatusBar;		// The status bar (Doh..)
-	
-	struct Container
+	if(fStyle==STATUS_VISION_STYLE)
 	{
-		BString 		fServerName;
-		BString 		fServerAddr;
-		BString 		fServerDesc;
-		DCView *		fView;
-		BStringItem *	fListItem;
-	};
-	typedef BObjectList<Container> ViewList;
+		SetDrawingMode (B_OP_COPY);
+  		SetHighColor (131, 131, 131, 255);
+  		StrokeLine (BPoint (frame.left, Bounds().top),BPoint (frame.right, Bounds().top));
+  		SetHighColor (255, 255, 255, 255);
+  		StrokeLine (BPoint (frame.left, Bounds().top + 1),BPoint (frame.right, Bounds().top + 1));
+	}
+	else if(fStyle==STATUS_WINDOZE_STYLE)
+	{
+		SetDrawingMode (B_OP_COPY);
+  		SetHighColor (255, 255, 255, 255);
+  		StrokeLine (BPoint (frame.left, Bounds().top),BPoint (frame.right, Bounds().top));
+  		SetHighColor (131, 131, 131, 255);
+  		StrokeLine (BPoint (frame.left, Bounds().top + 1),BPoint (frame.right, Bounds().top + 1));
+	}
 	
-	ViewList			fViewList;
+	SetDrawingMode (B_OP_OVER);
+	SetHighColor (0, 0, 0, 255);
 	
-	void				InitGUI();
-	void				OpenNewConnection(const BString & name, const BString & addr,
-										  const BString & desc);
-	void				HideAll();
-	void				ShowItem(BListItem * item);
-	Container *			FindItem(BListItem * item);
-	Container *			FindItem(const BString & name);	// find item by server name
-};
-
-#endif	// _DC_WINDOW_H_
+	DrawString("Status Bar (Under construction :)",BPoint(Bounds().left+2,Bounds().bottom-2));
+}

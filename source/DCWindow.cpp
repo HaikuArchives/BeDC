@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCStrings.h"
 #include "DCApp.h"
 #include "DCView.h"
+#include "DCStatusBar.h"
 
 #include <View.h>
 #include <Message.h>
@@ -269,4 +270,6 @@ DCWindow::InitGUI()
 //		new DCView(dc_app->GetSettings(), BMessenger(this), BRect(167, 2, 
 //				   fParentView->Frame().right - 2, fParentView->Bounds().Height() - 20))
 //	);
+	fParentView->AddChild(fStatusBar = new DCStatusBar(fParentView->Bounds(),16,STATUS_WINDOZE_STYLE));
+
 }
