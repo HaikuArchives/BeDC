@@ -34,6 +34,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "DCStringTokenizer.h"
 
+#include <stdio.h>
+
 DCStringTokenizer::DCStringTokenizer(const BString & str, char token)
 {
 	BString temp = str;

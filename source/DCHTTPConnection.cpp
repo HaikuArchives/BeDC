@@ -146,6 +146,7 @@ DCHTTPConnection::ReceiveHandler(void * data)
 {
 	DCHTTPConnection * http = (DCHTTPConnection *)data;	// Get our class :)
 	char recvBuffer[DC_HTTP_RECV_BUFFER + 1];
+	BString socketBuffer = "";
 	int amountRead = 0;
 	
 	while (1)
@@ -189,20 +190,14 @@ DCHTTPConnection::ReceiveHandler(void * data)
 		}
 		
 		recvBuffer[amountRead] = 0;		// NULL-terminate
-		char * iter = strtok(recvBuffer, "\n");
-		if (iter)
+		socketBuffer.Append(recvBuffer);
+		int32 i;
+		while ((i = socketBuffer.FindFirst("\r\n")) != B_ERROR)
 		{
-			while (iter)
-			{
-				BString insert(iter);
-				insert.RemoveLast("\r");
-				http->fLines.push_back(insert);
-				iter = strtok(NULL, "\n");
-			}
-		}
-		else
-		{
-			http->fLines.push_back(BString(recvBuffer));
+			BString insert;
+			socketBuffer.MoveInto(insert, 0, i);
+			socketBuffer.RemoveFirst("\r\n");
+			http->fLines.push_back(insert);
 		}
 	}
 }
@@ -284,7 +279,8 @@ DCHTTPConnection::ParseIntoHubList()
 			continue;	// invalid
 		if (server.Length() <= 4)	// i'd think it takes at least 5 characters for a domain name..
 			continue;
-			
+		
+		#define DCUTF8(X) X
 		// Insert into hub list
 		Hub * hub = new Hub(DCUTF8(name.String()), DCUTF8(server.String()), DCUTF8(desc.String()), users);
 		if (hub)
