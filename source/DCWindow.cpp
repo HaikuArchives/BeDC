@@ -60,7 +60,11 @@ enum
 	DCW_PREFS = 'dWpS',
 	DCW_HUBS = 'dwHs',
 	DCW_HUB_CHANGED = 'dWhC',	// hub list selelction message
-	DCW_CLOSE_HUB = 'dWcH'		// close a hub
+	DCW_CLOSE_HUB = 'dWcH',		// close a hub
+	DCW_LANG_ENGLISH = 'dWlE',
+	DCW_LANG_SWEDISH = 'dWlS',
+	DCW_LANG_FINNISH = 'dWlF',
+	DCW_LANG_GERMAN = 'dWlG'
 };
 
 class DCWindowListView : public BListView
@@ -124,6 +128,22 @@ DCWindow::MessageReceived(BMessage * msg)
 {
 	switch (msg->what)
 	{
+		case DCW_LANG_ENGLISH:
+			InitializeLanguage(DC_LANG_ENGLISH);
+			break;
+			
+		case DCW_LANG_SWEDISH:
+			InitializeLanguage(DC_LANG_SWEDISH);
+			break;
+		
+		case DCW_LANG_FINNISH:
+			InitializeLanguage(DC_LANG_FINNISH);
+			break;
+		
+		case DCW_LANG_GERMAN:
+			InitializeLanguage(DC_LANG_GERMAN);
+			break;
+		
 		case DCW_CLOSE_HUB:
 		{
 			if (fHubs->CurrentSelection() >= 0)
@@ -411,6 +431,23 @@ DCWindow::InitGUI()
 		new BMenuItem(DCStr(STR_MENU_EDIT_PREFS), new BMessage(DCW_PREFS), DCKey(KEY_EDIT_PREFS))
 	);
 	
+	// Edit->Language menu
+	fEditMenu->AddItem(
+		fEditLangMenu = new BMenu(DCStr(STR_LANGUAGE))
+	);
+	fEditLangMenu->AddItem(
+		new BMenuItem(DC_LANGUAGES[DC_LANG_ENGLISH], new BMessage(DCW_LANG_ENGLISH))
+	);
+	fEditLangMenu->AddItem(
+		new BMenuItem(DC_LANGUAGES[DC_LANG_SWEDISH], new BMessage(DCW_LANG_SWEDISH))
+	);
+	fEditLangMenu->AddItem(
+		new BMenuItem(DC_LANGUAGES[DC_LANG_FINNISH], new BMessage(DCW_LANG_FINNISH))
+	);
+	fEditLangMenu->AddItem(
+		new BMenuItem(DC_LANGUAGES[DC_LANG_GERMAN], new BMessage(DCW_LANG_GERMAN))
+	);
+	
 	// Windows menu
 	fMenuBar->AddItem(
 		fWindowsMenu = new BMenu(DCStr(STR_MENU_WINDOWS))
@@ -527,5 +564,35 @@ DCWindow::ShowFirstHub()
 		HideAll();
 		Container * c = fViewList.ItemAt(0);
 		ShowItem(c->fListItem);
+	}
+}
+
+void
+DCWindow::InitializeLanguage(int lang)
+{
+	if (DCGetLanguage() != lang)
+	{
+		DCSetLanguage(lang);
+		
+		// Update our menus...
+		// File menu
+		fMenuBar->ItemAt(0)->SetLabel(DCStr(STR_MENU_FILE));
+		fFileMenu->ItemAt(0)->SetLabel(DCStr(STR_MENU_FILE_ABOUT));
+		fFileMenu->ItemAt(0)->SetShortcut(DCKey(KEY_FILE_ABOUT), B_COMMAND_KEY);
+		fFileMenu->ItemAt(1)->SetLabel(DCStr(STR_MENU_FILE_CLOSE));
+		fFileMenu->ItemAt(1)->SetShortcut(DCKey(KEY_FILE_CLOSE), B_COMMAND_KEY);
+		
+		// Edit menu
+		fMenuBar->ItemAt(1)->SetLabel(DCStr(STR_MENU_EDIT));
+		fEditMenu->ItemAt(0)->SetLabel(DCStr(STR_MENU_EDIT_PREFS));
+		fEditMenu->ItemAt(0)->SetShortcut(DCKey(KEY_EDIT_PREFS), B_COMMAND_KEY);
+		fEditMenu->ItemAt(1)->SetLabel(DCStr(STR_LANGUAGE));
+		
+		// Windows menu
+		fMenuBar->ItemAt(2)->SetLabel(DCStr(STR_MENU_WINDOWS));
+		fWindowsMenu->ItemAt(0)->SetLabel(DCStr(STR_MENU_WINDOWS_HUB));
+		fWindowsMenu->ItemAt(0)->SetShortcut(DCKey(KEY_WINDOWS_HUB), B_COMMAND_KEY);
+		
+		// Now all of our views
 	}
 }

@@ -146,6 +146,13 @@ DCApp::MessageReceived(BMessage * msg)
 			break;
 		}
 		
+		case DC_MSG_APP_UPDATE_LANG:
+		{
+			if (fHubWindow)
+				fHubWindow->PostMessage(DC_MSG_APP_UPDATE_LANG);
+			break;
+		}
+		
 		default:
 			BApplication::MessageReceived(msg);
 			break;

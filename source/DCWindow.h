@@ -78,6 +78,7 @@ private:
 	BMenuBar *			fMenuBar;
 	BMenu *				fFileMenu;
 	BMenu *				fEditMenu;
+	BMenu *				fEditLangMenu;
 	BMenu *				fWindowsMenu;
 	BScrollView *		fScrollHubs;
 	DCWindowListView *	fHubs;
@@ -109,6 +110,8 @@ private:
 	// This is a helper for DispatchMessage()
 	// for tab-completion
 	DCView *			FindOwner(BTextView * tv);
+	
+	void				InitializeLanguage(int lang);
 };
 
 #endif	// _DC_WINDOW_H_

@@ -96,6 +96,7 @@ const char * DC_STR_ENGLISH[STR_NUM] =
 	"Cancel",
 	"Error",
 	"Users",
+	"Language",
 	
 	"Please choose a nick name in Edit->Preferences.",
 	
@@ -134,6 +135,10 @@ const char DC_KEY_ENGLISH[KEY_NUM] =
 	'H'		// Hubs
 };
 
+
+/////////////////////////////////////////////////
+// SWEDISH
+/////////////////////////////////////////////////
 const char * DC_STR_SWEDISH[STR_NUM] =
 {
 	"Hubbar",
@@ -188,6 +193,7 @@ const char * DC_STR_SWEDISH[STR_NUM] =
 	"Avbryt",
 	"Fel",
 	"Användare",
+	"Språk",
 	
 	"Vargod välj ett nytt Nickname i Redigera->Inställningar.",
 	
@@ -223,13 +229,219 @@ const char DC_KEY_SWEDISH[KEY_NUM] =
 	'H'		// Hubs
 };
 
+
+////////////////////////////////////////////
+// FINNISH
+////////////////////////////////////////////
+const char * DC_STR_FINNISH[STR_NUM] =
+{
+	"Hubit",
+	"Yhdistä",
+	"Päivitä",
+	"Seuraavat 50",
+	"Edelliset 50",
+	
+	"Nimi",
+	"Osoite",
+	"Kuvaus",
+	"Käyttäjät",
+	
+	"Vapaa.",
+	"Yhdistetään...",
+	"Yhdistetty, haetaan palvelinluetteloa...",
+	"Virhe yhdistettäessä.",
+	"Virhe lähetettäessä pyyntöä.",
+	"Virhe vastaanotettaessa tietoa.",
+	"Palvelimien määrä: ",
+	
+	"Tiedosto",
+	"Tietoja",
+	"Sulje",
+	"Muokkaa",
+	"Asetukset",
+	"Ikkunat",
+	"Näytä Hubit",
+	
+	"Asetukset",
+	"Yleiset",
+	"Henkilökohtaiset Tiedot",
+	"Yhteysasetukset",
+	"Nimi (Pakollinen)",
+	"Sähköposti",
+	"Kuvaus",
+	"Yhteys",
+	"Aktiivinen",
+	"Passiivinen (palomuurin takana)",
+	"IP",
+	"Portti",
+	
+	// "Name" is reused
+	"Nopeus",
+	"Kuvaus",
+	"Sähköposti",
+	"Jaettuna",
+	"Keskustelu:",
+	"Sulje", 
+	
+	"OK",
+	"Peruuta",
+	"Virhe",
+	"Käyttäjiä",
+	"Kieli",
+	
+	"Ole hyvä ja valitse nimi valikosta Muokkaa->Asetukset.",
+	
+	"Järjestelmä: ",
+	"Virhe: ",
+	"Yhdistetään palvelimelle ",
+	"Yhdistetty.",
+	"Yhdistäminen palvelimeen epäonnistui!",
+	"Yritetään yhdistää uudelleen...",
+	"Yhteys palvelimeen on katkennut.",
+	"Nimesi on jo käytössä, ole hyvä ja valitse toinen.",
+	"Käyttäjä %s on kirjautunut sisään.",
+	"Käyttäjä %s on kirjautunut ulos.",	// the user name is prepended to this string
+	"Edelleensiirretään palvelimelle ",
+	"Hubi on täynnä.",
+	"Käyttäjää ei löytynyt!",
+	"Tuntematon komento.",
+	
+	// START /help
+	"Mahdolliset komennot:\n"
+	"\t\t\t/close - Sulje tämä yhteys.\n"
+	"\t\t\t/help - Näytä tämä ohjeteksti.\n"
+	"\t\t\t/msg <name> <text> - Lähetä yksityisviesti.\n"
+	"\t\t\t/quit - Lopeta BDC",
+	// END /help
+};
+
+const char DC_KEY_FINNISH[KEY_NUM] =
+{
+	'T',	// About
+	'U',	// Close
+	'S',	// Prefs
+	'H'		// Hubs
+};
+
+//////////////////////////////////////////////////////
+// GERMAN
+//////////////////////////////////////////////////////
+const char * DC_STR_GERMAN[STR_NUM] =
+{
+	"Hubs",
+	"Verbinden",
+	"Aktualisieren",
+	"Nächste 50",
+	"Vorherige 50",
+	
+	"Name",
+	"Adresse",
+	"Beschreibung",
+	"Benutzer",
+	
+	"Idle.",
+	"Verbindet...",
+	"Verbunden, empfange Serverliste...",
+	"Fehler beim Verbinden.",
+	"Fehler beim Senden der Anfrage.",
+	"Fehler beim Datenempfang.",
+	"Anzahl Server: ",
+	
+	"Datei",
+	"Über",
+	"Schließen",
+	"Bearbeiten",
+	"Einstellungen",
+	"Fenster",
+	"Zeige Hubs",
+	
+	"Einstellungen",
+	"Allgemein",
+	"Persönliche Informationen",
+	"Verbindungseinstellungen",
+	"Name (benötigt)", // could be left 'Nick' imho
+	"E-Mail",
+	"Beschreibung",
+	"Verbindung",
+	"Active",		// leave as is imho
+	"Passive (hinter einer Firewall)",
+	"IP",
+	"Port",
+	
+	// "Name" is reused
+	"Geschwindigkeit",
+	"Beschreibung",
+	"E-Mail",
+	"Shared", // dunno exactly 'geteilt'
+	"Chat:",
+	"Schließen", 
+	
+	"OK",
+	"Abbrechen",
+	"Fehler",
+	"Benutzer",
+	"Sprache",
+	
+	"Bitte wählen Sie einen Namen im Menu Bearbeiten->Einstellungen.",
+	
+	"System: ",
+	"Fehler: ",
+	"Verbinde zu ",
+	"Verbunden.",
+	"Verbindung zum Server ist fehlgeschlagen!",
+	"Versuche Verbindung wieder herzustellen...",
+	"Verbindung zum Server beendet.",
+	"Ihr Name ist schon in Benutzung. Bitte wählen Sie einen anderen.",
+	"Benutzer %s ist eingeloggt.",
+	"Benutzer %s hat die Verbindung beendet.",	// the user name is prepended to this string
+	"Weiterleitung zu ",
+	"Hub ist voll.", // but 'Server' is more known to germans with no english-knowledge..
+	"Benutzer nicht gefunden!",
+	"Unbekannter Befehl.",
+	
+	// START /help
+	"Mögliche Befehle:\n"
+	"\t\t\t/close - Schliessen dieser Verbindung.\n"
+	"\t\t\t/help - Zeige diesen Hilfetext.\n"
+	"\t\t\t/msg <name> <text> - Sendet eine private Nachricht.\n"
+	"\t\t\t/quit - Schließt BDC",
+	// END /help
+};
+
+
+const char DC_KEY_GERMAN[KEY_NUM] =
+{
+	'A',	// About
+	'W',	// Close
+	'P',	// Prefs
+	'H'		// Hubs
+};
+
+
+
 const char ** DC_STR_USE = 0;	// Set to the current language in use
 const char * DC_KEY_USE = 0;	// Set to the current key set in use
+
+const char * DC_LANGUAGES[DC_LANG_NUM] =
+{
+	"English",
+	"Svensk",
+	"suomi",
+	"Deutsch"
+};
+
+int gCurrentLanguage = -1;
 
 const char * 
 DCStr(int str)
 {
 	return DC_STR_USE[str];	// invalid index will cause a CRASH
+}
+
+int
+DCGetLanguage()
+{
+	return gCurrentLanguage;
 }
 
 void
@@ -243,10 +455,32 @@ DCSetLanguage(int lang)
 			DC_KEY_USE = DC_KEY_ENGLISH;
 			break;
 		}
-			
+		
+		case DC_LANG_SWEDISH:
+		{
+			DC_STR_USE = DC_STR_SWEDISH;
+			DC_KEY_USE = DC_KEY_ENGLISH;
+			break;
+		}
+		
+		case DC_LANG_FINNISH:
+		{
+			DC_STR_USE = DC_STR_FINNISH;
+			DC_KEY_USE = DC_KEY_FINNISH;
+			break;
+		}
+		
+		case DC_LANG_GERMAN:
+		{
+			DC_STR_USE = DC_STR_GERMAN;
+			DC_KEY_USE = DC_KEY_FINNISH;
+			break;
+		}
+		
 		default:
 			break;
 	};
+	gCurrentLanguage = lang;
 }
 
 char

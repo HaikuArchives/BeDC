@@ -100,6 +100,7 @@ enum
 	STR_CANCEL,
 	STR_ERROR,
 	STR_USERS,
+	STR_LANGUAGE,
 	
 	STR_ALERT_BAD_NICK,
 	
@@ -139,12 +140,17 @@ enum
 {
 	DC_LANG_ENGLISH = 0,
 	DC_LANG_SWEDISH,
+	DC_LANG_FINNISH,
+	DC_LANG_GERMAN,
 	DC_LANG_NUM		// Place holder
 };
+
+extern const char * DC_LANGUAGES[DC_LANG_NUM];
 
 const char * DCStr(int);
 char DCKey(int);
 void DCSetLanguage(int);
+int DCGetLanguage();
 BString DCUTF8(const char * str);
 BString DCMS(const char * str);
 

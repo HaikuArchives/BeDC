@@ -64,7 +64,13 @@ enum
 	DC_MSG_APP_SHOW_PREFS = 'aOpF',
 	// The app sends this to our window to tell it to
 	// update it's settings
-	DC_MSG_APP_NEW_SETTINGS = 'aOgC'
+	DC_MSG_APP_NEW_SETTINGS = 'aOgC',
+	// The DCWindow sends this to the app telling it the
+	// language prefs have changed and it should tell
+	// the hub window to update. Basically, the app
+	// just redirects this message to the hub window if it
+	// exists.
+	DC_MSG_APP_UPDATE_LANG = 'aUlS'
 };
 
 
