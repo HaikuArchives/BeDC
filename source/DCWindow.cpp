@@ -50,6 +50,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <MenuBar.h>
 #include <Menu.h>
 #include <MenuItem.h>
+#include <Alert.h>
 
 
 #include "DCDefs.h"
@@ -59,6 +60,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCConnection.h"
 #include "DCClientConnection.h"
 #include "DCSettings.h"
+#include "DCSearchWindow.h"
 
 DCWindow::DCWindow(BRect frame)
 : BWindow(frame,"BeDC",B_TITLED_WINDOW,B_NOT_ZOOMABLE)
@@ -70,6 +72,9 @@ DCWindow::DCWindow(BRect frame)
 	
 	menubar= (new BMenuBar(b,"menubar"));
 	menu = new BMenu("File");
+	menu->AddItem(item = new BMenuItem("About", new BMessage(DC_FILE_ABOUT)));
+	menu->AddSeparatorItem();
+	menu->AddItem(item = new BMenuItem("Quit", new BMessage(DC_QUIT),'Q'));
 	menubar->AddItem(menu);
 	
 	menu = new BMenu("Edit");
@@ -113,8 +118,8 @@ DCWindow::DCWindow(BRect frame)
 	item = new BMenuItem("Show hub list",NULL);
 	item->SetEnabled(false);
 	menu->AddItem(item);
-	item = new BMenuItem("Show search window",NULL);
-	item->SetEnabled(false);
+	item = new BMenuItem("Show search window", new BMessage(DC_SEARCH_WINDOW), 'S');
+	//item->SetEnabled(false);
 	menu->AddItem(item);
 	menubar->AddItem(menu);
 		
@@ -188,6 +193,28 @@ void DCWindow::MessageReceived(BMessage *message)
 		/* The following messages are sendt by the view, */
 		/* the user has done something                   */
 		
+		case DC_FILE_ABOUT:
+		{
+			BAlert* aboutBox = new BAlert("About", "BeDC \n Direct Connect Client for BeOS\n 
+										   http://www.sourceforge.net/projects/bedc", "OK");
+			aboutBox->Go();
+		}break;
+		
+		case DC_QUIT:
+		{
+			QuitRequested();
+		}break;
+		
+		case DC_SEARCH_WINDOW:
+		{
+			BRect r;
+			r = Frame();
+			r.OffsetBy(20,20);
+			new DCSearchWindow(r);
+			/* Creates a new search window(S.W.) if no S.W. exists */
+			/* if a searsh window exists, make it focus */
+					
+		}break;
 		case DC_CONNECTION_CHANGED : /* User selected their connection in the menu */
 		{
 			BMenuItem *menuitm;
