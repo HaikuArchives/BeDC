@@ -99,8 +99,13 @@ DCConnection::Disconnect()
 	fConnected = false;
 	if (fThreadID >= 0)
 	{
+#ifdef BONE_BUILD
 		kill_thread(fThreadID);
 		fThreadID = -1;
+#else
+		int32 junk = 0;
+		wait_for_thread(fThreadID, &junk);
+#endif
 	}
 	if (fSocket >= 0)
 	{
@@ -113,6 +118,7 @@ DCConnection::Disconnect()
 		EmptyList();
 		UnlockList();
 	}
+	printf("Conn disconnected\n");
 }
 
 void
@@ -216,9 +222,9 @@ DCConnection::InternalConnect()
 										 B_NORMAL_PRIORITY, this);
 				if (fThreadID >= 0)
 				{
+					fConnected = true;
 					resume_thread(fThreadID);
 					fTarget.SendMessage(DC_MSG_CON_CONNECTED);
-					fConnected = true;
 					return;
 				}
 			}
@@ -235,7 +241,7 @@ DCConnection::ReceiveHandler(void * d)
 	DCConnection * me = (DCConnection *)d;
 	BString str1 = "", str2 = "";
 	
-	while (1)
+	while (1 && me->fConnected)
 	{
 		int ret = me->Sender();
 		if (ret == 0)
@@ -279,6 +285,7 @@ DCConnection::ReceiveHandler(void * d)
 			
 			if (!str2.Compare("$Lock ", 6))
 			{
+				printf("Got $Lock\n");
 				me->LockReceived(str2);
 			}
 			else if (!str2.Compare("$HubName ", 9))
@@ -400,8 +407,15 @@ DCConnection::ReceiveHandler(void * d)
 			}
 		}
 		// Don't hog CPU, sleep 1/2 sec
+#ifdef BONE_BUILD		
 		snooze(500000);
+#endif
 	}
+
+#ifdef NETSERVER_BUILD	
+	closesocket(me->fSocket);
+	me->fSocket = -1;
+#endif
 }
 
 int
@@ -422,7 +436,9 @@ DCConnection::Sender()
 	SetNonBlocking(false);
 	while (true)
 	{
+		printf("Sending...\n");
 		i = send(fSocket, str->String(), str->Length(), 0);
+		printf("Sent %d\n", i);
 		if (i <= 0)
 		{
 			SetNonBlocking(true);
@@ -462,21 +478,57 @@ DCConnection::Reader(BString & ret)
 	int r = 0;
 	int totalRead = 0;
 	
-	SetNonBlocking(true);
+#ifndef BONE_BUILD
+	if (SetNonBlocking(true) == B_ERROR)
+		printf("ERROR SETTING NON_BLOCK!\n");
+#endif
 	while (true)
 	{
+#ifdef NETSERVER_BUILD	// stupid stupid stupid
+		fd_set set;
+		FD_ZERO(&set);
+		FD_SET(fSocket, &set);
+		struct timeval tv;	// setup for .5 sec so we can send too
+		tv.tv_sec = 0;
+		tv.tv_usec = 500000;
+		
+		
+		r = select(fSocket + 1, &set, NULL, NULL, &tv);
+		if (r == 0)	// timeout
+		{
+			printf("Select timeout: amount read %d\n", totalRead);
+			if (totalRead > 0)
+			{
+				ret = converted;
+				printf("Converted: [%s]\n", ret.String());
+			}
+			return totalRead == 0 ? 1 : totalRead;
+		}
+		else if (r < 0)
+		{
+			printf("Nice error ;)\n");
+			return -1;	// error
+		}
+		
+		if (!FD_ISSET(fSocket, &set))
+		{
+			printf("Read not set??\n");
+			return -1;
+		}
+#endif
+		printf("Entering recv\n");
 		r = recv(fSocket, recvBuffer, BUFFER_SIZE, 0);
+		printf("Recv returned %d\n", r);
 		if (r <= 0)
 		{
+#ifdef BONE_BUILD			
 			SetNonBlocking(false);
+#endif
 			if (errno == EWOULDBLOCK)
 			{
 				errno = 0;
 				ret = converted;
 				return totalRead == 0 ? 1 : totalRead;
-			}
-			else if (errno == ENOTCONN)
-			{
 			}
 			return r == 0 ? 0 : -1;	// return -1 for error, and 0 for disconnect
 		}
@@ -484,6 +536,11 @@ DCConnection::Reader(BString & ret)
 		totalRead += r;
 		recvBuffer[r] = 0;	// null terminate
 		converted.Append(DCUTF8(recvBuffer));
+/*#ifdef NETSERVER_BUILD	// net_server is fucked up ('scuse the language)
+		printf("Buffer so far: [%s]\n", converted.String());
+		ret = converted;
+		return totalRead;
+#endif		*/
 	}
 }
 
@@ -602,15 +659,16 @@ DCConnection::LockReceived(BString str)
 
 	BString key = DCConnection::GenerateKey(str);
 	
-	SetNonBlocking(false);
+//	SetNonBlocking(false);
 	BString keycommand;
 	keycommand += "$Key ";
 	keycommand += key;
 	keycommand += "|";
 	// We don't use our message protocol for sending this... 
 	// we want to meet the server's challenge right away.
-	send(fSocket,keycommand.String(), 5 + key.Length() + 1, 0);
-	SetNonBlocking(true);
+//	send(fSocket,keycommand.String(), 5 + key.Length() + 1, 0);
+//	SetNonBlocking(true);
+	SendRawData(keycommand);
 	
 	
 	// Also, send our nick too
@@ -773,8 +831,13 @@ DCConnection::EmptyList()
 void
 DCConnection::TrimString(BString & str)
 {
+	if (str.Length() == 0)
+		return;
 	while (str[0] == ' ')
 		str.Remove(0, 1);
-	while (str[str.Length() - 1] == ' ')
+	
+	// Added str.Length() > 0 to defeat a crash
+	// that happend when length was 0 (man i feel stupid...)
+	while (str.Length() > 0 && str[str.Length() - 1] == ' ')
 		str.Remove(str.Length() - 1, 1);
 }

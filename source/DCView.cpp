@@ -482,7 +482,9 @@ DCView::InitGUI()
 void
 DCView::Disconnect()
 {
+	printf("Asking connection to disconnect\n");
 	fConn->Disconnect();
+	printf("Disconnected\n");
 	EmptyUserList();
 }
 

@@ -1,11 +1,10 @@
-                             README for BeDC
+                             README for BDC (BDirectConnect)
 
 Copyright (C) 2002 The BeDC team
 
 Introduction:
-BeDC is a BeOS file sharing client compatible with the Direct Connect protocol.
-Currently only chatting works, not filesharing/downloading. The program is in a very early alpha stage,
-so expect it to crash and behave strange :) 
+BDC is a BeOS file sharing client compatible with the Direct Connect protocol.
+Currently only chatting works, not filesharing/downloading.
 
 License:
 The license is in the included LICENSE file
@@ -18,12 +17,13 @@ before, I would have been saved 3 system crashes :)
 
 - VitViper
 
-Availability:
-BeDC is only available on BeShare at the moment, but as get more stable and useful,
-it will be posted at BeBits
-
-Help wanted:
-Anyone that wants to join the team are welcome, just send me an email at <vegarwa@online.no>.
-
-
 Direct Connect is a Trademark of NeoModus, <http://www.neo-modus.com/>
+
+Contributors:
+Vitaliy Mikitchenko
+Vegard Wærp
+
+Building:
+A BONE version can be built using the BeIDE project. The Makefile can be used
+to build either a net_server or BONE version, it auto-detects what you have
+installed on your system.
