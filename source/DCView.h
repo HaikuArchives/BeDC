@@ -105,7 +105,7 @@ private:
 									   const BString & email, int64 size);
 	DCUser *				FindUser(const BString & nick);	// Find user by name
 	
-	void					SendInfoToServer(bool update = false);
+	void					SendInfoToServer(bool update = false, bool send = true);
 };
 
 

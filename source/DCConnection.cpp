@@ -63,17 +63,12 @@ DCConnection::DCConnection(BMessenger target, const BString & host, int port)
 	fConnected = false;
 	fSocket = -1;
 	fTarget = target;
-	fNick = ""; //??
 	fType = ACTIVE;
 	fSharedSize = 10*1024*1024;
 	
-	// Hardcoded at the moment
-	// We need some of this during the connection, so it's to late to
-	// to get it from the view when the view the the message that we're
-	// connected
-	fSpeed = "ISDN";
+	fSpeed = "";
 	fEmail = "";
-	fNick = "Ghostride"; //?? Why are fNick two places?
+	fNick = "";
 	fDesc = "";
 	fHost = "";
 	fPort = 0;
@@ -628,9 +623,9 @@ DCConnection::LockReceived(BString str)
 	keycommand += "$Key ";
 	keycommand += key;
 	keycommand += "|";
-	// The hub barfs if we split a command between send()'s
-	// Bad design or implementation og the hub/protocol, nothing we can do about it
-	send(fSocket,keycommand.String(),5+key.Length()+1,0);
+	// We don't use our message protocol for sending this... 
+	// we want to meet the server's challenge right away.
+	send(fSocket,keycommand.String(), 5 + key.Length() + 1, 0);
 	SetNonBlocking(true);
 	
 	
@@ -658,7 +653,8 @@ DCConnection::ValidateNick()
 	SendData(str);
 }
 
-// Changed back to this one, couldn't get VitVipers version to work...
+// This one works ;) Show's me not to look at the DC++ code because it
+// sucks!
 BString
 DCConnection::GenerateKey(BString & lck)
 {

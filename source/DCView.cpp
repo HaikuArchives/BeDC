@@ -80,6 +80,9 @@ DCView::AttachedToWindow()
 {
 	printf("View is attached\n");
 	fConn = new DCConnection(BMessenger(this));
+	
+	// Initialize our settings for the connection
+	SendInfoToServer(true /* update */, false /* but don't send */);
 }
 
 void
@@ -93,10 +96,6 @@ DCView::MessageReceived(BMessage * msg)
 		case DC_MSG_CON_CONNECTED:
 		{
 			LogSystem(DCStr(STR_MSG_CONNECTED));
-			// On successful connect, send our info the server
-			// The DCConnection will do the same thing, but we want to update
-			// the info here too
-			//SendInfoToServer(true);	// Do update the connection with the latest info
 			break;
 		}
 		
@@ -289,7 +288,7 @@ DCView::Connect(const BString & host, int port)
 
 // If update is true, fSettings is read to get the updated nick, etc
 void
-DCView::SendInfoToServer(bool update)
+DCView::SendInfoToServer(bool update, bool send)
 {
 	if (update)
 	{
@@ -313,7 +312,7 @@ DCView::SendInfoToServer(bool update)
 		fConn->SetSharedSize((uint64)65011712 * 1024);	// fake shared size of 62GB
 	}
 	
-	if (fConn->IsConnected())
+	if (send && fConn->IsConnected())
 		fConn->SendMyInfo();
 }
 
