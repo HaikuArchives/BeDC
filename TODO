@@ -1,0 +1,15 @@
+Features:
+* Filesharing :)
+* Downloading of the public hub list
+
+Bug fixes:
+* Sometimes the text in the output view becomes garbled
+* Crashes on exit sometimes, have something to do with the settings...
+* People doesn't get the net_server version to display anything in the output window, find out why and fix (I haven't been able to reproduce this)
+
+Misc stuff:
+* Make a user interface that doesn't suck
+* Restructure the code (Really: Structure the code, it's not very structured at the momemt ;-))
+* Clean up the code
+* Check for memory leaks, I'm sure there's lots of them
+* When I get the functionality in place, optimise the code

@@ -1,0 +1,9 @@
+*0.1-alpha3:
+	-Added menubar
+	-Added saving of settings
+
+*0.1-alpha2:
+	-Fixed wrapping in the output text view
+
+*0.1-alpha1:
+	-First public release, chatting kinda works

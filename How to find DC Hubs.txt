@@ -1,0 +1,2 @@
+Download the file at http://www.neo-modus.com/PublicHubList.config and open it with an texteditor. That's the list with all the public DC hubs that's online.
+
