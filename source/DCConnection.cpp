@@ -99,21 +99,21 @@ DCConnection::Disconnect()
 	fConnected = false;
 	if (fThreadID >= 0)
 	{
-#ifdef BONE_BUILD
+/*#ifdef BONE_BUILD
 		kill_thread(fThreadID);
 		fThreadID = -1;
-#else
+#else*/
 		int32 junk = 0;
 		wait_for_thread(fThreadID, &junk);
-#endif
+//#endif
 	}
-#ifdef BONE_BUILD	
+/*#ifdef BONE_BUILD	
 	if (fSocket >= 0)
 	{
 		CLOSE_SOCKET(fSocket);
 		fSocket = -1;
 	}
-#endif
+#endif*/
 	// Clean up our list
 	if (LockList())
 	{
@@ -248,14 +248,16 @@ DCConnection::ReceiveHandler(void * d)
 		if (ret == 0)
 		{
 			me->SendMessage(DC_MSG_CON_DISCONNECTED);
-			me->Disconnect();
-			return -1;
+			//me->Disconnect();
+			//return -1;
+			break;	// Breaking out will accomplish the same as a Disconnect()
 		}
 		else if (ret < 0)	// failed
 		{
 			me->SendMessage(DC_MSG_CON_SEND_ERROR);
-			me->Disconnect();
-			return -1;
+			//me->Disconnect();
+			//return -1;
+			break;
 		}
 		
 		str2 = "";
@@ -263,14 +265,16 @@ DCConnection::ReceiveHandler(void * d)
 		if (ret == 0)	// disconenct
 		{
 			me->SendMessage(DC_MSG_CON_DISCONNECTED);
-			me->Disconnect();
-			return -1;
+			//me->Disconnect();
+			//return -1;
+			break;
 		}
 		else if (ret < 0)	// error
 		{
 			me->SendMessage(DC_MSG_CON_RECV_ERROR);
-			me->Disconnect();
-			return -1;
+			//me->Disconnect();
+			//return -1;
+			break;
 		}
 		
 		if (str2 != "")	// if str2 == "", then recv() was going to block and we couldn't read anything
@@ -407,15 +411,17 @@ DCConnection::ReceiveHandler(void * d)
 			}
 		}
 		// Don't hog CPU, sleep 1/2 sec
-#ifdef BONE_BUILD		
+/*#ifdef BONE_BUILD		
 		snooze(500000);
-#endif
+#endif*/
 	}
 
-#ifdef NETSERVER_BUILD	
-	closesocket(me->fSocket);
+//#ifdef NETSERVER_BUILD	
+	CLOSE_SOCKET(me->fSocket);
 	me->fSocket = -1;
-#endif
+	me->fThreadID = -1;
+	return 0;
+//#endif
 }
 
 int
@@ -433,14 +439,15 @@ DCConnection::Sender()
 	BString * str = fToSend.ItemAt(0);	// first Item
 	int i = 0;
 	int totalSent = 0;
-	SetNonBlocking(false);
+	//SetNonBlocking(false);
 	while (fConnected)
 	{
 		i = send(fSocket, str->String(), str->Length(), 0);
 		if (i <= 0)
 		{
-			SetNonBlocking(true);
+			//SetNonBlocking(true);
 			UnlockList();
+			// Probably won't happen (blocking IO)
 			if (errno == EWOULDBLOCK)
 			{
 				return totalSent == 0 ? 1 : totalSent;	// don't send a disconnect if we weren't able to send anything
@@ -459,12 +466,13 @@ DCConnection::Sender()
 			if (fToSend.CountItems() == 0)
 			{
 				UnlockList();
-				SetNonBlocking(true);
+				//SetNonBlocking(true);
 				return totalSent;
 			}
 			str = fToSend.ItemAt(0);
 		}
 	}
+	return -1;
 }
 
 int
@@ -476,13 +484,13 @@ DCConnection::Reader(BString & ret)
 	int r = 0;
 	int totalRead = 0;
 	
-#ifdef BONE_BUILD
+/*#ifdef BONE_BUILD
 	if (SetNonBlocking(true) == B_ERROR)
 		printf("ERROR SETTING NON_BLOCK!\n");
-#endif
+#endif*/
 	while (fConnected)
 	{
-#ifdef NETSERVER_BUILD	// stupid stupid stupid
+//#ifdef NETSERVER_BUILD	
 		fd_set set;
 		FD_ZERO(&set);
 		FD_SET(fSocket, &set);
@@ -509,13 +517,14 @@ DCConnection::Reader(BString & ret)
 		{
 			return -1;
 		}
-#endif
+//#endif
 		r = recv(fSocket, recvBuffer, BUFFER_SIZE, 0);
 		if (r <= 0)
 		{
-#ifdef BONE_BUILD			
+/*#ifdef BONE_BUILD			
 			SetNonBlocking(false);
-#endif
+#endif*/
+			// This probably won't happen... (blocking IO)
 			if (errno == EWOULDBLOCK)
 			{
 				errno = 0;
@@ -534,6 +543,8 @@ DCConnection::Reader(BString & ret)
 		return totalRead;
 #endif		*/
 	}
+	
+	return -1;
 }
 
 void

@@ -95,6 +95,7 @@ const char * DC_STR_ENGLISH[STR_NUM] =
 	"OK",
 	"Cancel",
 	"Error",
+	"Users",
 	
 	"Please choose a nick name in Edit->Preferences.",
 	
@@ -107,7 +108,7 @@ const char * DC_STR_ENGLISH[STR_NUM] =
 	"Disconnected from server.",
 	"Your nick is already in use, please choose another.",
 	"User %s has logged in.",
-	" has logged out.",	// the user name is prepended to this string
+	"User %s has logged out.",	// the user name is prepended to this string
 	"Redirecting to ",
 	"Hub is full.",
 	"User not found!",

@@ -152,6 +152,7 @@ DCView::MessageReceived(BMessage * msg)
 			{
 				LogUserLoggedIn(nick);
 				CreateNewUser(nick);
+				SendUpdateNotification();
 			}
 			break;
 		}
@@ -163,7 +164,13 @@ DCView::MessageReceived(BMessage * msg)
 		{
 			BString list;
 			if (msg->FindString("list", &list) == B_OK)
+			{
 				ParseNickList(list);
+				// We don't do a notification for each user so as to
+				// not send 600 of these to our target when we are
+				// connected to a large target
+				SendUpdateNotification();
+			}
 			break;
 		}
 		
@@ -202,7 +209,7 @@ DCView::MessageReceived(BMessage * msg)
 		case DC_MSG_CON_FORCE_MOVE:
 		{
 			BString ip;
-			Disconnect();	// disconnect empty the user list
+			Disconnect();	// disconnect, empty the user list
 			LogSystem(DCStr(STR_MSG_DISCONNECTED_FROM_SERVER));
 			if (msg->FindString("ip", &ip) == B_OK &&
 				ip != "")
@@ -227,6 +234,7 @@ DCView::MessageReceived(BMessage * msg)
 			{
 				LogUserLoggedOut(nick);
 				RemoveUser(nick);
+				SendUpdateNotification();
 			}
 			break;
 		}
@@ -595,9 +603,13 @@ DCView::LogUserLoggedOut(const BString & nick)
 	bool b = GetScrollState();
 	
 	PrintSystem();
-	BString msg = nick;
-	msg += DCStr(STR_MSG_USER_LOGGED_OUT);
-	PrintText(msg);
+	BString msg = DCStr(STR_MSG_USER_LOGGED_OUT);
+	BString fmt;
+	msg.MoveInto(fmt, 0, msg.FindFirst("%s"));
+	msg.RemoveFirst("%s");
+	fmt += nick;
+	fmt += msg;
+	PrintText(fmt);
 	
 	if (b)
 		ScrollToBottom();
@@ -817,4 +829,12 @@ DCView::AutoCompleteNick(const BString & nick)
 	}
 	
 	return ret;
+}
+
+void
+DCView::SendUpdateNotification()
+{
+	BMessage msg(DC_MSG_VIEW_UPDATE_USERS);
+	msg.AddPointer("view", this);
+	fTarget.SendMessage(&msg);
 }

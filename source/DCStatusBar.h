@@ -37,25 +37,27 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define _DC_STATUS_BAR_H_
 
 #include <View.h>
+#include <String.h>
 
-enum
-{
-	STATUS_VISION_STYLE,  // Looks like the Vision Status View
-	STATUS_WINDOZE_STYLE  // Looks like a Windows Status Bar
-};
+#include "ObjectList.h"
 
 class DCStatusBar : public BView
 {
+	typedef BObjectList<BString> FieldList;
+	
 public:
-						DCStatusBar(BRect frame, int32 height, int32 style);
-						~DCStatusBar() {}
+						DCStatusBar(BRect frame, int32 height);
+						~DCStatusBar() { MakeEmpty(); }
 
 	virtual void		Draw(BRect frame);
 	
 	void				AddField(const BString & value);
+	void				SetField(const BString & value, int32 index);
+	void				MakeEmpty();
 	
 private:
-	int32 				fStyle;
+	FieldList			fFieldList;
+	
 };
 
 

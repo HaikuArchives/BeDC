@@ -1,6 +1,9 @@
 0.x.x 
 	- Added /close and /quit commands.
 	- Fixed dead-lock involving the "Close" menu item for connections that are still connecing.
-	- 
+	- BDC no longer takes forever to update the user list on servers with large amounts of users [like 500 or so ;)].
+	- When you close a hub view now, the first one in the list will automatically be selected now.
+	- Fix a bug where auto-reconnect would spawn large amounts of threads, and then lock up the app when you went to close the window.
+	- Added tab-completion for names.
 0.5.0 
 	- First release

@@ -54,6 +54,15 @@ class BColumnListView;
 class BScrollView;
 class BMessageRunner;
 
+enum
+{
+	// A user has logged off or no... so this message is
+	// sent to the target to update it's counters, whatever.
+	// in DCWindow's case, it updates it's status bar
+	//	'view'		pointer		--> The sender
+	DC_MSG_VIEW_UPDATE_USERS = 'mVuU'
+};
+
 class DCView : public BView
 {
 	typedef BObjectList<DCUser> UserList;
@@ -71,9 +80,10 @@ public:
 	void					Connect(const BString & host, int port = 411);
 	void					Disconnect();
 	
-	int32					GetNumUsers() const { return fNumUsers; }
+	int32					GetNumUsers() const { return fUserList.CountItems(); }
 	BString					AutoCompleteNick(const BString & txt);
 	BTextControl *			GetInputControl() const { return fInput; }
+	DCConnection *			GetConnection() const { return fConn; }
 	
 	static BString			GetConnectionText(int val);
 	
@@ -86,7 +96,6 @@ private:
 	BScrollView *			fScrollText;
 	BColumnListView *		fUsers;
 	BTextControl *			fInput;
-	int32					fNumUsers;
 	BMessageRunner *		fRunner;	// for user list updating
 	
 	UserList				fUserList;
@@ -122,6 +131,8 @@ private:
 	
 	void					ParseSendText();
 	void					SendChat(const BString & text);
+	
+	void					SendUpdateNotification();
 };
 
 

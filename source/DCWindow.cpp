@@ -38,6 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DCView.h"
 #include "DCStatusBar.h"
 #include "DCSettings.h"
+#include "DCConnection.h"
 
 #include <View.h>
 #include <Message.h>
@@ -103,7 +104,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////
 DCWindow::DCWindow(BRect pos)
 	: BWindow(pos, DC_WINDOW_TITLE /* i don't think the name can be localized ;) */,
-			  B_TITLED_WINDOW, B_ASYNCHRONOUS_CONTROLS)
+			  B_TITLED_WINDOW, B_ASYNCHRONOUS_CONTROLS | B_OUTLINE_RESIZE)
 {
 	InitGUI();
 }
@@ -138,6 +139,9 @@ DCWindow::MessageReceived(BMessage * msg)
 				
 				SetTitle(DC_WINDOW_TITLE);
 				
+				fStatusBar->MakeEmpty();
+				fStatusBar->Invalidate();
+				
 				ShowFirstHub();
 			}
 			break;
@@ -161,6 +165,9 @@ DCWindow::MessageReceived(BMessage * msg)
 					
 					SetTitle(DC_WINDOW_TITLE);
 					
+					fStatusBar->MakeEmpty();
+					fStatusBar->Invalidate();
+
 					ShowFirstHub();
 				}
 			}
@@ -206,6 +213,24 @@ DCWindow::MessageReceived(BMessage * msg)
 			}
 			break;
 		}
+		
+		case DC_MSG_VIEW_UPDATE_USERS:
+		{
+			DCView * v = NULL;
+			if (msg->FindPointer("view", (void **)&v) == B_OK)
+			{
+				if (!v->IsHidden())
+				{
+					BString users = DCStr(STR_USERS);
+					users += ": ";
+					users << v->GetNumUsers();
+					fStatusBar->SetField(users, 4);
+					fStatusBar->Invalidate();
+				}
+			}
+			break;
+		}
+		
 		default:
 			BWindow::MessageReceived(msg);
 			break;
@@ -328,6 +353,21 @@ DCWindow::ShowItem(BListItem * item)
 		title += " - ";
 		title += it->fServerName;
 		SetTitle(title.String());
+		
+		// Update the status are
+		fStatusBar->MakeEmpty();
+
+		fStatusBar->AddField(it->fView->GetConnection()->GetNick());
+		fStatusBar->AddField(it->fServerName);
+		fStatusBar->AddField(it->fServerAddr);
+		fStatusBar->AddField(it->fServerDesc);
+		
+		BString users = DCStr(STR_USERS);
+		users += ": ";
+		users << it->fView->GetNumUsers();
+		fStatusBar->AddField(users);
+		
+		fStatusBar->Invalidate();
 	}
 }
 
@@ -398,7 +438,7 @@ DCWindow::InitGUI()
 	fScrollHubs->SetViewColor(216, 216, 216);
 	
 	fParentView->AddChild(
-		fStatusBar = new DCStatusBar(fParentView->Bounds(), 18, STATUS_VISION_STYLE)
+		fStatusBar = new DCStatusBar(fParentView->Bounds(), 18)
 	);
 }
 
@@ -484,7 +524,8 @@ DCWindow::ShowFirstHub()
 {
 	if (fViewList.CountItems() > 0)
 	{
+		HideAll();
 		Container * c = fViewList.ItemAt(0);
-		fHubs->Select(fHubs->IndexOf(c->fListItem));
+		ShowItem(c->fListItem);
 	}
 }
