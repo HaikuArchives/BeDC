@@ -372,8 +372,17 @@ DCConnection::ReceiveHandler(void * d)
 			}
 			else if(!str2.Compare("<",1)) // Chat message
 			{
-				// TODO, split Sender and message, and send a DC_MSG_CON_CHAT_MSG message
-				// Sender is the text between '<' and '>'
+				BString name;
+				
+				// The message is in the form: <username> text
+				str2.RemoveFirst("<");
+				str2.MoveInto(name, 0, str2.FindFirst(">"));
+				str2.RemoveFirst("> ");
+				
+				BMessage msg(DC_MSG_CON_CHAT_MSG);
+				msg.AddString("nick", name);
+				msg.AddString("text", str2);
+				me->fTarget.SendMessage(&msg);
 			}
 		}
 	}

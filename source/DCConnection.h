@@ -102,8 +102,8 @@ enum
 	//	'nick'		BString		--> User's nick
 	DC_MSG_CON_QUIT = 'chCQ',
 	// Chat Message
-	//	'from'		BString		--> From user
-	//	'text'		BString		--> the message
+	//	'nick'		BString		--> Sender's nic
+	//	'text'		BString		--> The message
 	DC_MSG_CON_CHAT_MSG = 'chCH'
 };
 	
