@@ -224,6 +224,9 @@ private:
 	}
 	
 	static int32		ReceiveHandler(void * data);
+	// Helper for GenerateKey()
+	static BString		SubKey(const uint8 * key, int32 length, int extra);
+	
 	// If these return 0, the it disconnected
 	// If it returns < 0, than an error occured
 	// Otherwise, it returns the amount read/written

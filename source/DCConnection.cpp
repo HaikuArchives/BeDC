@@ -238,7 +238,7 @@ DCConnection::InternalConnect()
 										 B_NORMAL_PRIORITY, this);
 				if (fThreadID >= 0)
 				{
-					if (SetNonBlocking(true) == B_ERROR)
+					if (SetNonBlocking(false) == B_ERROR)
 						debugger("Could not set non-blocking socket IO\n");
 					resume_thread(fThreadID);
 					printf("DCC: Connected!\n");
@@ -281,6 +281,7 @@ DCConnection::ReceiveHandler(void * d)
 		ret = me->Reader(str2);
 		if (ret == 0)	// disconenct
 		{
+			printf("Got disconnect from Reader()\n");
 			me->SendMessage(DC_MSG_CON_DISCONNECTED);
 			me->Disconnect();
 			return -1;
@@ -431,14 +432,13 @@ DCConnection::Sender()
 	BString * str = fToSend.ItemAt(0);	// first Item
 	int i = 0;
 	int totalSent = 0;
-	SetNonBlocking(false);
 	while (true)
 	{
-		i = send(fSocket, str->String(), 30, MSG_WAITALL);
+		i = send(fSocket, str->String(), str->Length(), 0);
+		printf("Sent: %d\n", i);
 		if (i <= 0)
 		{
 			UnlockList();
-			SetNonBlocking(true);
 			if (errno == EWOULDBLOCK)
 			{
 				return totalSent == 0 ? 1 : totalSent;	// don't send a disconnect if we weren't able to send anything
@@ -474,16 +474,22 @@ DCConnection::Reader(BString & ret)
 	int r = 0;
 	int totalRead = 0;
 	
+	SetNonBlocking(true);
 	while (true)
 	{
 		r = recv(fSocket, recvBuffer, BUFFER_SIZE, 0);
 		if (r <= 0)
 		{
+			SetNonBlocking(false);
 			if (errno == EWOULDBLOCK)
 			{
 				errno = 0;
 				ret = converted;
 				return totalRead == 0 ? 1 : totalRead;
+			}
+			else if (errno == ENOTCONN)
+			{
+				printf("\t\tReader: Not connected anymore\n");
 			}
 			return r == 0 ? 0 : -1;	// return -1 for error, and 0 for disconnect
 		}
@@ -607,16 +613,14 @@ DCConnection::LockReceived(BString str)
 {
 	printf("\t\tGOT $Lock\n");
 	str.RemoveFirst("$Lock ");
-	int j = str.FindFirst(" ");
-	// Remove everything after the first space
-	str.Remove(j, str.Length() - j);
 	
 	BString key = DCConnection::GenerateKey(str);
 	// Parse the key, and send it
-	str = "$Key ";
-	str += key;
-	str += "|";
-	SendRawData(str);
+	SetNonBlocking(false);
+	printf("KeySend %d\n", send(fSocket, "$Key ", 5, 0));
+	printf("KeySend %d\n", send(fSocket, key.String(), key.Length(), 0));
+	printf("KeySend %d\n", send(fSocket, "|", 1, 0));
+	SetNonBlocking(true);
 	
 	// Also, send our nick too
 	ValidateNick();
@@ -641,35 +645,103 @@ DCConnection::ValidateNick()
 	SendData(str);
 }
 
+#define EXTRA(X) (X == 0) || (X == 5) || (X == 124) || (X == 126) || (X == 36)
+
 BString
 DCConnection::GenerateKey(BString & lck)
 {
-	BString key("", 2048);
-	char c, v;
+	printf("Using lock: [ %s ]\n", lck.String());
+	BString key = "";
+	uint8 * tmp = new uint8[lck.Length() + 1];
+	uint8 vl;
+	int extra = 0;
 	
-	for (int i = 0; i < 2048; i++)
+	vl = (uint8)(lck[0] ^ 5);
+	vl = (uint8)(((vl >> 4) | (vl << 4)) && 0xFF);
+	tmp[0] = vl;
+	 
+	int32 i;
+	for (i = 1; i < lck.Length(); i++)
 	{
-		if (i == 0)
-			// If it's the first char we gotta XOR with the two last chars and 5
-			c = lck[i] ^ lck[lck.Length() - 1] ^ lck[lck.Length() - 2] ^ 5;
-		else
-			c = lck[i] ^ lck[i - 1]; // XOR with previous char
-		
-		v = c << 4 | c >> 4; // Shift some bits around :)
-		
-		if (v == 0 || v == 5 || v == 36 || v == 96 || v == 124 || v == 126)	// escape
+		vl = (uint8)(lck[i] ^ lck[i - 1]);
+		vl = (uint8)(((vl >> 4) | (vl << 4)) & 0xFF);
+		tmp[i] = vl;
+		if (EXTRA(tmp[i]))
+			extra++;
+	}
+	
+	key = SubKey(tmp, lck.Length(), extra);
+	delete [] tmp;
+	printf("Generated key: %s\n", key.String());
+	return key;
+}
+
+BString
+DCConnection::SubKey(const uint8 * key, int32 length, int extra)
+{
+	uint8 * tmp = new uint8[length + extra * 10];
+	int32 j = 0;
+	int32 i = 0;
+	
+	for (; i < length; i++)
+	{
+		if (EXTRA(key[i]))
 		{
-			char buf[11];
-			memset(buf, 0, sizeof(buf));
-			sprintf(buf, "/%%DCN%03d%%/", v);
-			key.Append(buf);
+			tmp[j++] = '/';
+			tmp[j++] = '%';
+			tmp[j++] = 'D';
+			tmp[j++] = 'C';
+			tmp[j++] = 'N';
+			switch (key[i])
+			{
+				case 0:
+				{
+					tmp[j++] = '0'; tmp[j++] = '0'; tmp[j++] = '0'; 
+					break;
+				}
+				
+				case 5: 
+				{
+					tmp[j++] = '0'; tmp[j++] = '0'; tmp[j++] = '5'; 
+					break;
+				}
+				
+				case 36: 
+				{
+					tmp[j++] = '0'; tmp[j++] = '3'; tmp[j++] = '6'; 
+					break;
+				}
+				
+				case 96: 
+				{
+					tmp[j++] = '0'; tmp[j++] = '9'; tmp[j++] = '6'; 
+					break;
+				}
+				
+				case 124: 
+				{
+					tmp[j++] = '1'; tmp[j++] = '2'; tmp[j++] = '4'; 
+					break;
+				}
+				
+				case 126: 
+				{
+					tmp[j++] = '1'; tmp[j++] = '2'; tmp[j++] = '6'; 
+					break;
+				}
+			}
+			tmp[j++] = '%'; 
+			tmp[j++] = '/';
 		}
 		else
 		{
-			key.Append(v, 1);
+			tmp[j++] = key[i];
 		}
 	}
-	return key;
+	
+	BString ret((const char *)tmp, j);
+	delete [] tmp;
+	return ret;
 }
 
 void
