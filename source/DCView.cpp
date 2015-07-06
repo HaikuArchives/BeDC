@@ -17,8 +17,8 @@ are met:
    notice, this list of conditions, and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
-3. Neither the name of the BeDC team nor the names of its 
-   contributors may be used to endorse or promote products derived from 
+3. Neither the name of the BeDC team nor the names of its
+   contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
@@ -30,15 +30,15 @@ DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
 AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 
 #include "DCView.h"
 #include "DCSettings.h"
 #include "DCConnection.h"
-#include "ColumnListView.h"
-#include "ColumnTypes.h"
+#include <private/interface/ColumnListView.h>
+#include <private/interface/ColumnTypes.h>
 #include "DCUser.h"
 #include "DCStrings.h"
 #include "DCApp.h"
@@ -98,20 +98,20 @@ DCView::MessageReceived(BMessage * msg)
 	{
 		case DCV_SEND_TEXT:	// Enter was pressed on our BTextControl
 		{
-			
+
 			ParseSendText();
 			break;
 		}
-		
+
 		case DC_MSG_CON_CONNECTING:
 			break;	// Yeah yeah, we know ;)
-		
+
 		case DC_MSG_CON_CONNECTED:
 		{
 			LogSystem(DCStr(STR_MSG_CONNECTED));
 			break;
 		}
-		
+
 		case DC_MSG_CON_CONNECT_ERROR:
 		{
 			LogError(DCStr(STR_MSG_CONNECT_ERROR));
@@ -119,7 +119,7 @@ DCView::MessageReceived(BMessage * msg)
 			fConn->Connect(fHost, fPort);
 			break;
 		}
-		
+
 		case DC_MSG_CON_DISCONNECTED:
 		{
 			EmptyUserList();
@@ -128,23 +128,23 @@ DCView::MessageReceived(BMessage * msg)
 			{
 				LogSystem(DCStr(STR_MSG_RECONNECTING));
 				fConn->Connect(fHost, fPort);
-			}			
+			}
 			break;
 		}
-		
+
 		case DC_MSG_CON_VALIDATE_DENIED:
 		{
 			LogError(DCStr(STR_MSG_INVALID_NICK));
 			Disconnect();	// Disconnect from the server.
 			break;
 		}
-		
+
 		case DC_MSG_CON_GET_PASS:	// TODO: Get a password
 			break;
-		
+
 		case DC_MSG_CON_BAD_PASS:	// TODO: Password was invalid
 			break;
-		
+
 		case DC_MSG_CON_USER_CONNECTED:
 		{
 			BString nick;
@@ -156,10 +156,10 @@ DCView::MessageReceived(BMessage * msg)
 			}
 			break;
 		}
-		
+
 		case DC_MSG_CON_YOU_ARE_OP:	// You're an operator on this hub, TODO: Add menus, etc
 			break;
-		
+
 		case DC_MSG_CON_GOT_NICK_LIST:
 		{
 			BString list;
@@ -173,10 +173,10 @@ DCView::MessageReceived(BMessage * msg)
 			}
 			break;
 		}
-		
+
 		case DC_MSG_CON_GOT_OP_LIST:	// We got a list of ops.. TODO: Make them bold, etc..
 			break;
-		
+
 		case DC_MSG_CON_PRIV_MSG:
 		{
 			BString from, text;
@@ -184,16 +184,16 @@ DCView::MessageReceived(BMessage * msg)
 				msg->FindString("text", &text) == B_OK)
 				LogPrivateChat(from, text, true);
 		}
-		
+
 		case DC_MSG_CON_CONNECT_TO_ME:	// TODO: p2p transfers
 			break;
-			
+
 		case DC_MSG_CON_MULTI_CONNECT_TO_ME:	// TODO: p2p transfers
 			break;
-		
+
 		case DC_MSG_CON_REV_CONNECT_TO_ME:		// TODO: p2p transfers
 			break;
-		
+
 		case DC_MSG_CON_CHAT_MSG:
 		{
 			BString nick, text;
@@ -202,10 +202,10 @@ DCView::MessageReceived(BMessage * msg)
 				LogChatMessage(nick, text, (nick == fConn->GetNick() ? false : true));
 			else if (msg->FindString("chat", &text) == B_OK)
 				LogChatMessage("", text, false);
-				
+
 			break;
 		}
-		
+
 		case DC_MSG_CON_FORCE_MOVE:
 		{
 			BString ip;
@@ -222,11 +222,11 @@ DCView::MessageReceived(BMessage * msg)
 				redir << port;
 				redir << ".";
 				LogSystem(redir);
-				fConn->Connect(ip, port);				
+				fConn->Connect(ip, port);
 			}
 			break;
 		}
-		
+
 		case DC_MSG_CON_QUIT:	// a user logged off
 		{
 			BString nick;
@@ -238,12 +238,12 @@ DCView::MessageReceived(BMessage * msg)
 			}
 			break;
 		}
-		
+
 		case DC_MSG_CON_USER_INFO:
 		{
 			BString nick, desc, speed, email;
 			int64 size;
-			
+
 			if (msg->FindString("nick", &nick) == B_OK &&
 				msg->FindString("desc", &desc) == B_OK &&
 				msg->FindString("speed", &speed) == B_OK &&
@@ -253,19 +253,19 @@ DCView::MessageReceived(BMessage * msg)
 				UpdateUser(nick, desc, speed, email, size);
 				if (fRunner)
 					delete fRunner;
-				fRunner = new BMessageRunner(BMessenger(this), DCV_REFRESH_MESSAGE, 
+				fRunner = new BMessageRunner(BMessenger(this), DCV_REFRESH_MESSAGE,
 											 500000, 1);
 			}
 			break;
 		}
-		
+
 		case DC_MSG_HUB_IS_FULL:
 		{
 			Disconnect();
 			LogSystem(DCStr(STR_MSG_HUB_IS_FULL));
 			break;
 		}
-		
+
 		case DCV_REFRESH:
 		{
 			delete fRunner;
@@ -358,7 +358,7 @@ DCView::Connect(const BString & host, int port)
 {
 	BString realHost = host;
 	GetHostAndPort(realHost, port);
-	
+
 	BString msg = DCStr(STR_MSG_CONNECTING_TO);
 	msg += realHost;
 	msg += ":";
@@ -377,7 +377,7 @@ DCView::GetHostAndPort(BString & host, int & port)
 {
 	int32 i;
 	BString realHost;
-	
+
 	// Parse the host for a server:port type address
 	if ((i = host.FindFirst(":")) != B_ERROR)
 	{
@@ -398,12 +398,12 @@ DCView::SendInfoToServer(bool update, bool send)
 		BString str;
 		int32 i;
 		bool b;
-		
+
 		if (fSettings->FindString(DCS_PREFS_NICK, &str) == B_OK)
 			fConn->SetNick(str);
 		else
 			fConn->SetNick("binky");
-		
+
 		if (fSettings->GetString(DCS_PREFS_EMAIL, &str) == B_OK)
 			fConn->SetEmail(str);
 		if (fSettings->GetString(DCS_PREFS_DESC, &str) == B_OK)
@@ -414,7 +414,7 @@ DCView::SendInfoToServer(bool update, bool send)
 			fConn->SetType(b ? DCConnection::ACTIVE : DCConnection::PASSIVE);
 		fConn->SetSharedSize((int64)65011712 * 1024);	// fake shared size of 62GB
 	}
-	
+
 	if (send && fConn->IsConnected())
 		fConn->SendMyInfo();
 }
@@ -474,10 +474,10 @@ DCView::InitGUI()
 	fText->SetStylable(true);
 	//fText->MakeResizable(true);
 	//fText->SetTextRect(BRect(2, 2, fText->Bounds().Width() - 2, fText->Bounds().Height() - 2));
-	
+
 	AddChild(
 		fUsers = new BColumnListView(BRect(fScrollText->Frame().right + 4, 0, Bounds().right - 2,
-									 fScrollText->Frame().bottom), "users_list", B_FOLLOW_RIGHT | B_FOLLOW_TOP_BOTTOM, 
+									 fScrollText->Frame().bottom), "users_list", B_FOLLOW_RIGHT | B_FOLLOW_TOP_BOTTOM,
 									 B_WILL_DRAW, B_FANCY_BORDER, true)
 	);
 	// Add columns to the CLV
@@ -496,7 +496,7 @@ DCView::InitGUI()
 	fUsers->AddColumn(
 		new BStringColumn(DCStr(STR_VIEW_SHARED), 100, 30, 400, 90), 4
 	);
-	
+
 	// Insert our input text control
 	AddChild(
 		fInput = new BTextControl(BRect(0, fScrollText->Frame().bottom + 5, Bounds().Width() - 2, Bounds().Height() - 2),
@@ -521,9 +521,9 @@ DCView::PrintSystem()
 	ta.runs[0].font = *be_bold_font;
 	ta.runs[0].offset = 0;
 	ta.runs[0].color = dc_app->GetColor(DC_COLOR_SYSTEM);
-	
+
 	BString str = DCStr(STR_MSG_SYSTEM);
-	
+
 	// Prepend the "System"
 	fText->Insert(fText->TextLength(), str.String(), str.Length(), &ta);
 }
@@ -536,9 +536,9 @@ DCView::PrintError()
 	ta.runs[0].font = *be_bold_font;
 	ta.runs[0].offset = 0;
 	ta.runs[0].color = dc_app->GetColor(DC_COLOR_ERROR);
-	
+
 	BString str = DCStr(STR_MSG_ERROR);
-	
+
 	// Prepend the "System"
 	fText->Insert(fText->TextLength(), str.String(), str.Length(), &ta);
 }
@@ -551,7 +551,7 @@ DCView::PrintText(BString str, bool newLine, int optColor)
 	ta.runs[0].offset = 0;
 	ta.runs[0].font = *be_plain_font;
 	ta.runs[0].color = dc_app->GetColor((optColor == -1) ? DC_COLOR_TEXT : optColor);
-	
+
 	if (newLine)
 		str += "\n";	// Add a new line
 	fText->Insert(fText->TextLength(), str.String(), str.Length(), &ta);
@@ -581,7 +581,7 @@ void
 DCView::LogUserLoggedIn(const BString & nick)
 {
 	bool b = GetScrollState();
-	
+
 	PrintSystem();
 	// Create a string including the nick
 	BString msg = DCStr(STR_MSG_USER_LOGGED_IN);
@@ -592,7 +592,7 @@ DCView::LogUserLoggedIn(const BString & nick)
 	fmt += msg;
 
 	PrintText(fmt);
-	
+
 	if (b)
 		ScrollToBottom();
 }
@@ -601,7 +601,7 @@ void
 DCView::LogUserLoggedOut(const BString & nick)
 {
 	bool b = GetScrollState();
-	
+
 	PrintSystem();
 	BString msg = DCStr(STR_MSG_USER_LOGGED_OUT);
 	BString fmt;
@@ -610,7 +610,7 @@ DCView::LogUserLoggedOut(const BString & nick)
 	fmt += nick;
 	fmt += msg;
 	PrintText(fmt);
-	
+
 	if (b)
 		ScrollToBottom();
 }
@@ -637,12 +637,12 @@ DCView::LogChatMessage(const BString & nick, const BString & text, bool remote)
 		ta.runs[0].offset = 0;
 		ta.runs[0].font = *be_bold_font;
 		ta.runs[0].color = dc_app->GetColor(remote ? DC_COLOR_REMOTE_NICK : DC_COLOR_LOCAL_NICK);
-		
+
 		BString n = nick;
 		n += ": ";
 		fText->Insert(fText->TextLength(), n.String(), n.Length(), &ta);
 	}
-	
+
 	BString str(text);
 	str.ReplaceAll("\r\n", "\n");
 	PrintText(str);
@@ -656,13 +656,13 @@ void
 DCView::LogPrivateChat(const BString & from, const BString & text, bool remote)
 {
 	bool b = GetScrollState();
-	
+
 	text_run_array ta;
 	ta.count = 1;
 	ta.runs[0].offset = 0;
 	ta.runs[0].font = *be_bold_font;
 	ta.runs[0].color = dc_app->GetColor(remote ? DC_COLOR_REMOTE_NICK : DC_COLOR_LOCAL_NICK);
-	
+
 	BString n;
 	if (remote)
 	{
@@ -677,11 +677,11 @@ DCView::LogPrivateChat(const BString & from, const BString & text, bool remote)
 		n += ": ";
 	}
 	fText->Insert(fText->TextLength(), n.String(), n.Length(), &ta);
-	
+
 	n = text;
 	n.ReplaceAll("\r\n", "\n");
 	PrintText(n, true, remote ? DC_COLOR_PRIVATE_TEXT : -1);
-	
+
 	if (b)
 		ScrollToBottom();
 }
@@ -690,7 +690,7 @@ bool
 DCView::GetScrollState()
 {
 	bool scroll = false;
-	
+
 	BScrollBar * bar = fScrollText->ScrollBar(B_VERTICAL);
 	if (bar)
 	{
@@ -700,7 +700,7 @@ DCView::GetScrollState()
 		if (bar->Value() >= max)
 			scroll = true;
 	}
-	
+
 	return scroll;
 }
 
@@ -731,13 +731,13 @@ DCView::ParseSendText()
 {
 	BString text = fInput->Text();
 	fInput->SetText("");
-	
+
 	if (!text.ICompare("/msg ", 5))
 	{
 		text.Remove(0, 5);
-		
+
 		DCUser * user = NULL;
-		
+
 		for (int32 j = 0; j < fUserList.CountItems(); j++)
 		{
 			user = fUserList.ItemAt(j);
@@ -748,13 +748,13 @@ DCView::ParseSendText()
 			}
 			user = NULL;	// for below failure
 		}
-		
+
 		if (!user)
 		{
 			LogError(DCStr(STR_MSG_USER_NOT_FOUND));
 			return;
 		}
-		
+
 		// You CAN send private messages to yourself, but i'm not
 		// going to let you :P
 		if (user->GetName() == fConn->GetNick())
@@ -769,8 +769,8 @@ DCView::ParseSendText()
 		priv += "> ";
 		priv += text;
 		priv += "|";
-		fConn->SendData(priv);	
-		LogPrivateChat(user->GetName(), text, false);	
+		fConn->SendData(priv);
+		LogPrivateChat(user->GetName(), text, false);
 	}
 	else if(!text.ICompare("/help", 5))
 	{
@@ -816,7 +816,7 @@ BString
 DCView::AutoCompleteNick(const BString & nick)
 {
 	BString ret = nick;
-	
+
 	for (int32 i = 0; i < fUserList.CountItems(); i++)
 	{
 		DCUser * user = fUserList.ItemAt(i);
@@ -827,7 +827,7 @@ DCView::AutoCompleteNick(const BString & nick)
 			break;
 		}
 	}
-	
+
 	return ret;
 }
 
@@ -844,7 +844,7 @@ DCView::UpdateLanguage()
 {
 	fInput->SetLabel(DCStr(STR_VIEW_CHAT));
 	fInput->SetDivider(fInput->TextView()->StringWidth(DCStr(STR_VIEW_CHAT)) + 7 );
-	
+
 	((BTitledColumn *)fUsers->ColumnAt(0))->SetTitle(DCStr(STR_VIEW_NAME));
 	((BTitledColumn *)fUsers->ColumnAt(1))->SetTitle(DCStr(STR_VIEW_SPEED));
 	((BTitledColumn *)fUsers->ColumnAt(2))->SetTitle(DCStr(STR_VIEW_DESC));

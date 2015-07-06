@@ -17,8 +17,8 @@ are met:
    notice, this list of conditions, and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
-3. Neither the name of the BeDC team nor the names of its 
-   contributors may be used to endorse or promote products derived from 
+3. Neither the name of the BeDC team nor the names of its
+   contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
@@ -30,7 +30,7 @@ DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
 AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "DCHTTPConnection.h"
 #include "DCNetSetup.h"
@@ -39,15 +39,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <ctype.h>
 
 const int DC_HTTP_RECV_BUFFER = 512;
 
-enum 
+enum
 {
 	DC_HTTP_MSG_SEND = 'dHmS',
 	DC_HTTP_MSG_CONNECT = 'dHmC'
-}; 
+};
 
 
 DCHTTPConnection::DCHTTPConnection(BMessenger target)
@@ -97,13 +98,13 @@ DCHTTPConnection::Connect(const BString & optServer, const BString & optFile)
 void
 DCHTTPConnection::InternalConnect()
 {
-	
+
 	sockaddr_in sockAddr;
 	memset(&sockAddr, 0, sizeof(sockAddr));
-	
+
 	sockAddr.sin_family = AF_INET;
 	sockAddr.sin_port = htons(80);
-	
+
 	// Get address
 	hostent * hostAddr = gethostbyname(fServer.String());
 	if (hostAddr)
@@ -144,7 +145,7 @@ DCHTTPConnection::ReceiveHandler(void * data)
 	char recvBuffer[DC_HTTP_RECV_BUFFER + 1];
 	BString socketBuffer = "";
 	int amountRead = 0;
-	
+
 	while (1)
 	{
 		memset(recvBuffer, 0, DC_HTTP_RECV_BUFFER + 1);
@@ -165,7 +166,7 @@ DCHTTPConnection::ReceiveHandler(void * data)
 			return -1;
 		}
 #endif
-		
+
 		if (amountRead == 0)	// that's it, our connection has been dropped by the server
 		{
 			// reset thread manually so it doesn't get killed
@@ -180,7 +181,7 @@ DCHTTPConnection::ReceiveHandler(void * data)
 			http->fTarget.SendMessage(DC_MSG_HTTP_DISCONNECTED);
 			return 0;	// success
 		}
-		
+
 		recvBuffer[amountRead] = 0;		// NULL-terminate
 		socketBuffer.Append(DCUTF8(recvBuffer));
 		int32 i;
@@ -212,16 +213,16 @@ DCHTTPConnection::MessageReceived(BMessage * msg)
 			}
 			break;
 		}
-		
+
 		case DC_HTTP_MSG_CONNECT:
 		{
 			InternalConnect();
 			break;
 		}
-		
+
 		default:
 			BLooper::MessageReceived(msg);
-			break;		
+			break;
 	}
 }
 
@@ -243,7 +244,7 @@ DCHTTPConnection::ParseIntoHubList()
 	BString name, server, desc;
 	uint32 users;
 	BString item;
-	
+
 	EmptyHubList(&fHubs);
 	for (i = fLines.begin(); i != fLines.end(); i++)
 	{
@@ -259,13 +260,13 @@ DCHTTPConnection::ParseIntoHubList()
 		desc = *iter++;
 		tmpUsers = *iter++;
 		users = atoi(tmpUsers.String());
-		
+
 		// Make sure we have a semi-valid server
 		if (server == "")
 			continue;	// invalid
 		if (server.Length() <= 4)	// i'd think it takes at least 5 characters for a domain name..
 			continue;
-		
+
 		#define DCUTF8(X) X
 		// Insert into hub list
 		Hub * hub = new Hub(DCUTF8(name.String()), DCUTF8(server.String()), DCUTF8(desc.String()), users);
@@ -279,7 +280,7 @@ DCHTTPConnection::GetHubsCopy()
 {
 	list<DCHTTPConnection::Hub *> * lst = new list<DCHTTPConnection::Hub *>;
 	list<DCHTTPConnection::Hub *>::iterator i;
-	
+
 	for (i = fHubs.begin(); i != fHubs.end(); i++)
 	{
 		Hub * newHub = new Hub;

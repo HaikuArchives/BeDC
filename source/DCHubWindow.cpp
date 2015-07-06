@@ -17,8 +17,8 @@ are met:
    notice, this list of conditions, and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
-3. Neither the name of the BeDC team nor the names of its 
-   contributors may be used to endorse or promote products derived from 
+3. Neither the name of the BeDC team nor the names of its
+   contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
@@ -30,12 +30,12 @@ DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
 AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "DCHubWindow.h"
 #include "DCStrings.h"
-#include "ColumnListView.h"
-#include "ColumnTypes.h"
+#include <private/interface/ColumnListView.h>
+#include <private/interface/ColumnTypes.h>
 #include "DCApp.h"
 
 #include <View.h>
@@ -60,10 +60,10 @@ DCHubWindow::DCHubWindow(BMessenger target, BRect pos)
 			  B_TITLED_WINDOW, B_ASYNCHRONOUS_CONTROLS | B_OUTLINE_RESIZE)
 {
 	SetMessageTarget(target);
-	
+
 	InitGUI();
 	fList = NULL;
-	
+
 	fHubs = new list<DCHTTPConnection::Hub *>;
 	RestoreList();
 }
@@ -89,7 +89,7 @@ DCHubWindow::MessageReceived(BMessage * msg)
 		case DC_MSG_APP_UPDATE_LANG:
 			UpdateLanguage();
 			break;
-		
+
 		case HUB_CONNECT:
 		{
 			BMessage msg(DC_MSG_HUB_CONNECT);
@@ -103,7 +103,7 @@ DCHubWindow::MessageReceived(BMessage * msg)
 			fTarget.SendMessage(&msg);
 			break;
 		}
-		
+
 		case HUB_REFRESH:
 		{
 			if (!fList)
@@ -116,7 +116,7 @@ DCHubWindow::MessageReceived(BMessage * msg)
 			}
 			break;
 		}
-		
+
 		case HUB_NEXT50:
 		{
 			if (fNextOffset < (int)fHubs->size())
@@ -127,7 +127,7 @@ DCHubWindow::MessageReceived(BMessage * msg)
 			}
 			break;
 		}
-		
+
 		case HUB_PREV50:
 		{
 			if (fOffset > 0)
@@ -138,42 +138,42 @@ DCHubWindow::MessageReceived(BMessage * msg)
 			}
 			break;
 		}
-				
+
 		case DC_MSG_HTTP_CONNECTED:
 		{
-			fList->SendListRequest();			
+			fList->SendListRequest();
 			fStatus->SetText(DCStr(STR_STATUS_CONNECTED));
 			break;
 		}
-		
+
 		case DC_MSG_HTTP_DISCONNECTED:
 		{
 			HandleDisconnect();
 			CleanUpConnection();
 			break;
 		}
-		
+
 		case DC_MSG_HTTP_CONNECT_ERROR:
 		{
 			fStatus->SetText(DCStr(STR_STATUS_CONNECT_ERROR));
 			CleanUpConnection();
 			break;
 		}
-			
+
 		case DC_MSG_HTTP_SEND_ERROR:
 		{
 			fStatus->SetText(DCStr(STR_STATUS_SEND_ERROR));
 			CleanUpConnection();
 			break;
 		}
-			
+
 		case DC_MSG_HTTP_RECV_ERROR:
 		{
 			fStatus->SetText(DCStr(STR_STATUS_RECV_ERROR));
 			CleanUpConnection();
 			break;
 		}
-			
+
 		default:
 			BWindow::MessageReceived(msg);
 			break;
@@ -204,47 +204,47 @@ void
 DCHubWindow::InitGUI()
 {
 	AddChild(
-		fView = new BView(BRect(0, 0, Frame().Width(), Frame().Height()), "the_view", 
+		fView = new BView(BRect(0, 0, Frame().Width(), Frame().Height()), "the_view",
 						  B_FOLLOW_ALL, 0)
 	);
 	fView->SetViewColor(216, 216, 216);
-	
+
 	float height = fView->Frame().Height() - 35;
-	
+
 	fView->AddChild(
 		fHubView = new BColumnListView(BRect(3, 3, fView->Frame().Width() - 6, height),
-									   "the_list_view", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP_BOTTOM, 
+									   "the_list_view", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP_BOTTOM,
 									   B_WILL_DRAW, B_FANCY_BORDER)
 	);
-	
+
 	float top = height + 5;
 	float bottom = fView->Frame().Height();
 	float left = fView->Frame().Width() - 348 /*158*/;
 	height = fView->Frame().Width() - 3;	// var reuse ;)
-	
+
 	fView->AddChild(
-		fButtonView = new BView(BRect(left, top, height, bottom), "button_view", 
+		fButtonView = new BView(BRect(left, top, height, bottom), "button_view",
 								B_FOLLOW_RIGHT | B_FOLLOW_BOTTOM, B_WILL_DRAW)
 	);
 	fButtonView->SetViewColor(216, 216, 216);
-	
+
 	fButtonView->AddChild(/* 0, 0, 80, 28 */
 		fConnect = new BButton(BRect(3, 3, 87, 25), "b_connect", DCStr(STR_HUB_CONNECT),
 							   new BMessage(HUB_CONNECT), B_FOLLOW_LEFT | B_FOLLOW_BOTTOM)
 	);
 	fConnect->MakeDefault(true);
-	
+
 	fButtonView->AddChild(
 		fRefresh = new BButton(BRect(95, 0, 175, 28), "b_refresh",
-							   DCStr(STR_HUB_REFRESH), new BMessage(HUB_REFRESH), 
+							   DCStr(STR_HUB_REFRESH), new BMessage(HUB_REFRESH),
 							   B_FOLLOW_LEFT | B_FOLLOW_BOTTOM)
 	);
-	
+
 	fButtonView->AddChild(
-		fPrev = new BButton(BRect(180, 0, 260, 28), "b_prev", DCStr(STR_HUB_PREV50), 
+		fPrev = new BButton(BRect(180, 0, 260, 28), "b_prev", DCStr(STR_HUB_PREV50),
 							new BMessage(HUB_PREV50), B_FOLLOW_LEFT | B_FOLLOW_BOTTOM)
 	);
-	
+
 	fButtonView->AddChild(
 		fNext = new BButton(BRect(265, 0, 345, 28), "b_next", DCStr(STR_HUB_NEXT50),
 							new BMessage(HUB_NEXT50), B_FOLLOW_LEFT | B_FOLLOW_BOTTOM)
@@ -252,11 +252,11 @@ DCHubWindow::InitGUI()
 
 	fView->AddChild(
 		fStatus = new BStringView(BRect(5, bottom - 15, left, bottom - 3),
-								  "status_bar", DCStr(STR_STATUS_IDLE), 
+								  "status_bar", DCStr(STR_STATUS_IDLE),
 								  B_FOLLOW_LEFT_RIGHT | B_FOLLOW_BOTTOM)
 	);
-	
-		
+
+
 	// Setup the columns in the list view
 	fHubView->AddColumn(
 		new BStringColumn(DCStr(STR_SERVER_NAME), 150, 30, 300, 285, B_ALIGN_LEFT), 0
@@ -270,7 +270,7 @@ DCHubWindow::InitGUI()
 	fHubView->AddColumn(
 		new BIntegerColumn(DCStr(STR_SERVER_USERS), 50, 30, 100, B_ALIGN_RIGHT), 3 // Made the max size bigger to fit the norwegian translation --Vegard
 	);
-	
+
 	AddItem("Test Server", "192.168.0.2", "Just a test server... for your viewing pleasure :)", 5);
 }
 
@@ -293,12 +293,12 @@ DCHubWindow::HandleDisconnect()
 	list<DCHTTPConnection::Hub *>::iterator i;
 	list<DCHTTPConnection::Hub *> * hubs = fList->GetHubsCopy();
 	fList->EmptyHubList();
-	
+
 	BString strStatus;
 	strStatus << DCStr(STR_STATUS_NUM_SERVERS);
 	strStatus << (int)hubs->size();
 	fStatus->SetText(strStatus.String());
-	
+
 	// Archive the string
 	for (i = hubs->begin(); i != hubs->end(); i++)
 	{
@@ -308,13 +308,13 @@ DCHubWindow::HandleDisconnect()
 		archive->AddString("desc", (*i)->fDesc);
 		archive->AddInt32("users", (*i)->fUsers);
 	}
-	
+
 	// Now save the archive to file
 	BFile file(HUB_WIN_ARCHIVE, B_READ_WRITE | B_CREATE_FILE | B_ERASE_FILE);
 	if (file.InitCheck() == B_OK)
 		archive->Flatten(&file);
 	delete archive;
-	
+
 	fHubs = hubs;	// keep a pointer to it.. it's OK.. it's a copy
 
 	fOffset = 0;
@@ -326,9 +326,9 @@ void
 DCHubWindow::RestoreList()
 {
 	BFile file(HUB_WIN_ARCHIVE, B_READ_ONLY);
-	
+
 	fList->EmptyHubList(fHubs);
-	
+
 	if (file.InitCheck() == B_OK)
 	{
 		BMessage * archive = new BMessage;
@@ -351,7 +351,7 @@ DCHubWindow::RestoreList()
 			BString status(DCStr(STR_STATUS_NUM_SERVERS));
 			status << (int)fHubs->size();
 			fStatus->SetText(status.String());
-			
+
 			fOffset = 0;
 			fNextOffset = 50;
 			ListSomeItems();
@@ -399,6 +399,6 @@ DCHubWindow::UpdateLanguage()
 	((BTitledColumn *)fHubView->ColumnAt(3))->SetTitle(DCStr(STR_SERVER_USERS));
 	fHubView->Hide();
 	fHubView->Show();
-	
+
 	SetTitle(DCStr(STR_HUB_WINDOW_TITLE));
 }

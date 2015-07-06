@@ -17,8 +17,8 @@ are met:
    notice, this list of conditions, and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
-3. Neither the name of the BeDC team nor the names of its 
-   contributors may be used to endorse or promote products derived from 
+3. Neither the name of the BeDC team nor the names of its
+   contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
@@ -30,7 +30,7 @@ DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
 AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <unistd.h>
@@ -58,16 +58,16 @@ DCConnection::DCConnection(BMessenger target, const BString & host, int port)
 	fTarget = target;
 	fType = ACTIVE;
 	fSharedSize = 10*1024*1024;
-	
+
 	fSpeed = "";
 	fEmail = "";
 	fNick = "";
 	fDesc = "";
 	fHost = "";
 	fPort = 0;
-	
+
 	Run();	// start the looper
-	
+
 	fLocker = create_sem(1, "dcc_sem");
 	if (fLocker < B_OK)
 		debugger("Couldn't create semaphore!");
@@ -167,13 +167,13 @@ DCConnection::MessageReceived(BMessage * msg)
 			}
 			break;
 		}
-		
+
 		case DCC_CONNECT:
 		{
 			InternalConnect();
 			break;
 		}
-		
+
 		default:
 			BLooper::MessageReceived(msg);
 			break;
@@ -185,11 +185,11 @@ DCConnection::InternalConnect()
 {
 	// Notify our target
 	fTarget.SendMessage(DC_MSG_CON_CONNECTING);
-	
+
 	sockaddr_in sockAddr;
-	
+
 	memset(&sockAddr, 0, sizeof(sockAddr));
-	
+
 	sockAddr.sin_family = AF_INET;
 	sockAddr.sin_port = htons(fPort);
 	hostent * hostAddr = gethostbyname(fHost.String());
@@ -214,7 +214,7 @@ DCConnection::InternalConnect()
 			}
 		}
 	}
-	
+
 	// Failure
 	fTarget.SendMessage(DC_MSG_CON_CONNECT_ERROR);
 }
@@ -224,13 +224,13 @@ DCConnection::ReceiveHandler(void * d)
 {
 	DCConnection * me = (DCConnection *)d;
 	BString str1 = "", str2 = "";
-	
+
 	while (me->fConnected)
 	{
 		int ret = me->Sender();
 		if (!me->fConnected)	// paranoia check
 			break;
-			
+
 		if (ret == 0)
 		{
 			me->SendMessage(DC_MSG_CON_DISCONNECTED);
@@ -245,12 +245,12 @@ DCConnection::ReceiveHandler(void * d)
 			//return -1;
 			break;
 		}
-		
+
 		str2 = "";
 		ret = me->Reader(str2);
 		if (!me->fConnected)	// paranoia check
 			break;
-			
+
 		if (ret == 0)	// disconnect
 		{
 			me->SendMessage(DC_MSG_CON_DISCONNECTED);
@@ -265,10 +265,10 @@ DCConnection::ReceiveHandler(void * d)
 			//return -1;
 			break;
 		}
-		
+
 		if (str2 != "")	// if str2 == "", then recv() was going to block and we couldn't read anything
 			str1.Append(str2);
-		
+
 		// got a command, figure out what it is
 		int i = 0;
 		while ((i = str1.FindFirst("|")) != B_ERROR)
@@ -276,7 +276,7 @@ DCConnection::ReceiveHandler(void * d)
 			str2 = "";
 			str1.MoveInto(str2, 0, i);
 			str1.Remove(0, 1);;
-			
+
 			if (!str2.Compare("$Lock ", 6))
 			{
 				me->LockReceived(str2);
@@ -354,7 +354,7 @@ DCConnection::ReceiveHandler(void * d)
 			}
 			else if (!str2.Compare("$ForceMove ", 11)) // They don't want us here :(
 			{
-				str2.RemoveFirst("$ForceMove");	
+				str2.RemoveFirst("$ForceMove");
 				str2.RemoveFirst(" ");	// This is separate in case we have a force move w/out a server
 				me->SendMessage(DC_MSG_CON_FORCE_MOVE, "ip", str2);
 			}
@@ -370,12 +370,12 @@ DCConnection::ReceiveHandler(void * d)
 			else if(!str2.Compare("<",1)) // Chat message
 			{
 				BString name;
-				
+
 				// The message is in the form: <username> text
 				str2.RemoveFirst("<");
 				str2.MoveInto(name, 0, str2.FindFirst(">"));
 				str2.RemoveFirst("> ");
-				
+
 				BMessage msg(DC_MSG_CON_CHAT_MSG);
 				msg.AddString("nick", name);
 				msg.AddString("text", str2);
@@ -391,12 +391,12 @@ DCConnection::ReceiveHandler(void * d)
 			}
 		}
 		// Don't hog CPU, sleep 1/2 sec
-/*#ifdef BONE_BUILD		
+/*#ifdef BONE_BUILD
 		snooze(500000);
 #endif*/
 	}
 
-//#ifdef NETSERVER_BUILD	
+//#ifdef NETSERVER_BUILD
 	CLOSE_SOCKET(me->fSocket);
 	me->fSocket = -1;
 	me->fThreadID = -1;
@@ -463,7 +463,7 @@ DCConnection::Reader(BString & ret)
 	BString converted = "";
 	int r = 0;
 	int totalRead = 0;
-	
+
 	while (fConnected)
 	{
 		fd_set set;
@@ -472,8 +472,8 @@ DCConnection::Reader(BString & ret)
 		struct timeval tv;	// setup for .5 sec so we can send too
 		tv.tv_sec = 0;
 		tv.tv_usec = 500000;
-		
-		
+
+
 		r = select(fSocket + 1, &set, NULL, NULL, &tv);
 		if (r == 0)	// timeout
 		{
@@ -487,7 +487,7 @@ DCConnection::Reader(BString & ret)
 		{
 			return -1;	// error
 		}
-		
+
 		if (!FD_ISSET(fSocket, &set))
 		{
 			return -1;
@@ -505,12 +505,12 @@ DCConnection::Reader(BString & ret)
 			}
 			return r == 0 ? 0 : -1;	// return -1 for error, and 0 for disconnect
 		}
-		
+
 		totalRead += r;
 		recvBuffer[r] = 0;	// null terminate
 		converted.Append(DCUTF8(recvBuffer));
 	}
-	
+
 	return -1;
 }
 
@@ -520,36 +520,36 @@ DCConnection::MultiConnectToMeReceived(BString str)
 	BString nick, ip, sip, tmp;
 	int32 port, sport;
 	int32 i;
-	
+
 	str.RemoveFirst("$MultiConnectToMe ");
-	
+
 	i = str.FindFirst(" ");
 	str.MoveInto(nick, 0, i);
 	str.RemoveFirst(" ");
-	
+
 	i = str.FindFirst(":");
 	str.MoveInto(ip, 0, i);
 	str.RemoveFirst(":");
-	
+
 	i = str.FindFirst(" ");
 	str.MoveInto(tmp, 0, i);
 	str.RemoveFirst(" ");
 	port = atoi(tmp.String());
-	
+
 	i = str.FindFirst(":");
 	str.MoveInto(sip, 0, i);
 	str.RemoveFirst(":");
-	
+
 	sport = atoi(str.String());
-	
-	
+
+
 	BMessage msg(DC_MSG_CON_CONNECT_TO_ME);
 	msg.AddString("nick", nick);
 	msg.AddString("ip", ip);
 	msg.AddInt32("port", port);
 	msg.AddString("sip", sip);
 	msg.AddInt32("sport", sport);
-	
+
 	fTarget.SendMessage(&msg);
 }
 
@@ -559,7 +559,7 @@ DCConnection::ConnectToMeReceived(BString str)
 	BString nick, ip;
 	int32 port;
 	int32 i;
-	
+
 	str.RemoveFirst("$ConnectToMe ");
 	i = str.FindFirst(" ");
 	str.MoveInto(nick, 0, i);
@@ -568,7 +568,7 @@ DCConnection::ConnectToMeReceived(BString str)
 	str.MoveInto(ip, 0, i);
 	str.RemoveFirst(":");
 	port = atoi(str.String());
-	
+
 	BMessage msg(DC_MSG_CON_CONNECT_TO_ME);
 	msg.AddString("nick", nick);
 	msg.AddString("ip", ip);
@@ -586,7 +586,7 @@ DCConnection::ToReceived(BString str)
 	{
 		str.RemoveFirst(fNick);
 		str.RemoveFirst(" From: ");
-		
+
 		BString from;
 		str.MoveInto(from, 0, str.FindFirst(" "));
 		str.RemoveFirst(" $<");
@@ -608,7 +608,7 @@ DCConnection::HelloReceived(BString str)
 	// Someone just entered the hub
 	// If it's us, identify ourselves ;)
 	str.RemoveFirst("$Hello ");
-	if (str.Compare(fNick) == 0)	// it's us 
+	if (str.Compare(fNick) == 0)	// it's us
 	{
 		SendVersion();
 		SendNickListRequest();
@@ -628,13 +628,13 @@ DCConnection::LockReceived(BString str)
 	str.Remove(i, str.Length() - i);
 
 	BString key = DCConnection::GenerateKey(str);
-	
+
 	key.Prepend("$Key ");
 	key += "|";
-	
+
 	SendRawData(key);
-	
-	
+
+
 	// Alscommando, send our nick too
 	ValidateNick();
 }
@@ -665,7 +665,7 @@ DCConnection::GenerateKey(BString & lck)
 {
 	BString key("", 2048);
 	char c, v;
-	
+
 	for (int i = 0; i < lck.Length(); i++)
 	{
 		if (i == 0)
@@ -673,9 +673,9 @@ DCConnection::GenerateKey(BString & lck)
 			c = lck[i] ^ lck[lck.Length() - 1] ^ lck[lck.Length() - 2] ^ 5;
 		else
 			c = lck[i] ^ lck[i - 1]; // XOR with previous char
-		
+
 		v = c << 4 | c >> 4; // Shift some bits around :)
-		
+
 		if (v == 0 || v == 5 || v == 36 || v == 96 || v == 124 || v == 126)	// escape
 		{
 			char buf[11];
@@ -702,9 +702,9 @@ void
 DCConnection::SendVersion(const BString & version)
 {
 	BString v("$Version ");
-	v.Append((version == "") ? "2,1191" : version);
+	v.Append((version == "") ? "2,1191" : version.String());
 	v += "|";
-	SendRawData(v);	
+	SendRawData(v);
 }
 
 void
@@ -772,7 +772,7 @@ DCConnection::MyInfoReceived(BString str)
 	str.RemoveFirst("$");
 	str.MoveInto(tmp, 0, str.FindFirst("$"));
 	size = atoll(tmp.String());
-	
+
 	BMessage msg(DC_MSG_CON_USER_INFO);
 	msg.AddString("nick", nick);
 	msg.AddString("desc", desc);
@@ -799,7 +799,7 @@ DCConnection::TrimString(BString & str)
 		return;
 	while (str[0] == ' ')
 		str.Remove(0, 1);
-	
+
 	// Added str.Length() > 0 to defeat a crash
 	// that happend when length was 0 (man i feel stupid...)
 	while (str.Length() > 0 && str[str.Length() - 1] == ' ')

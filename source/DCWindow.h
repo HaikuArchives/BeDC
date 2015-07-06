@@ -17,8 +17,8 @@ are met:
    notice, this list of conditions, and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
-3. Neither the name of the BeDC team nor the names of its 
-   contributors may be used to endorse or promote products derived from 
+3. Neither the name of the BeDC team nor the names of its
+   contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
@@ -30,7 +30,7 @@ DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
 AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #ifndef _DC_WINDOW_H_
 #define _DC_WINDOW_H_
@@ -39,11 +39,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <Window.h>
 #include <String.h>
+#include <ListView.h>
 
 class BView;
 class BMenuBar;
 class BMenu;
 class BListView;
+class BTextView;
 class BScrollView;
 class BStringItem;
 class DCStatusBar;
@@ -60,7 +62,7 @@ enum
 	// DCView will send this to the window on a /close
 	// command
 	//	'view'	pointer	--> The view to close
-	DC_MSG_CLOSE_VIEW = 'msCV'	
+	DC_MSG_CLOSE_VIEW = 'msCV'
 };
 
 class DCWindow : public BWindow
@@ -68,11 +70,11 @@ class DCWindow : public BWindow
 public:
 						DCWindow(BRect pos = BRect(30, 70, 730, 530));
 	virtual				~DCWindow();
-	
+
 	virtual void		MessageReceived(BMessage * msg);
 	virtual void		DispatchMessage(BMessage * msg, BHandler * target);
 	virtual bool		QuitRequested();
-	
+
 private:
 	BView *				fParentView;	// The main view everything gets slapped into
 	BMenuBar *			fMenuBar;
@@ -83,7 +85,7 @@ private:
 	BScrollView *		fScrollHubs;
 	DCWindowListView *	fHubs;
 	DCStatusBar *		fStatusBar;		// The status bar (Doh..)
-	
+
 	struct Container
 	{
 		BString 		fServerName;
@@ -93,16 +95,16 @@ private:
 		BStringItem *	fListItem;
 	};
 	typedef BObjectList<Container> ViewList;
-	
+
 	ViewList			fViewList;
-	
+
 	void				InitGUI();
 	void				OpenNewConnection(const BString & name, const BString & addr,
 										  const BString & desc);
 	void				HideAll();
 	void				ShowItem(BListItem * item);
 	void				ShowFirstHub();
-	
+
 	Container *			FindItem(BListItem * item);
 	Container *			FindItem(const BString & name);	// find item by server name
 	Container *			FindItem(DCView * item);
@@ -110,7 +112,7 @@ private:
 	// This is a helper for DispatchMessage()
 	// for tab-completion
 	DCView *			FindOwner(BTextView * tv);
-	
+
 	void				InitializeLanguage(int lang);
 };
 
